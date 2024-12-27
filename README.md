@@ -65,11 +65,11 @@ You can also string together `--search` (or `-s`) along with other commands (e.g
 
 ## Configuration files
 
-Program runtime settings: Customise runtime settings in `./configs/settings.yaml`
-JSON Profile Configurations: Define search criteria in JSON files located in `./configs/*.json`
-User Profile for AI-ranking: Define a ranking profile in `./configs/user_profile.txt`
-For detailed configuration instructions, see: `./docs/json-profiles.pdf`
-Local LLM Support: see details in `./docs/bla.pdf`
+- Runtime settings: Customise runtime settings in `./configs/settings.yaml`
+
+- JSON Profile Configurations: Define search criteria in JSON files located in `./configs/*.json`
+
+- User Profile (for AI-ranking): Define a ranking profile in `./configs/user_profile.txt`
 
 ## License
 
