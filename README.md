@@ -1,6 +1,6 @@
 # arXivScraper
 
-**arXivScraper** is a lightweight paper management tool designed to help you find, filter, and rank new arXiv papers based on your research interests. It offers flexible search and ranking criteria, as well as seamless integration with Obsidian.
+**arXivScraper** is a lightweight paper management tool designed to help you find, filter, and rank new arXiv papers based on your research interests. It offers flexible search and ranking criteria, as well as seamless integration with Obsidian. This project was the foundations from which [ChiScraper](https://github.com/ChiScraper/ChiScraper) added many useful extensions. `ChiScraper` has now surpassed `arXivScraper`, and I suggest you go check it out instead (see more details [here](https://chiscraper.github.io/)).
 
 ![Logo](./logo.jpg)
 
@@ -71,10 +71,6 @@ User Profile for AI-ranking: Define a ranking profile in `./configs/user_profile
 For detailed configuration instructions, see: `./docs/json-profiles.pdf`
 Local LLM Support: see details in `./docs/bla.pdf`
 
-## Contributing
-
-Contributions are welcome! Please submit issues and pull requests on GitHub.
-
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
