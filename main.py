@@ -73,7 +73,6 @@ class ArxivScraper():
   def downloadPDFs(self):
     WWFnFs.createDirectory(Directories.directory_pdfs, bool_add_space=True)
     list_article_dicts = WWArticles.readAllMarkdownFiles()
-    ## download markdown files (articles) that have been flaged `-d`
     DownloadArticles.downloadPDFs(list_article_dicts)
 
 
