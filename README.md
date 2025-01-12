@@ -35,8 +35,6 @@ Customise paper ranking with a personal profile (defined in ./configs/user_profi
 
 ```python main.py --rank```
 
-Note: Local LLM support is under development (refer to `./docs/bla.pdf` for updates).
-
 ### 4. Read, Download, Remove (via Obsidian)
 Using Obsidian for paper management, create a vault in the project folder (default settings provided). With Obsidian, you can:
 
