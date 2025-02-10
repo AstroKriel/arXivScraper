@@ -10,37 +10,35 @@
 
 ### 1. Find Papers
 
-Define your paper search criteria in a JSON configuration file, specifying:
+`arXivScraper` allows you to create different topics or research categories, where you can calibrate each category's filtering criteria to find you the papers you care about. You can define
 - Relevant arXiv categories to search
-- Keywords or phrases and logical relationships for paper filtering
-- Flexible criteria for creating paper groups or categories
-
-Your custom JSON profile allows granular search definitions (see `./docs/json-profiles.pdf` for detailed examples). With a `./configs/settings.yaml` file, specify:
-- The desired time frame to search
-- Which JSON-configuration to use
+- Keywords or phrases to filter by, as well as logical relationships between these words/phrases
+See `./docs/search-profiles.md` for examples.
 
 To start a search, use:
 
 ```python main.py --search```
 
+You will be promted to pass the config-name of the research category (`.json` file containing the filtering criatera) you want to search for.
+
 ### 2. Fetch a Paper
-Fetch a specific paper by its arXiv ID with the command:
+Fetch a specific paper by passing its arXiv ID:
 
 ```python main.py --fetch --download```
 
 You’ll be prompted to enter the paper’s arXiv ID. The script will display the paper’s title, author list, and abstract for confirmation. Use `--download` (or `-d`) as an optional flag to download the PDF.
 
 ### 3. Rank Papers
-Customise paper ranking with a personal profile (defined in ./configs/user_profile.txt) and get tailored ranking that suits your interests. This feature uses OpenAI’s GPT API, which requires token purchases. Initiate the ranking process via:
+Customise paper ranking with a personal profile (defined in `./configs/user_profile.txt`) and get a tailored ranking that suits your interests. This feature uses OpenAI’s GPT API, which requires you to purchace access tokens. See `./docs/ai-ranking.md` for details on how to set this up. Once you've done so, initiate the ranking process via:
 
 ```python main.py --rank```
 
 ### 4. Read, Download, Remove (via Obsidian)
-Using Obsidian for paper management, create a vault in the project folder (default settings provided). With Obsidian, you can:
+You can use Obsidian to manage your papers, and interface with `arXivScraper`. Create a vault in the project folder (I have provided default settings under `.Obsidian`).
 
-- View and manage papers in your unread list
+With Obsidian, you can:
+- View, manage, and filter papers based on your research categories, or their published/updated dates
 - Add papers to your "to-read" or "to-download" lists
-- Filter out irrelevant papers from your lists
 
 ## Installation
 
