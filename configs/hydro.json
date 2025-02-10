@@ -1,0 +1,14 @@
+{
+  "list_authors" : [ ],
+  "list_categories" : [
+    "astro-ph.GA",
+    "astro-ph.HE",
+    "astro-ph.SR",
+    "physics.plasm-ph",
+    "physics.flu-dyn"
+  ],
+  "list_keywords_exclude" : [ ],
+  "list_keywords_include" : [
+    "turb"
+  ]
+}
