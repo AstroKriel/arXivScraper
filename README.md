@@ -10,7 +10,7 @@
 
 ### 1. Find Papers
 
-`arXivScraper` allows you to create different topics or research categories, where you can calibrate each category's filtering criteria to find you the papers you care about. You can define
+`arXivScraper` allows you to create different topics or research categories, where you can calibrate each category's filtering criteria to find you exactly the papers you want to read. The API allows you to define:
 - Relevant arXiv categories to search
 - Keywords or phrases to filter by, as well as logical relationships between these words/phrases
 See `./docs/search-profiles.md` for examples.
@@ -19,7 +19,7 @@ To start a search, use:
 
 ```python main.py --search```
 
-You will be promted to pass the config-name of the research category (`.json` file containing the filtering criatera) you want to search for.
+You will be promted to pass the config-name of the research category (the `.json` file storing your filter criateria) you want to search.
 
 ### 2. Fetch a Paper
 Fetch a specific paper by passing its arXiv ID:
