@@ -1,8 +1,7 @@
 ## ###############################################################
-## LOAD MODULES
+## DEPENDANCIES
 ## ###############################################################
 import sys, re, argparse
-
 from src.headers import Directories
 from src.headers import WWFnFs
 

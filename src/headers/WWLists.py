@@ -1,5 +1,5 @@
 ## ###############################################################
-## HELPER FUNCTIONS
+## DEPENDANCIES
 ## ###############################################################
 def shortenList(list_elems, max_elems=5):
   list_sub_elems = [

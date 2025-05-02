@@ -1,8 +1,7 @@
 ## ###############################################################
-## LOAD MODULES
+## DEPENDANCIES
 ## ###############################################################
 import sys, unittest
-
 from src.headers import WWLists
 
 

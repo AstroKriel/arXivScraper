@@ -1,5 +1,5 @@
 ## ###############################################################
-## LOAD MODULES
+## DEPENDANCIES
 ## ###############################################################
 import os, re, yaml, unidecode
 
@@ -36,7 +36,6 @@ def printArticle(dict_article, num_pad_chars=13):
     category = f"{category}".ljust(num_pad_chars)
     print(f"{category}: {content}")
   ## print article information
-  ## debug: printDict(dict_article)
   _printLine("Title",        dict_article["title"])
   _printLine("PDF URL",      dict_article["url_pdf"])
   _printLine("Date Updated", WWDates.castDate2String(dict_article["date_updated"]))
