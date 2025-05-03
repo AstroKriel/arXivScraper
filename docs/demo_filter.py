@@ -2,13 +2,13 @@
 ## DEPENDANCIES
 ## ###############################################################
 import sys
-from src.headers import WWLists
+from arXivScraper.utils import filter_criteria
 
 
 ## ###############################################################
 ## HELPER FUNCTION
 ## ###############################################################
-def printHeading(str):
+def print_heading(str):
   print(str)
   print("=" * len(str))
   return
@@ -18,24 +18,24 @@ def printHeading(str):
 ## DEMO PROGRAM
 ## ###############################################################
 def main():
-  list_phrases    = []
-  for animal in [ "fox", "turtle", "cow" ]:
-    for action in [ "jumped", "leaped" ]:
-      for object in [ "moon", "log", "river" ]:
-        list_phrases.append(f"the {animal} {action} over the {object}")
-  printHeading("List of phrases:")
-  print("\n".join(list_phrases))
-  print(" ")
-  ## "fox" AND ("jumped" OR "river")
-  list_search_conditions = [
-    [ "fox", ["jumped", "river"] ]
+  phrases = [
+    f"the {animal} {action} over the {object}"
+    for animal in [ "fox", "turtle", "cow" ]
+    for action in [ "jumped", "leaped" ]
+    for object in [ "moon", "log", "river" ]
   ]
-  printHeading("Search condition:")
-  print(WWLists.lolsToSetNotation(list_search_conditions))
+  print_heading("List of phrases:")
+  print("\n".join(phrases))
   print(" ")
-  printHeading("List of phrases that met the search conditions:")
-  for phrase in list_phrases:
-    if WWLists.meetsSearchCriteria(phrase, list_search_conditions):
+  list_search_conditions = [
+    [ "fox", ["jumped", "river"] ], # "fox" AND ("jumped" OR "river")
+  ]
+  print_heading("Search condition:")
+  print(filter_criteria.lols_to_set_notation(list_search_conditions))
+  print(" ")
+  print_heading("List of phrases that met the search conditions:")
+  for phrase in phrases:
+    if filter_criteria.meets_search_criteria(phrase, list_search_conditions):
       print(phrase)
 
 
@@ -44,7 +44,7 @@ def main():
 ## ###############################################################
 if __name__ == "__main__":
   main()
-  sys.exit()
+  sys.exit(0)
 
 
 ## END OF DEMO PROGRAM

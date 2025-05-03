@@ -1,19 +1,31 @@
 ## ###############################################################
 ## DEPENDANCIES
 ## ###############################################################
-import os, re, yaml, unidecode
-
-from src.headers import Directories
-from src.headers import WWFnFs
-from src.headers import WWLists
-from src.headers import IO
-from src.headers import WWDates
+import os
+import re
+import yaml
+import unidecode
+from arXivScraper.utils import dates, file_io, filter_criteria
+from arXivScraper.config import directories
 
 
 ## ###############################################################
 ## HELPER FUNCTION
 ## ###############################################################
-def formatText(text):
+def truncate_list(list_elems, max_elems=5):
+  list_sub_elems = [
+    str(elem) if (elem_index < max_elems+1)
+    else "..." if (elem_index == max_elems+1)
+    else None
+    for elem_index, elem in enumerate(list_elems)
+  ]
+  return [
+    elem
+    for elem in list_sub_elems
+    if elem is not None
+  ]
+
+def format_text(text):
   ## adjust text for things that go wrong with Obsidian's tex-rendering
   text = text.replace("#", "")
   text = text.replace("\'", "")
@@ -29,40 +41,40 @@ def formatText(text):
 ## ###############################################################
 ## PRINT ARTICLE CONTENTS
 ## ###############################################################
-def printArticle(dict_article, num_pad_chars=13):
+def print_article(dict_article, num_pad_chars=13):
   ## helper function
-  def _printLine(category, content):
+  def _print_line(category, content):
     if isinstance(content, list): content = ", ".join(content)
     category = f"{category}".ljust(num_pad_chars)
     print(f"{category}: {content}")
   ## print article information
-  _printLine("Title",        dict_article["title"])
-  _printLine("PDF URL",      dict_article["url_pdf"])
-  _printLine("Date Updated", WWDates.castDate2String(dict_article["date_updated"]))
-  _printLine("Author(s)",    dict_article["authors"])
+  _print_line("Title",        dict_article["title"])
+  _print_line("PDF URL",      dict_article["url_pdf"])
+  _print_line("Date Updated", dates.cast_date_to_string(dict_article["date_updated"]))
+  _print_line("Author(s)",    dict_article["authors"])
   return
 
 
 ## ###############################################################
 ## SAVE FILE TO MARKDOWN
 ## ###############################################################
-def writeArticleContent2File(filepointer, dict_article):
+def write_article_to_file(filepointer, dict_article):
   ## helper functions
-  def _formatListIfDefined(content):
+  def _format_list_if_defined(content):
     if not content: return None
     return content
   ## prepare the YAML frontmatter
   yaml_content = {
-    "title":            formatText(dict_article["title"]),
+    "title":            format_text(dict_article["title"]),
     "arxiv_id":         dict_article["arxiv_id"],
     "url_pdf":          dict_article["url_pdf"],
-    "date_published":   WWDates.castDate2String(dict_article["date_published"]),
-    "date_updated":     WWDates.castDate2String(dict_article["date_updated"]),
+    "date_published":   dates.cast_date_to_string(dict_article["date_published"]),
+    "date_updated":     dates.cast_date_to_string(dict_article["date_updated"]),
     "category_primary": dict_article["category_primary"],
-    "category_others":  _formatListIfDefined(dict_article.get("category_others")),
-    "config_tags":      _formatListIfDefined(dict_article.get("config_tags")),
+    "category_others":  _format_list_if_defined(dict_article.get("category_others")),
+    "config_tags":      _format_list_if_defined(dict_article.get("config_tags")),
     "authors":          dict_article.get("authors"),
-    "abstract":         formatText(dict_article["abstract"]),
+    "abstract":         format_text(dict_article["abstract"]),
   }
   ## optional keys handling (these can be lists, booleans, or strings)
   list_optional_key_conditions = [
@@ -88,17 +100,17 @@ def writeArticleContent2File(filepointer, dict_article):
   filepointer.write(f" - [{task_status}] #task status\n")
   return
 
-def saveArticle2Markdown(dict_article, bool_verbose=True):
+def save_article(dict_article, bool_verbose=True):
   filename = dict_article["arxiv_id"] + ".md"
-  filepath_file = f"{Directories.directory_mdfiles}/{filename}"
-  if WWFnFs.fileExists(filepath_file):
-    _dict_article = readMarkdownFile2Dict(filepath_file)
+  file_path_file = f"{directories.mdfiles}/{filename}"
+  if file_io.file_exists(file_path_file):
+    _dict_article = read_markdown_file(file_path_file)
     _task_status = _dict_article["task_status"]
-    ## if the article has already been assessed, don't overwrite it
+    ## if the article has already been assessed, do not overwrite it
     if _task_status in [ "D", "-" ]:
       if _task_status == "D": print("The following article has already been downloaded:")
       if _task_status == "-": print("The following article has already been ignored:")
-      printArticle(dict_article)
+      print_article(dict_article)
       input_save = input("Do you want to save it again? (y/n): ")
       print(" ")
       if input_save[0].lower() != "y": return
@@ -115,28 +127,28 @@ def saveArticle2Markdown(dict_article, bool_verbose=True):
     ## retain `ai_reason` only if it is not None
     if _dict_article.get("ai_reason") is not None:
       dict_article["ai_reason"] = _dict_article.get("ai_reason")
-    ## merge `config_reason_*` keys from `_dict_article` if they don't already exist in `dict_article`
+    ## merge `config_reason_*` keys from `_dict_article` if they do not already exist in `dict_article`
     for key, value in _dict_article.items():
       if key.startswith("config_reason_") and key not in dict_article:
         dict_article[key] = value
   ## overwrite the file if it exists, but retain the Obsidian task status and search category tags
-  with open(filepath_file, "w") as filepointer:
-    writeArticleContent2File(filepointer, dict_article)
-  if bool_verbose: print(f"Saved: {filepath_file}")
+  with open(file_path_file, "w") as filepointer:
+    write_article_to_file(filepointer, dict_article)
+  if bool_verbose: print(f"Saved: {file_path_file}")
   return
 
 
 ## ###############################################################
 ## EXTRACT + COMBINE ARTICLE INFORMATION
 ## ###############################################################
-def getArticleSummaryDict(dict_arxiv, dict_config_results={}, dict_ai_results={}, task_status="u"):
+def get_article_summary(dict_arxiv, dict_config_results={}, dict_ai_results={}, task_status="u"):
   list_authors = [
     unidecode.unidecode(str(author))
-    for author in WWLists.shortenList(dict_arxiv.authors)
+    for author in truncate_list(dict_arxiv.authors)
   ]
   list_other_categories = [
-    formatText(elem)
-    for elem in WWLists.shortenList(dict_arxiv.categories)
+    format_text(elem)
+    for elem in truncate_list(dict_arxiv.categories)
     if (elem != dict_arxiv.primary_category)
   ]
   list_config_tags = [
@@ -144,11 +156,11 @@ def getArticleSummaryDict(dict_arxiv, dict_config_results={}, dict_ai_results={}
     for key in dict_config_results.keys()
   ]
   dict_article = {
-    "title"               : formatText(dict_arxiv.title),
+    "title"               : format_text(dict_arxiv.title),
     "arxiv_id"            : dict_arxiv.pdf_url.split("/")[-1].split("v")[0],
     "url_pdf"             : dict_arxiv.pdf_url,
     "authors"             : list_authors,
-    "abstract"            : formatText(dict_arxiv.summary),
+    "abstract"            : format_text(dict_arxiv.summary),
     "date_published"      : dict_arxiv.published.date(),
     "date_updated"        : dict_arxiv.updated.date(),
     "category_primary"    : dict_arxiv.primary_category,
@@ -167,8 +179,8 @@ def getArticleSummaryDict(dict_arxiv, dict_config_results={}, dict_ai_results={}
 ## ###############################################################
 ## READ MARKDOWN (ARTICLE) FILES
 ## ###############################################################
-def readMarkdownFile2Dict(md_file):
-  content = IO.readMarkdownFile(md_file)
+def read_markdown_file(md_file):
+  content = file_io.read_markdown_file(md_file)
   ## split the file into frontmatter (YAML) and body (markdown)
   match = re.match(r"^---\n(.*?)\n---\n(.*)", content, re.DOTALL)
   if match:
@@ -199,9 +211,9 @@ def readMarkdownFile2Dict(md_file):
   if missing_keys: raise ValueError("Missing required keys in frontmatter:", ", ".join(missing_keys))
   ## extract all config_reason_* keys
   config_reasons = {
-    k: v
-    for k, v in metadata.items()
-    if k.startswith("config_reason_")
+    key: value
+    for key, value in metadata.items()
+    if key.startswith("config_reason_")
   }
   ## find the character inside the brackets [] on the same line as `#task`
   task_status = "u"
@@ -214,8 +226,8 @@ def readMarkdownFile2Dict(md_file):
     "abstract"         : metadata.get("abstract"),
     "arxiv_id"         : metadata.get("arxiv_id"),
     "url_pdf"          : metadata.get("url_pdf"),
-    "date_published"   : WWDates.castString2Date(metadata.get("date_published")),
-    "date_updated"     : WWDates.castString2Date(metadata.get("date_updated")),
+    "date_published"   : dates.cast_string_to_date(metadata.get("date_published")),
+    "date_updated"     : dates.cast_string_to_date(metadata.get("date_updated")),
     "category_primary" : metadata.get("category_primary"),
     "category_others"  : metadata.get("category_others", None),
     "config_tags"      : metadata.get("config_tags", []),
@@ -226,16 +238,16 @@ def readMarkdownFile2Dict(md_file):
   }
   return dict(sorted(properties.items()))
 
-def readAllMarkdownFiles():
+def read_all_markdown_files():
   list_filenames = [
     filename
-    for filename in os.listdir(Directories.directory_mdfiles)
+    for filename in os.listdir(directories.mdfiles)
     if filename.endswith(".md")
   ]
   list_article_dicts = []
   for filename in list_filenames:
-    filepath_file = f"{Directories.directory_mdfiles}/{filename}"
-    dict_article = readMarkdownFile2Dict(filepath_file)
+    file_path_file = f"{directories.mdfiles}/{filename}"
+    dict_article = read_markdown_file(file_path_file)
     list_article_dicts.append(dict_article)
   return list_article_dicts
 

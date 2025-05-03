@@ -2,7 +2,7 @@
 ## DEPENDANCIES
 ## ###############################################################
 import sys, unittest
-from src.headers import WWLists
+from arXivScraper.utils import filter_criteria
 
 
 ## ###############################################################
@@ -14,14 +14,14 @@ class TestHelperFuncs(unittest.TestCase):
     cls.list_phrases = []
     for animal in ["fox", "turtle", "cow"]:
       for action in ["jumped", "leaped"]:
-        for object in ["moon", "log", "river"]:
-          cls.list_phrases.append(f"the {animal} {action} over the {object}")
+        for subject in ["moon", "log", "river"]:
+          cls.list_phrases.append(f"the {animal} {action} over the {subject}")
 
   def _testCondition(self, search_condition, expected_phrases):
     matching_phrases = {
       phrase
       for phrase in self.list_phrases
-      if WWLists.meetsSearchCriteria(phrase, search_condition)
+      if filter_criteria.meets_search_criteria(phrase, search_condition)
     }
     self.assertEqual(matching_phrases, expected_phrases)
 
@@ -67,9 +67,9 @@ class TestHelperFuncs(unittest.TestCase):
     self._testCondition(search_condition, expected_phrases)
 
   def test_mix_opperators(self):
-    ## ('cow' OR ('leaped' AND 'moon'))
+    ## ("cow" OR ("leaped" AND "moon"))
     ## OR
-    ## ('fox' AND 'jumped' AND 'river')
+    ## ("fox" AND "jumped" AND "river")
     search_condition = [
       [[ "cow", [ "leaped", "moon" ] ]],
       [ "fox", "jumped", "river" ]
