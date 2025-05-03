@@ -2,7 +2,7 @@
 ## DEPENDANCIES
 ## ###############################################################
 import sys, unittest
-from arXivScraper.utils import filter_criteria
+from arXivScraper.utils import ww_filter_criteria
 
 
 ## ###############################################################
@@ -11,17 +11,17 @@ from arXivScraper.utils import filter_criteria
 class TestHelperFuncs(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
-    cls.list_phrases = []
+    cls.phrases = []
     for animal in ["fox", "turtle", "cow"]:
       for action in ["jumped", "leaped"]:
         for subject in ["moon", "log", "river"]:
-          cls.list_phrases.append(f"the {animal} {action} over the {subject}")
+          cls.phrases.append(f"the {animal} {action} over the {subject}")
 
   def _testCondition(self, search_condition, expected_phrases):
     matching_phrases = {
       phrase
-      for phrase in self.list_phrases
-      if filter_criteria.meets_search_criteria(phrase, search_condition)
+      for phrase in self.phrases
+      if ww_filter_criteria.meets_search_criteria(phrase, search_condition)
     }
     self.assertEqual(matching_phrases, expected_phrases)
 

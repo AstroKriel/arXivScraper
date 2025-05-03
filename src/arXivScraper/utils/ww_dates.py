@@ -26,4 +26,4 @@ def get_date_n_days_ago(num_days):
   return date_ago
 
 
-## END OF HEADER FILE
+## END OF MODULE

@@ -1,16 +1,16 @@
 {
-  "list_authors" : [ ],
-  "list_categories" : [
+  "authors" : [ ],
+  "categories" : [
     "astro-ph.GA",
     "astro-ph.HE",
     "astro-ph.SR",
     "physics.plasm-ph",
     "physics.flu-dyn"
   ],
-  "list_keywords_exclude" : [
+  "exclude_keywords" : [
     "rmhd", "gr-mhd", "relativis", "tokamak", "machine"
   ],
-  "list_keywords_include" : [
+  "include_keywords" : [
     "mhd",
     [ "magnet", [ "hydro", "turb", "structure", "cascade", "charg", "forc", "syst" ]]
   ]

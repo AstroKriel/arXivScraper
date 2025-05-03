@@ -12,21 +12,21 @@ import yaml
 def file_exists(file_path):
   return os.path.isfile(file_path)
 
-def init_directory(directory, bool_add_space=True):
+def init_directory(directory):
   if not(os.path.exists(directory)):
     os.makedirs(directory)
     print(f"Successfully initialised directory: {directory}")
-    if bool_add_space: print(" ")
+    print(" ")
   return
 
 def read_file(file_path, expected_extension):
   if not file_path.endswith(expected_extension):
     raise ValueError(f"File must use a `{expected_extension}` extension. Input: {file_path}")
   try:
-    with open(file_path, "r", encoding="utf-8") as fp:
-      if   expected_extension == ".json":         return json.load(fp)
-      elif expected_extension == ".yaml":         return yaml.safe_load(fp)
-      elif expected_extension in [".txt", ".md"]: return fp.read()
+    with open(file_path, "r", encoding="utf-8") as file_pointer:
+      if   expected_extension == ".json":         return json.load(file_pointer)
+      elif expected_extension == ".yaml":         return yaml.safe_load(file_pointer)
+      elif expected_extension in [".txt", ".md"]: return file_pointer.read()
       else: raise NotImplementedError(f"Unsupported file extension: {expected_extension}")
   except Exception as e:
     raise IOError(f"Error reading {file_path}: {e}")
@@ -41,4 +41,4 @@ def read_yaml_file(file_path):
   return read_file(file_path, expected_extension=".yaml")
 
 
-## END OF HEADER FILE
+## END OF MODULE

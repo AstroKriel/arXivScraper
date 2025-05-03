@@ -2,7 +2,7 @@
 ## DEPENDANCIES
 ## ###############################################################
 import sys
-from arXivScraper.utils import filter_criteria
+from arXivScraper.utils import ww_filter_criteria
 
 
 ## ###############################################################
@@ -27,15 +27,15 @@ def main():
   print_heading("List of phrases:")
   print("\n".join(phrases))
   print(" ")
-  list_search_conditions = [
+  search_conditions = [
     [ "fox", ["jumped", "river"] ], # "fox" AND ("jumped" OR "river")
   ]
   print_heading("Search condition:")
-  print(filter_criteria.lols_to_set_notation(list_search_conditions))
+  print(ww_filter_criteria.search_keywords_to_set_notation(search_conditions))
   print(" ")
   print_heading("List of phrases that met the search conditions:")
   for phrase in phrases:
-    if filter_criteria.meets_search_criteria(phrase, list_search_conditions):
+    if ww_filter_criteria.meets_search_criteria(phrase, search_conditions):
       print(phrase)
 
 

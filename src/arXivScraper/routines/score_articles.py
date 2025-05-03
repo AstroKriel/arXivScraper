@@ -5,8 +5,9 @@ import os
 import sys
 import re
 import time
+from arXivScraper.utils import ww_articles
 import openai
-from arXivScraper.utils import file_io, articles
+from arXivScraper.utils import ww_file_io
 from arXivScraper.config import directories, file_names
 
 
@@ -19,9 +20,9 @@ openai.OpenAI.api_key = os.getenv("OPENAI_API_KEY")
 ## ###############################################################
 ## REQUEST GPT TO SCORE ARTICLE
 ## ###############################################################
-def get_ai_response(dict_article, prompt_rules, prompt_criteria):
-  article_title    = dict_article.get("title", "")
-  article_abstract = dict_article.get("abstract", "")
+def get_ai_response(article, prompt_rules, prompt_criteria):
+  article_title    = article.get("title", "")
+  article_abstract = article.get("abstract", "")
   if (article_title == ""):
      return {
       "status"    : "Missing article title",
@@ -81,10 +82,10 @@ def get_ai_response(dict_article, prompt_rules, prompt_criteria):
 ## ###############################################################
 ## FUNCTION TO INTERPRET AI RESPONSE
 ## ###############################################################
-def get_ai_score(dict_article, prompt_rules, prompt_criteria, bool_score_all=False):
+def get_ai_score(article, prompt_rules, prompt_criteria):
   time_start = time.time()
   dict_ai_score = get_ai_response(
-    dict_article    = dict_article,
+    article    = article,
     prompt_rules    = prompt_rules,
     prompt_criteria = prompt_criteria,
   )
@@ -96,48 +97,48 @@ def get_ai_score(dict_article, prompt_rules, prompt_criteria, bool_score_all=Fal
       print(dict_ai_score["ai_message"])
     print("Error: something went wrong with resquesting a LLM score.")
     return False
-  print("arXiv-id:", dict_article["arxiv_id"])
-  print("Title:", dict_article["title"])
+  print("arXiv-id:", article["arxiv_id"])
+  print("Title:", article["title"])
   print("Rating:", dict_ai_score["ai_rating"])
-  dict_article["ai_rating"] = dict_ai_score["ai_rating"]
-  dict_article["ai_reason"] = dict_ai_score["ai_reason"]
+  article["ai_rating"] = dict_ai_score["ai_rating"]
+  article["ai_reason"] = dict_ai_score["ai_reason"]
   print(f"Elapsed time: {time_elapsed:.2f} seconds.")
   return True
 
 
 ## ###############################################################
-## MAIN PROGRAM
+## ROUTINE MAIN
 ## ###############################################################
 def main():
   print("Reading in all articles.")
-  list_article_dicts = articles.read_all_markdown_files()
+  articles = ww_articles.read_all_markdown_files()
   print("Filtering out articles that have already been scored.")
-  list_article_dicts = [
-    dict_article
-    for dict_article in list_article_dicts
-    if dict_article.get("ai_rating") is None
+  articles = [
+    article
+    for article in articles
+    if article.get("ai_rating") is None
   ]
-  prompt_rules    = file_io.read_text_file(f"{directories.config}/{file_names.ai_rules}")
-  prompt_criteria = file_io.read_text_file(f"{directories.config}/{file_names.ai_criteria}")
-  num_articles    = len(list_article_dicts)
-  print(f"Preparing to score {len(list_article_dicts)} articles.")
-  for article_index, dict_article in enumerate(list_article_dicts):
+  prompt_rules    = ww_file_io.read_text_file(f"{directories.config}/{file_names.ai_rules}")
+  prompt_criteria = ww_file_io.read_text_file(f"{directories.config}/{file_names.ai_criteria}")
+  num_articles    = len(articles)
+  print(f"Preparing to score {len(articles)} articles.")
+  for article_index, article in enumerate(articles):
     print(f"({article_index+1}/{num_articles})")
-    bool_scored = get_ai_score(
-      dict_article    = dict_article,
+    is_scored = get_ai_score(
+      article    = article,
       prompt_rules    = prompt_rules,
       prompt_criteria = prompt_criteria,
     )
-    if bool_scored: articles.save_article(dict_article)
+    if is_scored: ww_articles.save_article(article, force=True)
     print(" ")
 
 
 ## ###############################################################
-## PROGRAM ENTRY POINT
+## ROUTINE ENTRY POINT
 ## ###############################################################
 if __name__ == "__main__":
   main()
   sys.exit(0)
 
 
-## END OF PROGRAM
+## END OF ROUTINE

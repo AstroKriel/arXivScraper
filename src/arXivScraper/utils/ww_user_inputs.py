@@ -4,7 +4,7 @@
 import sys
 import re
 import argparse
-from arXivScraper.utils import file_io
+from arXivScraper.utils import ww_file_io
 from arXivScraper.config import directories
 
 
@@ -25,18 +25,18 @@ class GetUserInputs:
 
   def _add_main_program_arguments(self):
     """Sets up main program flag arguments."""
-    dict_args = {
+    main_args = {
       "default"  : False,
       "required" : False,
       "action"   : "store_true",
       "help"     : "Type: bool, default: %(default)s"
     }
     parse_flags = self.parser.add_argument_group(description="Main program flags:")
-    parse_flags.add_argument("-s", "--search",   **dict_args)
-    parse_flags.add_argument("-f", "--fetch",    **dict_args)
-    parse_flags.add_argument("-r", "--score",    **dict_args)
-    parse_flags.add_argument("-p", "--print",    **dict_args)
-    parse_flags.add_argument("-d", "--download", **dict_args)
+    parse_flags.add_argument("-s", "--search",   **main_args)
+    parse_flags.add_argument("-f", "--fetch",    **main_args)
+    parse_flags.add_argument("-r", "--score",    **main_args)
+    parse_flags.add_argument("-p", "--print",    **main_args)
+    parse_flags.add_argument("-d", "--download", **main_args)
 
   def _add_search_arguments(self):
     """Sets up search-specific arguments."""
@@ -64,7 +64,7 @@ class GetUserInputs:
   def get_search_nputs(self):
     """Returns only the search-specific arguments and prompts for any missing parameters if required."""
     ## collect relevant search-related arguments
-    dict_search_args = {
+    search_args = {
       key: self.args.get(key)
       for key in [
         "config_name",
@@ -72,14 +72,14 @@ class GetUserInputs:
       ]
     }
     ## prompt for missing values
-    if not dict_search_args["config_name"]:
-      dict_search_args["config_name"] = input("Please provide --config_name: ")
-    config_name = dict_search_args["config_name"]
-    if not file_io.file_exists(f"{directories.config}/{config_name}.json"):
+    if not search_args["config_name"]:
+      search_args["config_name"] = input("Please provide --config_name: ")
+    config_name = search_args["config_name"]
+    if not ww_file_io.file_exists(f"{directories.config}/{config_name}.json"):
       raise Exception(f"Error: Config file `{config_name}.json` does not exist under: {directories.config}")
-    if dict_search_args["lookback_days"] is None:
-      dict_search_args["lookback_days"] = int(input("Please provide --lookback_days: "))
-    return dict_search_args
+    if search_args["lookback_days"] is None:
+      search_args["lookback_days"] = int(input("Please provide --lookback_days: "))
+    return search_args
 
   def get_fetch_inputs(self):
     """Returns only the fetch-specific arguments, prompting if the arXiv ID is not passed, and validates the ID-format."""
@@ -96,4 +96,4 @@ class GetUserInputs:
     return arxiv_id
 
 
-## END OF HEADER FILE
+## END OF MODULE
