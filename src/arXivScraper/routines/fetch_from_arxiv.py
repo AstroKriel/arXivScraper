@@ -2,8 +2,8 @@
 ## LOAD MODULES
 ## ###############################################################
 import sys
-from arXivScraper.utils import ww_articles, ww_user_inputs
 import arxiv
+from arXivScraper.utils import ww_articles, ww_user_inputs
 from arXivScraper.utils import ww_file_io
 from arXivScraper.config import directories
 

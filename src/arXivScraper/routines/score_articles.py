@@ -5,8 +5,8 @@ import os
 import sys
 import re
 import time
-from arXivScraper.utils import ww_articles
 import openai
+from arXivScraper.utils import ww_articles
 from arXivScraper.utils import ww_file_io
 from arXivScraper.config import directories, file_names
 
