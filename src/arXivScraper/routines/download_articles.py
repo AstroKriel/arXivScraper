@@ -1,16 +1,17 @@
 ## ###############################################################
 ## LOAD MODULES
 ## ###############################################################
+
 import sys
 import requests
-from arXivScraper.utils import ww_articles
-from arXivScraper.config import directories
-from arXivScraper.utils import ww_file_io
+from arxivscraper.utils import ww_articles, ww_file_io
+from arxivscraper.config import directories
 
 
 ## ###############################################################
 ## DOWNLOAD ARXIV PDF
 ## ###############################################################
+
 def download_pdf(article):
   arxiv_id      = article["arxiv_id"]
   file_path_pdf = f"{directories.pdfs}/{arxiv_id}.pdf"
@@ -33,6 +34,7 @@ def download_pdf(article):
 ## ###############################################################
 ## DOWNLOAD MARKDOWN FILES WITH DOWNLOAD STATUS
 ## ###############################################################
+
 def download_pdfs(articles, verbose=False):
   num_articles = len(articles)
   for article_index, article in enumerate(articles):
@@ -45,6 +47,7 @@ def download_pdfs(articles, verbose=False):
 ## ###############################################################
 ## ROUTINE MAIN
 ## ###############################################################
+
 def main():
   ww_file_io.init_directory(directories.pdfs)
   articles = ww_articles.read_all_markdown_files()
@@ -54,6 +57,7 @@ def main():
 ## ###############################################################
 ## ROUTINE ENTRY POINT
 ## ###############################################################
+
 if __name__ == "__main__":
   main()
   sys.exit(0)

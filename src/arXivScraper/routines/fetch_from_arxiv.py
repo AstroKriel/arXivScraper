@@ -1,16 +1,17 @@
 ## ###############################################################
 ## LOAD MODULES
 ## ###############################################################
+
 import sys
 import arxiv
-from arXivScraper.utils import ww_articles, ww_user_inputs
-from arXivScraper.utils import ww_file_io
-from arXivScraper.config import directories
+from arxivscraper.utils import ww_articles, ww_user_inputs, ww_file_io
+from arxivscraper.config import directories
 
 
 ## ###############################################################
 ## FETCH ARTICLE FROM THE ARXIV
 ## ###############################################################
+
 def fetch_from_arxiv(arxiv_id):
   client = arxiv.Client()
   search = arxiv.Search(id_list=[arxiv_id])
@@ -47,6 +48,7 @@ def fetch_from_arxiv(arxiv_id):
 ## ###############################################################
 ## ROUTINE MAIN
 ## ###############################################################
+
 def main():
   obj_user_inputs = ww_user_inputs.GetUserInputs()
   arxiv_id = obj_user_inputs.get_fetch_inputs()
@@ -57,6 +59,7 @@ def main():
 ## ###############################################################
 ## ROUTINE ENTRY POINT
 ## ###############################################################
+
 if __name__ == "__main__":
   main()
   sys.exit(0)

@@ -1,16 +1,18 @@
 ## ###############################################################
 ## DEPENDANCIES
 ## ###############################################################
+
 import sys
 import re
 import argparse
-from arXivScraper.utils import ww_file_io
-from arXivScraper.config import directories
+from arxivscraper.utils import ww_file_io
+from arxivscraper.config import directories
 
 
 ## ###############################################################
 ## GROUP DIFFERENT TYPES OF USER INPUTS
 ## ###############################################################
+
 class GetUserInputs:
   def __init__(self):
     self.parser = argparse.ArgumentParser(

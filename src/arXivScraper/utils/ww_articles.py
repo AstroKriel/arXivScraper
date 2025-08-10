@@ -1,17 +1,19 @@
 ## ###############################################################
 ## DEPENDANCIES
 ## ###############################################################
+
 import os
 import re
 import yaml
 import unidecode
-from arXivScraper.utils import ww_dates, ww_file_io
-from arXivScraper.config import directories
+from arxivscraper.utils import ww_dates, ww_file_io
+from arxivscraper.config import directories
 
 
 ## ###############################################################
 ## HELPER FUNCTION
 ## ###############################################################
+
 def truncate_list(elems, max_elems=5):
   truncated_elems = [
     str(elem)  if (elem_index <  max_elems+1)
@@ -41,6 +43,7 @@ def format_text(text):
 ## ###############################################################
 ## PRINT ARTICLE CONTENTS
 ## ###############################################################
+
 def print_article(article, num_pad_chars=13):
   ## helper function
   def _print_line(category, content):
@@ -58,6 +61,7 @@ def print_article(article, num_pad_chars=13):
 ## ###############################################################
 ## SAVE FILE TO MARKDOWN
 ## ###############################################################
+
 def write_article_to_file(file_pointer, article):
   ## helper functions
   def _format_list_if_defined(content):
@@ -141,6 +145,7 @@ def save_article(article, verbose=True, force=False):
 ## ###############################################################
 ## EXTRACT + COMBINE ARTICLE INFORMATION
 ## ###############################################################
+
 def get_article_summary(arxiv_article, config_results={}, ai_results={}, task_status="u"):
   authors = [
     unidecode.unidecode(str(author))
@@ -179,6 +184,7 @@ def get_article_summary(arxiv_article, config_results={}, ai_results={}, task_st
 ## ###############################################################
 ## READ MARKDOWN (ARTICLE) FILES
 ## ###############################################################
+
 def read_markdown_file(md_file):
   content = ww_file_io.read_markdown_file(md_file)
   ## split the file into frontmatter (YAML) and body (markdown)

@@ -1,19 +1,21 @@
 ## ###############################################################
 ## LOAD MODULES
 ## ###############################################################
+
 import sys
 import time
 import datetime
-from arXivScraper.utils import ww_user_inputs
-from arXivScraper.routines import search_arxiv as SearchArxiv
-from arXivScraper.routines import score_articles as ScoreArticle
-from arXivScraper.routines import fetch_from_arxiv as FetchFromArxiv
-from arXivScraper.routines import download_articles as DownloadArticles
+from arxivscraper.utils import ww_user_inputs
+from arxivscraper.routines import search_arxiv as SearchArxiv
+from arxivscraper.routines import score_articles as ScoreArticle
+from arxivscraper.routines import fetch_from_arxiv as FetchFromArxiv
+from arxivscraper.routines import download_articles as DownloadArticles
 
 
 ## ###############################################################
 ## ROUTINE MAIN
 ## ###############################################################
+
 def main():
   time_start = time.time()
   print("Program started at {}".format(
@@ -34,6 +36,7 @@ def main():
 ## ###############################################################
 ## ROUTINE ENTRY POINT
 ## ###############################################################
+
 if __name__ == "__main__":
   main()
   sys.exit(0)

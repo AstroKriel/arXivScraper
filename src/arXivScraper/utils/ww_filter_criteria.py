@@ -1,12 +1,14 @@
 ## ###############################################################
 ## DEPENDANCIES
 ## ###############################################################
-from arXivScraper.utils import ww_file_io
+
+from arxivscraper.utils import ww_file_io
 
 
 ## ###############################################################
 ## READ SEARCH CRITERIA
 ## ###############################################################
+
 def read_search_criteria(directory, config_name):
   required_keys = {
     "authors",
@@ -26,6 +28,7 @@ def read_search_criteria(directory, config_name):
 ## ###############################################################
 ## APPLY SEARCH CRITERIA
 ## ###############################################################
+
 def does_text_contain_all_keywords(phrase, search_keywords):
   if len(search_keywords) == 0: return False
   results = []
@@ -58,6 +61,7 @@ def meets_search_criteria(phrase, search_keywords):
 ## ###############################################################
 ## PRINT SEARCH CRITERIA
 ## ###############################################################
+
 def search_keywords_to_set_notation(search_keywords, set_level=0):
   while isinstance(search_keywords, list) and (len(search_keywords) == 1):
     search_keywords = search_keywords[0]

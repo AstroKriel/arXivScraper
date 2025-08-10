@@ -1,25 +1,27 @@
 ## ###############################################################
 ## LOAD MODULES
 ## ###############################################################
+
 import os
 import sys
 import re
 import time
 import openai
-from arXivScraper.utils import ww_articles
-from arXivScraper.utils import ww_file_io
-from arXivScraper.config import directories, file_names
+from arxivscraper.utils import ww_articles, ww_file_io
+from arxivscraper.config import directories, file_names
 
 
 ## ###############################################################
 ## GLOBAL PARAMETERS
 ## ###############################################################
+
 openai.OpenAI.api_key = os.getenv("OPENAI_API_KEY")
 
 
 ## ###############################################################
 ## REQUEST GPT TO SCORE ARTICLE
 ## ###############################################################
+
 def get_ai_response(article, prompt_rules, prompt_criteria):
   article_title    = article.get("title", "")
   article_abstract = article.get("abstract", "")
@@ -82,6 +84,7 @@ def get_ai_response(article, prompt_rules, prompt_criteria):
 ## ###############################################################
 ## FUNCTION TO INTERPRET AI RESPONSE
 ## ###############################################################
+
 def get_ai_score(article, prompt_rules, prompt_criteria):
   time_start = time.time()
   dict_ai_score = get_ai_response(
@@ -109,6 +112,7 @@ def get_ai_score(article, prompt_rules, prompt_criteria):
 ## ###############################################################
 ## ROUTINE MAIN
 ## ###############################################################
+
 def main():
   print("Reading in all articles.")
   articles = ww_articles.read_all_markdown_files()
@@ -136,6 +140,7 @@ def main():
 ## ###############################################################
 ## ROUTINE ENTRY POINT
 ## ###############################################################
+
 if __name__ == "__main__":
   main()
   sys.exit(0)

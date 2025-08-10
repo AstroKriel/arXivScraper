@@ -1,13 +1,15 @@
 ## ###############################################################
 ## DEPENDANCIES
 ## ###############################################################
+
 import sys, unittest
-from arXivScraper.utils import ww_filter_criteria
+from arxivscraper.utils import ww_filter_criteria
 
 
 ## ###############################################################
 ## UNIT TESTS
 ## ###############################################################
+
 class TestHelperFuncs(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
@@ -103,6 +105,7 @@ class TestHelperFuncs(unittest.TestCase):
 ## ###############################################################
 ## TEST ENTRY POINT
 ## ###############################################################
+
 if __name__ == "__main__":
   unittest.main()
   sys.exit(0)

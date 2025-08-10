@@ -1,6 +1,6 @@
-# arXivScraper
+# arxivscraper
 
-**arXivScraper** is a lightweight paper management tool designed to help you find, filter, and rank new arXiv papers based on your research interests. It offers flexible search and ranking criteria, as well as seamless integration with Obsidian. This project was the foundations from which [ChiScraper](https://github.com/ChiScraper/ChiScraper) added many useful extensions. `ChiScraper` has now surpassed `arXivScraper`, and I suggest you go check it out instead (see more details [here](https://chiscraper.github.io/)).
+**arxivscraper** is a lightweight paper management tool designed to help you find, filter, and rank new arXiv papers based on your research interests. It offers flexible search and ranking criteria, as well as seamless integration with Obsidian. This project was the foundations from which [ChiScraper](https://github.com/ChiScraper/ChiScraper) added many useful extensions. `ChiScraper` has now surpassed `arxivscraper`, and I suggest you go check it out instead (see more details [here](https://chiscraper.github.io/)).
 
 ![Logo](./logo.jpg)
 
@@ -10,7 +10,7 @@
 
 ### 1. Find Papers
 
-`arXivScraper` allows you to create different topics or research categories, where you can calibrate each category's filtering criteria to find you exactly the papers you want to read. The API allows you to define:
+`arxivscraper` allows you to create different topics or research categories, where you can calibrate each category's filtering criteria to find you exactly the papers you want to read. The API allows you to define:
 - Relevant arXiv categories to search
 - Keywords or phrases to filter by, as well as logical relationships between these words/phrases
 See `./docs/search-profiles.md` for examples.
@@ -34,7 +34,7 @@ Customise paper ranking with a personal profile (defined in `./configs/user_prof
 ```python main.py --rank```
 
 ### 4. Read, Download, Remove (via Obsidian)
-You can use Obsidian to manage your papers, and interface with `arXivScraper`. Create a vault in the project folder (I have provided default settings under `.Obsidian`).
+You can use Obsidian to manage your papers, and interface with `arxivscraper`. Create a vault in the project folder (I have provided default settings under `.Obsidian`).
 
 With Obsidian, you can:
 - View, manage, and filter papers based on your research categories, or their published/updated dates
@@ -46,7 +46,7 @@ To get started, clone the repository and install the dependencies.
 
 ```
 git clone https://github.com/yourusername/git
-cd arXivScraper
+cd arxivscraper
 pip install -r requirements.txt
 ```
 

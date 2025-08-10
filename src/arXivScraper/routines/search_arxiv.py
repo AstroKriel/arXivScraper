@@ -1,17 +1,19 @@
 ## ###############################################################
 ## LOAD MODULES
 ## ###############################################################
+
 import sys
 import numpy
 import arxiv
 import unidecode
-from arXivScraper.utils import ww_file_io, ww_articles, ww_dates, ww_filter_criteria, ww_user_inputs
-from arXivScraper.config import directories
+from arxivscraper.utils import ww_file_io, ww_articles, ww_dates, ww_filter_criteria, ww_user_inputs
+from arxivscraper.config import directories
 
 
 ## ###############################################################
 ## OPPERATOR CLASS
 ## ###############################################################
+
 class SearchArxiv():
 
   def __init__(self, lookback_date, current_date, config_name):
@@ -111,6 +113,7 @@ class SearchArxiv():
 ## ###############################################################
 ## ROUTINE MAIN
 ## ###############################################################
+
 def main():
   obj_user_inputs = ww_user_inputs.GetUserInputs()
   dict_search_params = obj_user_inputs.get_search_nputs()
@@ -131,6 +134,7 @@ def main():
 ## ###############################################################
 ## ROUTINE ENTRY POINT
 ## ###############################################################
+
 if __name__ == "__main__":
   main()
   sys.exit(0)
