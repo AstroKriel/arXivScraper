@@ -1,13 +1,23 @@
+## macOS
 .DS_Store
 
-__pycache__
-*/__pycache__
-*/*/__pycache__
+## python bytecode
+__pycache__/
 
-.venv
-.obsidian/workspace.json
+## code env
+.venv/
+.vscode/
 *.code-workspace
-*.db
 
-mdfiles/*
-pdfs/*
+## obsidian env 
+.obsidian/
+summary.md
+
+## secret api key
+configs/api_key.txt
+
+## output directories
+mdfiles/
+pdfs/
+
+## .
