@@ -1,5 +1,5 @@
 ## ###############################################################
-## DEPENDANCIES
+## DEPENDENCIES
 ## ###############################################################
 
 import datetime
@@ -10,9 +10,9 @@ import datetime
 ## ###############################################################
 
 def cast_date_to_string(date):
-  str_year  = str(date.year ).zfill(4)
+  str_year  = str(date.year).zfill(4)
   str_month = str(date.month).zfill(2)
-  str_day   = str(date.day  ).zfill(2)
+  str_day   = str(date.day).zfill(2)
   return f"{str_year}-{str_month}-{str_day}"
 
 def cast_string_to_date(str_date):

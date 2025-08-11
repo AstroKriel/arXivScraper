@@ -1,5 +1,5 @@
 ## ###############################################################
-## DEPENDANCIES
+## DEPENDENCIES
 ## ###############################################################
 
 import sys
@@ -13,7 +13,6 @@ from arxivscraper.utils import ww_filter_criteria
 def print_heading(str):
   print(str)
   print("=" * len(str))
-  return
 
 
 ## ###############################################################

@@ -2,109 +2,132 @@
 ## LOAD MODULES
 ## ###############################################################
 
-import os
 import sys
-import re
 import time
-import openai
+import json
+from openai import OpenAI
+from typing import Any, Dict, Optional
 from arxivscraper.utils import ww_articles, ww_file_io
-from arxivscraper.config import directories, file_names
-
-
-## ###############################################################
-## GLOBAL PARAMETERS
-## ###############################################################
-
-openai.OpenAI.api_key = os.getenv("OPENAI_API_KEY")
+from arxivscraper.io_configs import directories, file_names
 
 
 ## ###############################################################
 ## REQUEST GPT TO SCORE ARTICLE
 ## ###############################################################
 
-def get_ai_response(article, prompt_rules, prompt_criteria):
-  article_title    = article.get("title", "")
-  article_abstract = article.get("abstract", "")
-  if (article_title == ""):
-     return {
-      "status"    : "Missing article title",
-      "ai_rating" : None,
-      "ai_reason" : None
-    }
-  if (article_abstract == ""):
-    return {
-      "status"    : "Missing article abstract",
-      "ai_rating" : None,
-      "ai_reason" : None
-    }
-  prompt_input = f"{prompt_criteria} \n\nTITLE: {article_title}\n\nABSTRACT: {article_abstract}"
+def load_api_key() -> Optional[str]:
+  file_path = directories.search_configs / file_names.ai_api_key
   try:
-    client = openai.OpenAI()
-    response = client.chat.completions.create(
-      model    = "gpt-4o-mini",
+    if not file_path.is_file():
+      print(
+        f"Error. Could not locate the API key file: {file_path}\n"
+        f"Create this file and put your key in it."
+      )
+      return None
+    for line in file_path.read_text(encoding="utf-8").splitlines():
+      api_key = line.strip().strip("'").strip('"')
+      if api_key: return api_key
+  except Exception as e:
+    print(f"Error. Unable to read the API key.\n{e}")
+  return None
+
+def build_ai_client(api_key: str) -> OpenAI:
+  return OpenAI(api_key=api_key)
+
+def get_ai_response(
+    *,
+    ai_client        : OpenAI,
+    article_title    : str,
+    article_abstract : str,
+    prompt_rules     : str,
+    prompt_criteria  : str,
+    ai_model         : str = "gpt-4o-mini",
+  ) -> Dict[str, Any]:
+  if not article_title:
+     return {
+      "status"      : "error",
+      "error"       : "missing article title",
+      "ai_rating"   : None,
+      "ai_reason"   : None,
+      "ai_response" : None
+    }
+  if not article_abstract:
+    return {
+      "status"      : "error",
+      "error"       : "missing article abstract",
+      "ai_rating"   : None,
+      "ai_reason"   : None,
+      "ai_response" : None
+    }
+  prompt_input = f"{prompt_criteria}\n\nTITLE: {article_title}\n\nABSTRACT: {article_abstract}"
+  try:
+    ai_response = ai_client.chat.completions.create(
+      model    = ai_model,
       messages = [
         { "role": "system", "content": prompt_rules },
         { "role": "user",   "content": prompt_input },
-      ]
+      ],
+      temperature = 0.0
     )
   except Exception as e:
     return {
-      "status"    : f"API call failed: {e}",
-      "ai_rating" : None,
-      "ai_reason" : None
+      "status"      : "error",
+      "error"       : f"API call failed: {e}",
+      "ai_rating"   : None,
+      "ai_reason"   : None,
+      "ai_response" : None
     }
+  response_text = ""
   try:
-    response_text = response.choices[0].message.content
-    re_pattern = r"(?i)JUSTIFICATION:\s*(.*)\s*RATING:\s*([\d.]+)"
-    match = re.search(re_pattern, response_text)
-    if match:
-      ai_reason = match.group(1).strip()
-      ai_rating = float(match.group(2).strip())
-    else:
-      return {
-        "status"     : "Failed to extract rating and justification",
-        "ai_message" : response_text,
-        "ai_rating"  : None,
-        "ai_reason"  : None
-      }
+    response_text = (ai_response.choices[0].message.content or "").strip()
+    response_dict = json.loads(response_text)
+    ai_rating = float(response_dict["rating"])
+    ai_reason = float(response_dict["reason"])
+    return {
+      "status"      : "success",
+      "ai_rating"   : ai_rating,
+      "ai_reason"   : ai_reason,
+      "ai_response" : response_text
+    }
   except Exception as e:
     return {
-      "status"     : f"Parsing error occurred: {e}",
-      "ai_message" : response_text,
-      "ai_rating"  : None,
-      "ai_reason"  : None
+      "status"      : "error",
+      "error"       : f"JSON parsing failed: {e}",
+      "ai_rating"   : None,
+      "ai_reason"   : None,
+      "ai_response" : response_text
     }
-  return {
-    "status"    : "success",
-    "ai_rating" : ai_rating,
-    "ai_reason" : ai_reason
-  }
 
 
 ## ###############################################################
 ## FUNCTION TO INTERPRET AI RESPONSE
 ## ###############################################################
 
-def get_ai_score(article, prompt_rules, prompt_criteria):
+def get_ai_score(
+    article         : Dict[str, Any],
+    ai_client       : OpenAI,
+    prompt_rules    : str,
+    prompt_criteria : str,
+  ) -> bool:
   time_start = time.time()
-  dict_ai_score = get_ai_response(
-    article    = article,
-    prompt_rules    = prompt_rules,
-    prompt_criteria = prompt_criteria,
+  response_dict = get_ai_response(
+    ai_client        = ai_client,
+    article_title    = article.get("title", ""),
+    article_abstract = article.get("abstract", ""),
+    prompt_rules     = prompt_rules,
+    prompt_criteria  = prompt_criteria,
   )
   time_elapsed = time.time() - time_start
-  if not("success" == dict_ai_score["status"].lower()):
-    print("Error:", dict_ai_score["status"])
-    if "ai_message" in dict_ai_score.keys():
-      print("LLM response:")
-      print(dict_ai_score["ai_message"])
-    print("Error: something went wrong with resquesting a LLM score.")
+  if response_dict["status"] != "success":
+    print("Error:", response_dict.get("error", "<unknown error>"))
+    ai_response = response_dict.get("ai_response")
+    if ai_response: print("Raw LLM response:", ai_response)
     return False
-  print("arXiv-id:", article["arxiv_id"])
-  print("Title:", article["title"])
-  print("Rating:", dict_ai_score["ai_rating"])
-  article["ai_rating"] = dict_ai_score["ai_rating"]
-  article["ai_reason"] = dict_ai_score["ai_reason"]
+  article["ai_rating"] = response_dict["ai_rating"]
+  article["ai_reason"] = response_dict["ai_reason"]
+  print("arXiv-id:", article.get("arxiv_id","<unknown id>"))
+  print("Title:", article.get("title","").strip())
+  print("Rating:", response_dict["ai_rating"])
   print(f"Elapsed time: {time_elapsed:.2f} seconds.")
   return True
 
@@ -114,22 +137,26 @@ def get_ai_score(article, prompt_rules, prompt_criteria):
 ## ###############################################################
 
 def main():
-  print("Reading in all articles.")
+  api_key = load_api_key()
+  if not api_key:
+    raise RuntimeError(f"OpenAI API key not found. Add it to {directories.search_configs / file_names.ai_api_key}.")
+  ai_client = build_ai_client(api_key)
+  print("Reading in all articles...")
   articles = ww_articles.read_all_markdown_files()
-  print("Filtering out articles that have already been scored.")
   articles = [
     article
     for article in articles
     if article.get("ai_rating") is None
   ]
-  prompt_rules    = ww_file_io.read_text_file(f"{directories.config}/{file_names.ai_rules}")
-  prompt_criteria = ww_file_io.read_text_file(f"{directories.config}/{file_names.ai_criteria}")
-  num_articles    = len(articles)
+  num_articles = len(articles)
   print(f"Preparing to score {len(articles)} articles.")
+  prompt_rules    = ww_file_io.read_text_file(directories.search_configs / file_names.ai_rules)
+  prompt_criteria = ww_file_io.read_text_file(directories.search_configs / file_names.ai_criteria)
   for article_index, article in enumerate(articles):
     print(f"({article_index+1}/{num_articles})")
     is_scored = get_ai_score(
-      article    = article,
+      article         = article,
+      ai_client       = ai_client,
       prompt_rules    = prompt_rules,
       prompt_criteria = prompt_criteria,
     )

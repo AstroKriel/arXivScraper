@@ -1,7 +1,8 @@
 ## ###############################################################
-## DEPENDANCIES
+## DEPENDENCIES
 ## ###############################################################
 
+from pathlib import Path
 from arxivscraper.utils import ww_file_io
 
 
@@ -9,20 +10,24 @@ from arxivscraper.utils import ww_file_io
 ## READ SEARCH CRITERIA
 ## ###############################################################
 
-def read_search_criteria(directory, config_name):
+def read_search_criteria(
+    directory   : Path,
+    config_name : str
+  ):
   required_keys = {
     "authors",
     "categories",
     "keywords_to_exclude",
     "keywords_to_include"
   }
-  config = ww_file_io.read_file(f"{directory}/{config_name}.json", ".json")
-  missing_keys = required_keys - required_keys
+  config_path = directory / f"{config_name}.json"
+  config_criteria = ww_file_io.read_file(config_path, expected_extension=".json")
+  missing_keys = required_keys - config_criteria
   if len(missing_keys) > 0:
     print(f"The following config keys are missing:")
     print("\t", ", ".join(missing_keys), "\n")
     raise Exception("Error: Config file is missing search keys")
-  return config
+  return config_criteria
 
 
 ## ###############################################################
@@ -79,7 +84,7 @@ def search_keywords_to_set_notation(search_keywords, set_level=0):
 def print_search_criteria(search_config):
   include_keywords = search_config["include_keywords"]
   exclude_keywords = search_config["exclude_keywords"]
-  authors          = search_config["authors"]
+  authors = search_config["authors"]
   print("> including articles with phrases:")
   print(search_keywords_to_set_notation(include_keywords))
   print(" ")
@@ -91,7 +96,6 @@ def print_search_criteria(search_config):
     print("> including articles with authors:", end="")
     print("\n\t- " + "\n\t- ".join(authors))
     print(" ")
-  return
 
 
 ## END OF MODULE

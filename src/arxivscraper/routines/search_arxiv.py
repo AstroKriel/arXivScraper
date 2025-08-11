@@ -3,11 +3,10 @@
 ## ###############################################################
 
 import sys
-import numpy
 import arxiv
 import unidecode
 from arxivscraper.utils import ww_file_io, ww_articles, ww_dates, ww_filter_criteria, ww_user_inputs
-from arxivscraper.config import directories
+from arxivscraper.io_configs import directories
 
 
 ## ###############################################################
@@ -38,7 +37,7 @@ class SearchArxiv():
         self._display_progress(num_articles_looked_at_in_category)
         num_articles_looked_at_in_category += 1
         if not(self._is_within_date_range(arxiv_article)): break
-        arxiv_id = arxiv_article.pdf_url.split("/")[-1].split("v")[0]
+        arxiv_id = str(arxiv_article.pdf_url).split("/")[-1].split("v")[0]
         if self._is_duplicate(arxiv_id): continue
         is_relevant, reasons = self._check_config_conditions(arxiv_article)
         if is_relevant:
@@ -54,13 +53,13 @@ class SearchArxiv():
   def get_sorted_articles(self):
     return sorted(
       self.articles,
-      key     = lambda article: article["date_updated"],
+      key     = lambda article: article.get("date_updated"),
       reverse = True
     )
 
   def _read_search_criteria(self):
     self.dict_search_criteria = ww_filter_criteria.read_search_criteria(
-      directory   = directories.config,
+      directory   = directories.search_configs,
       config_name = self.config_name,
     )
     print(f"Searching for articles:")
@@ -74,7 +73,7 @@ class SearchArxiv():
   def _create_search_query(self, category):
     return arxiv.Search(
       query       = category,
-      max_results = float(numpy.inf),
+      max_results = 10**4,
       sort_by     = arxiv.SortCriterion.SubmittedDate
     )
 
@@ -124,7 +123,7 @@ def main():
   )
   obj_search_arxiv.search()
   articles = obj_search_arxiv.get_sorted_articles()
-  ww_file_io.init_directory(directories.mdfiles)
+  ww_file_io.init_directory(directories.output_mdfiles)
   for article in articles:
     ww_articles.save_article(article, verbose=False, force=True)
   print(f"Saved {len(articles)} articles.")

@@ -5,7 +5,7 @@
 import sys
 import arxiv
 from arxivscraper.utils import ww_articles, ww_user_inputs, ww_file_io
-from arxivscraper.config import directories
+from arxivscraper.io_configs import directories
 
 
 ## ###############################################################
@@ -26,8 +26,8 @@ def fetch_from_arxiv(arxiv_id):
   input_right_article = input("Was this the article you intended to fetch? (y/n): ")
   print(" ")
   if input_right_article[0].lower() != "y": return None
-  file_path_file = f"{directories.mdfiles}/{arxiv_id}.md"
-  if ww_file_io.file_exists(file_path_file):
+  file_path_file = directories.output_mdfiles / f"{arxiv_id}.md"
+  if file_path_file.exists():
     print(f"Note: this arXiv article has already been saved: {file_path_file}")
     input_save_again = input("Would you like to save it again? (y/n): ")
     print(" ")
@@ -52,7 +52,7 @@ def fetch_from_arxiv(arxiv_id):
 def main():
   obj_user_inputs = ww_user_inputs.GetUserInputs()
   arxiv_id = obj_user_inputs.get_fetch_inputs()
-  ww_file_io.init_directory(directories.mdfiles)
+  ww_file_io.init_directory(directories.output_mdfiles)
   fetch_from_arxiv(arxiv_id)
 
 

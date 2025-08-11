@@ -5,7 +5,7 @@
 import sys
 import requests
 from arxivscraper.utils import ww_articles, ww_file_io
-from arxivscraper.config import directories
+from arxivscraper.io_configs import directories
 
 
 ## ###############################################################
@@ -13,16 +13,16 @@ from arxivscraper.config import directories
 ## ###############################################################
 
 def download_pdf(article):
-  arxiv_id      = article["arxiv_id"]
-  file_path_pdf = f"{directories.pdfs}/{arxiv_id}.pdf"
-  file_path_md  = f"{directories.mdfiles}/{arxiv_id}.md"
+  arxiv_id      = article.get("arxiv_id")
+  file_path_pdf = directories.output_pdfs / f"{arxiv_id}.pdf"
+  file_path_md  = directories.output_mdfiles / f"{arxiv_id}.md"
   try:
-    print("Title:", article["title"])
-    response = requests.get(article["url_pdf"], stream=True)
+    print("Title:", article.get("title"))
+    response = requests.get(article.get("url_pdf"), stream=True)
     response.raise_for_status()
-    with open(file_path_pdf, "wb") as file:
+    with open(file_path_pdf, "wb") as fp:
       for chunk in response.iter_content(chunk_size=8192):
-        file.write(chunk)
+        fp.write(chunk)
     print(f"Downloaded: {file_path_pdf}\n")
   except requests.RequestException as e: print(f"Error downloading file: {e}")
   ## update task status stored in the markdown file
@@ -39,7 +39,7 @@ def download_pdfs(articles, verbose=False):
   num_articles = len(articles)
   for article_index, article in enumerate(articles):
     if verbose: print(f"({article_index+1}/{num_articles})")
-    if article.get("task_status", None) == "d":
+    if article.get("task_status") == "d":
       download_pdf(article)
     elif verbose: print("Article does not need to be downloaded.\n")
 
@@ -49,7 +49,7 @@ def download_pdfs(articles, verbose=False):
 ## ###############################################################
 
 def main():
-  ww_file_io.init_directory(directories.pdfs)
+  ww_file_io.init_directory(directories.output_pdfs)
   articles = ww_articles.read_all_markdown_files()
   download_pdfs(articles, verbose=False)
 

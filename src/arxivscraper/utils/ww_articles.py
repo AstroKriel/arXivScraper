@@ -1,13 +1,14 @@
 ## ###############################################################
-## DEPENDANCIES
+## DEPENDENCIES
 ## ###############################################################
 
-import os
 import re
 import yaml
 import unidecode
+from typing import Dict, Any
+from pathlib import Path
 from arxivscraper.utils import ww_dates, ww_file_io
-from arxivscraper.config import directories
+from arxivscraper.io_configs import directories
 
 
 ## ###############################################################
@@ -15,17 +16,14 @@ from arxivscraper.config import directories
 ## ###############################################################
 
 def truncate_list(elems, max_elems=5):
-  truncated_elems = [
-    str(elem)  if (elem_index <  max_elems+1)
-    else "..." if (elem_index == max_elems+1)
-    else None
-    for elem_index, elem in enumerate(elems)
-  ]
-  return [
-    elem
-    for elem in truncated_elems
-    if elem is not None
-  ]
+  truncated_elems = []
+  for elem_index, elem in enumerate(elems):
+    if elem_index < max_elems:
+      truncated_elems.append(str(elem))
+    else:
+      truncated_elems.append("...")
+      break
+  return truncated_elems
 
 def format_text(text):
   ## adjust text for things that go wrong with Obsidian's tex-rendering
@@ -51,11 +49,10 @@ def print_article(article, num_pad_chars=13):
     category = f"{category}".ljust(num_pad_chars)
     print(f"{category}: {content}")
   ## print article information
-  _print_line("Title",        article["title"])
-  _print_line("PDF URL",      article["url_pdf"])
-  _print_line("Date Updated", ww_dates.cast_date_to_string(article["date_updated"]))
-  _print_line("Author(s)",    article["authors"])
-  return
+  _print_line("Title",        article.get("title"))
+  _print_line("PDF URL",      article.get("url_pdf"))
+  _print_line("Date Updated", ww_dates.cast_date_to_string(article.get("date_updated")))
+  _print_line("Author(s)",    article.get("authors"))
 
 
 ## ###############################################################
@@ -69,62 +66,59 @@ def write_article_to_file(file_pointer, article):
     return content
   ## prepare the YAML frontmatter
   yaml_content = {
-    "title":            format_text(article["title"]),
-    "arxiv_id":         article["arxiv_id"],
-    "url_pdf":          article["url_pdf"],
-    "date_published":   ww_dates.cast_date_to_string(article["date_published"]),
-    "date_updated":     ww_dates.cast_date_to_string(article["date_updated"]),
-    "category_primary": article["category_primary"],
+    "title":            format_text(article.get("title")),
+    "arxiv_id":         article.get("arxiv_id"),
+    "url_pdf":          article.get("url_pdf"),
+    "date_published":   ww_dates.cast_date_to_string(article.get("date_published")),
+    "date_updated":     ww_dates.cast_date_to_string(article.get("date_updated")),
+    "category_primary": article.get("category_primary"),
     "category_others":  _format_list_if_defined(article.get("category_others")),
     "config_tags":      _format_list_if_defined(article.get("config_tags")),
     "authors":          article.get("authors"),
-    "abstract":         format_text(article["abstract"]),
+    "abstract":         format_text(article.get("abstract")),
   }
   ## optional keys handling (these can be lists, booleans, or strings)
-  optional_key_conditions = [
+  optional_keys = [
     "config_reason_",
     "ai_rating",
     "ai_reason",
   ]
   ## dynamically add optional keys to YAML content
   for key, value in article.items():
-    if any(
-      key_condition in key
-      for key_condition in optional_key_conditions
-    ):
+    if any(optional_key in key for optional_key in optional_keys):
       yaml_content[key] = value
-  ## Sort the YAML content alphabetically
+  ## sort the yaml content alphabetically
   sorted_yaml_content = dict(sorted(yaml_content.items()))
-  ## Dump the sorted YAML frontmatter to the file
+  ## dump the sorted YAML frontmatter to the file
   file_pointer.write("---\n")
-  yaml.dump(sorted_yaml_content, file_pointer, default_flow_style=False, sort_keys=False)
+  yaml.dump(sorted_yaml_content, file_pointer, default_flow_style=False, sort_keys=False, allow_unicode=True)
   file_pointer.write("---\n")
-  ## Write the task status
+  ## write the task status
   task_status = article.get("task_status", "u")
   file_pointer.write(f" - [{task_status}] #task status\n")
-  return
 
 def save_article(article, verbose=True, force=False):
-  file_name = article["arxiv_id"] + ".md"
-  file_path_file = f"{directories.mdfiles}/{file_name}"
-  if ww_file_io.file_exists(file_path_file):
-    _article = read_markdown_file(file_path_file)
-    _task_status = _article["task_status"]
+  file_name = article.get("arxiv_id") + ".md"
+  file_path = directories.output_mdfiles / file_name
+  if file_path.exists():
+    _article = read_markdown_file(file_path)
+    _task_status = _article.get("task_status")
     ## if the article has already been assessed, do not overwrite it
     if not(force) and _task_status in [ "D", "-" ]:
       if _task_status == "D": print("The following article has already been downloaded:")
       if _task_status == "-": print("The following article has already been ignored:")
       print_article(article)
-      input_save = input("Do you want to save it again? (y/n): ")
+      user_input = input("Do you want to save it again? (y/N): ").strip().lower()
       print(" ")
-      if input_save[0].lower() != "y": return
+      if not user_input.startswith("y"):
+        return
     ## retain the task status
     article["task_status"] = _task_status
     ## merge `config_tags`: only add unique tags from `_article`
     if "config_tags" in _article:
-      article["config_tags"] = list(
-        set(article.get("config_tags", [])) | set(_article.get("config_tags", []))
-      )
+      existing_articles = article.get("config_tags", [])
+      new_articles = _article.get("config_tags", [])
+      article["config_tags"] = list(set(existing_articles) | set(new_articles))
     ## retain `ai_rating` only if it is not None
     if _article.get("ai_rating") is not None:
       article["ai_rating"] = _article.get("ai_rating")
@@ -133,13 +127,12 @@ def save_article(article, verbose=True, force=False):
       article["ai_reason"] = _article.get("ai_reason")
     ## merge `config_reason_*` keys from `_article` if they do not already exist in `article`
     for key, value in _article.items():
-      if key.startswith("config_reason_") and key not in article:
+      if key.startswith("config_reason_") and (key not in article):
         article[key] = value
   ## overwrite the file if it exists, but retain the Obsidian task status and search category tags
-  with open(file_path_file, "w") as file_pointer:
+  with open(file_path, "w") as file_pointer:
     write_article_to_file(file_pointer, article)
-  if verbose: print(f"Saved: {file_path_file}")
-  return
+  if verbose: print(f"Saved: {file_path}")
 
 
 ## ###############################################################
@@ -185,8 +178,8 @@ def get_article_summary(arxiv_article, config_results={}, ai_results={}, task_st
 ## READ MARKDOWN (ARTICLE) FILES
 ## ###############################################################
 
-def read_markdown_file(md_file):
-  content = ww_file_io.read_markdown_file(md_file)
+def read_markdown_file(file_path: Path) -> Dict[str, Any]:
+  content = ww_file_io.read_markdown_file(file_path)
   ## split the file into frontmatter (YAML) and body (markdown)
   match = re.match(r"^---\n(.*?)\n---\n(.*)", content, re.DOTALL)
   if match:
@@ -235,27 +228,20 @@ def read_markdown_file(md_file):
     "date_published"   : ww_dates.cast_string_to_date(meta_data.get("date_published")),
     "date_updated"     : ww_dates.cast_string_to_date(meta_data.get("date_updated")),
     "category_primary" : meta_data.get("category_primary"),
-    "category_others"  : meta_data.get("category_others", None),
+    "category_others"  : meta_data.get("category_others"),
     "config_tags"      : meta_data.get("config_tags", []),
-    "ai_rating"        : meta_data.get("ai_rating", None),
-    "ai_reason"        : meta_data.get("ai_reason", None),
+    "ai_rating"        : meta_data.get("ai_rating"),
+    "ai_reason"        : meta_data.get("ai_reason"),
     "task_status"      : task_status,
     **config_reasons
   }
   return dict(sorted(properties.items()))
 
-def read_all_markdown_files():
-  file_names = [
-    file_name
-    for file_name in os.listdir(directories.mdfiles)
-    if file_name.endswith(".md")
+def read_all_markdown_files() -> list[Dict[str, Any]]:
+  return [
+    read_markdown_file(file_path)
+    for file_path in sorted(directories.output_mdfiles.glob("*.md"))
   ]
-  articles = []
-  for file_name in file_names:
-    file_path_file = f"{directories.mdfiles}/{file_name}"
-    article = read_markdown_file(file_path_file)
-    articles.append(article)
-  return articles
 
 
 ## END OF MODULE

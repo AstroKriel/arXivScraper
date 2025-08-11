@@ -1,12 +1,11 @@
 ## ###############################################################
-## DEPENDANCIES
+## DEPENDENCIES
 ## ###############################################################
 
 import sys
 import re
 import argparse
-from arxivscraper.utils import ww_file_io
-from arxivscraper.config import directories
+from arxivscraper.io_configs import directories
 
 
 ## ###############################################################
@@ -77,8 +76,8 @@ class GetUserInputs:
     if not search_args["config_name"]:
       search_args["config_name"] = input("Please provide --config_name: ")
     config_name = search_args["config_name"]
-    if not ww_file_io.file_exists(f"{directories.config}/{config_name}.json"):
-      raise Exception(f"Error: Config file `{config_name}.json` does not exist under: {directories.config}")
+    if not directories.search_configs / f"{config_name}.json":
+      raise Exception(f"Error: Config file `{config_name}.json` does not exist under: {directories.search_configs}")
     if search_args["lookback_days"] is None:
       search_args["lookback_days"] = int(input("Please provide --lookback_days: "))
     return search_args
