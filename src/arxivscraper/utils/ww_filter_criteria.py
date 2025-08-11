@@ -22,7 +22,7 @@ def read_search_criteria(
   }
   config_path = directory / f"{config_name}.json"
   config_criteria = ww_file_io.read_file(config_path, expected_extension=".json")
-  missing_keys = required_keys - config_criteria
+  missing_keys = required_keys - config_criteria.keys()
   if len(missing_keys) > 0:
     print(f"The following config keys are missing:")
     print("\t", ", ".join(missing_keys), "\n")
@@ -82,15 +82,15 @@ def search_keywords_to_set_notation(search_keywords, set_level=0):
   )
 
 def print_search_criteria(search_config):
-  include_keywords = search_config["include_keywords"]
-  exclude_keywords = search_config["exclude_keywords"]
+  keywords_to_include = search_config["keywords_to_include"]
+  keywords_to_exclude = search_config["keywords_to_exclude"]
   authors = search_config["authors"]
   print("> including articles with phrases:")
-  print(search_keywords_to_set_notation(include_keywords))
+  print(search_keywords_to_set_notation(keywords_to_include))
   print(" ")
-  if len(exclude_keywords) > 0:
+  if len(keywords_to_exclude) > 0:
     print("> excluding articles with phrases:")
-    print(search_keywords_to_set_notation(exclude_keywords))
+    print(search_keywords_to_set_notation(keywords_to_exclude))
     print(" ")
   if len(authors) > 0:
     print("> including articles with authors:", end="")

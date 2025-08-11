@@ -7,8 +7,8 @@
     "physics.plasm-ph",
     "physics.flu-dyn"
   ],
-  "exclude_keywords" : [ ],
-  "include_keywords" : [
+  "keywords_to_exclude" : [ ],
+  "keywords_to_include" : [
     "turb"
   ]
 }

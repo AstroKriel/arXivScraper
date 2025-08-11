@@ -1,6 +1,17 @@
-I am a researcher in theoretical astrophysics and plasma physics, with a focus on the magnetic dynamics of plasmas in the interstellar medium. I am particularly interested in how magnetic fields behave, interact, and amplify across various scales, from molecular clouds to the intercluster medium. I am looking for research papers that explore:
-1. Magnetic Field Amplification – How dynamos and other mechanisms drive the amplification and evolution of magnetic fields in astrophysical plasmas.
-2. Force Interactions Shaping Magnetic Dynamics – The interactions between magnetic, gravitational, and thermal forces and how these shape the structure and behavior of magnetic fields within plasma environments.
-3. Emergent Magnetic Dynamics in Turbulent Plasmas – How magnetic fields interact with turbulence to give rise to complex, emergent magnetic behaviors within plasma structures.
-4. Scale-Dependent Magnetic Structuring – The role of magnetic fields in organizing and shaping structures on scales ranging from molecular clouds to galactic and intergalactic regions.
-I am interested in theoretical models, simulations, and studies that examine the complex, multi-scale dynamics of magnetic fields in plasma environments.
+I study how magnetic fields shape astrophysical systems by mediating amplification, transport, and feedback across scales. Contexts include the ISM, ICM, accretion disks, jets, and molecular clouds. I’m interested in theoretical models and MHD simulations that explain mechanisms and scalings.
+
+What I’m looking for:
+- Magnetic field amplification: “small-scale dynamo”, “mean-field dynamo”, “MRI and angular-momentum transport”.
+- Magnetized turbulence & energy transfer: “dynamical alignment”, “velocity–magnetic alignment”, “cross-helicity”, “scale-dependent alignment”, “Maxwell vs Reynolds stresses”, “pressure–strain coupling”, “Alfvénic cascade”, “reconnection-mediated transfer”.
+- Multi-scale structuring and evolution: anisotropy, intermittency, and how fields organize structure from “molecular clouds” to “galaxies” and “clusters”.
+- Non-ideal MHD that materially changes dynamics: “ambipolar diffusion”, “Hall MHD”, “Ohmic diffusion”.
+- Studies that connect mechanisms to consequences for system evolution (e.g., star formation regulation, ISM/ICM heating, transport).
+
+Methods preference: theory and numerical MHD (DNS/LES), instability analyses, scaling laws. Observation-driven work is relevant when it tests or constrains magnetic mechanisms.
+
+Key phrases the model may quote:
+“small-scale dynamo”, “mean-field dynamo”, “MRI transport”,
+“dynamical alignment”, “cross-helicity”, “scale-dependent alignment”,
+“Maxwell vs Reynolds stresses”, “pressure–strain coupling”,
+“Alfvénic cascade”, “reconnection-mediated transfer”,
+“ambipolar diffusion”, “Hall MHD”, “ISM”, “ICM”.

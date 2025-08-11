@@ -7,10 +7,10 @@
     "physics.plasm-ph",
     "physics.flu-dyn"
   ],
-  "exclude_keywords" : [
+  "keywords_to_exclude" : [
     "rmhd", "gr-mhd", "relativis", "tokamak", "machine"
   ],
-  "include_keywords" : [
+  "keywords_to_include" : [
     "mhd",
     [ "magnet", [ "hydro", "turb", "structure", "cascade", "charg", "forc", "syst" ]]
   ]

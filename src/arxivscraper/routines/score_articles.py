@@ -46,7 +46,7 @@ def get_ai_response(
   if not article_title:
      return {
       "status"      : "error",
-      "error"       : "missing article title",
+      "error"       : "Missing article title.",
       "ai_rating"   : None,
       "ai_reason"   : None,
       "ai_response" : None
@@ -54,7 +54,7 @@ def get_ai_response(
   if not article_abstract:
     return {
       "status"      : "error",
-      "error"       : "missing article abstract",
+      "error"       : "Missing article abstract.",
       "ai_rating"   : None,
       "ai_reason"   : None,
       "ai_response" : None
@@ -82,7 +82,7 @@ def get_ai_response(
     response_text = (ai_response.choices[0].message.content or "").strip()
     response_dict = json.loads(response_text)
     ai_rating = float(response_dict["rating"])
-    ai_reason = float(response_dict["reason"])
+    ai_reason = response_dict["reason"]
     return {
       "status"      : "success",
       "ai_rating"   : ai_rating,
@@ -118,17 +118,17 @@ def get_ai_score(
     prompt_criteria  = prompt_criteria,
   )
   time_elapsed = time.time() - time_start
-  if response_dict["status"] != "success":
+  if response_dict.get("status") != "success":
     print("Error:", response_dict.get("error", "<unknown error>"))
     ai_response = response_dict.get("ai_response")
     if ai_response: print("Raw LLM response:", ai_response)
     return False
-  article["ai_rating"] = response_dict["ai_rating"]
-  article["ai_reason"] = response_dict["ai_reason"]
   print("arXiv-id:", article.get("arxiv_id","<unknown id>"))
   print("Title:", article.get("title","").strip())
-  print("Rating:", response_dict["ai_rating"])
+  print("Rating:", response_dict.get("ai_rating"))
   print(f"Elapsed time: {time_elapsed:.2f} seconds.")
+  article["ai_rating"] = response_dict.get("ai_rating")
+  article["ai_reason"] = response_dict.get("ai_reason")
   return True
 
 
