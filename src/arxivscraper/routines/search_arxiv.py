@@ -88,10 +88,10 @@ class SearchArxiv():
     ])
 
   def _check_config_conditions(self, arxiv_article):
-    if ww_filter_criteria.meets_search_criteria(arxiv_article.title.lower(), self.dict_search_criteria["exclude_keywords"]): return False, None
-    title_passed = ww_filter_criteria.meets_search_criteria(arxiv_article.title.lower(), self.dict_search_criteria["include_keywords"])
-    if ww_filter_criteria.meets_search_criteria(arxiv_article.summary.lower(), self.dict_search_criteria["exclude_keywords"]): return False, None
-    abstract_passed = ww_filter_criteria.meets_search_criteria(arxiv_article.summary.lower(), self.dict_search_criteria["include_keywords"])
+    if ww_filter_criteria.meets_search_criteria(arxiv_article.title.lower(), self.dict_search_criteria["keywords_to_exclude"]): return False, None
+    title_passed = ww_filter_criteria.meets_search_criteria(arxiv_article.title.lower(), self.dict_search_criteria["keywords_to_include"])
+    if ww_filter_criteria.meets_search_criteria(arxiv_article.summary.lower(), self.dict_search_criteria["keywords_to_exclude"]): return False, None
+    abstract_passed = ww_filter_criteria.meets_search_criteria(arxiv_article.summary.lower(), self.dict_search_criteria["keywords_to_include"])
     author_last_names = [
       unidecode.unidecode(str(author).lower().split(" ")[-1])
       for author in arxiv_article.authors
@@ -114,7 +114,7 @@ class SearchArxiv():
 ## ###############################################################
 
 def main():
-  obj_user_inputs = ww_user_inputs.GetUserInputs()
+  obj_user_inputs = ww_user_inputs.GetUserInputs(include_search=True)
   dict_search_params = obj_user_inputs.get_search_nputs()
   obj_search_arxiv = SearchArxiv(
     current_date  = ww_dates.get_date_today(),

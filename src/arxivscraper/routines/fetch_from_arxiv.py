@@ -23,20 +23,22 @@ def fetch_from_arxiv(arxiv_id):
   print("The article you have requested:")
   ww_articles.print_article(_article)
   print(" ")
-  input_right_article = input("Was this the article you intended to fetch? (y/n): ")
+  user_confirmation = input("Was this the article you intended to fetch? (y/N): ").strip().lower()
   print(" ")
-  if input_right_article[0].lower() != "y": return None
+  if not user_confirmation.startswith("y"):
+    return None
   file_path_file = directories.output_mdfiles / f"{arxiv_id}.md"
   if file_path_file.exists():
     print(f"Note: this arXiv article has already been saved: {file_path_file}")
-    input_save_again = input("Would you like to save it again? (y/n): ")
+    user_save_mdfile = input("Would you like to save it again? (y/N): ").strip().lower()
     print(" ")
-    if input_save_again[0].lower() != "y": return _article
-  input_tag = input("Enter a config tag: ")
+    if not user_save_mdfile.startswith("y"):
+      return _article
+  user_tag = input("Enter a config tag: ").strip().lower()
   print(" ")
-  if input_tag == "": raise Exception("Error: config tag cannot be empty.")
-  if " " in input_tag: raise Exception("Error: config tag cannot contain spaces.")
-  config_results = { input_tag : [ 1, 0, 0 ] }
+  if user_tag == "": raise Exception("Error: config tag cannot be empty.")
+  if " " in user_tag: raise Exception("Error: config tag cannot contain spaces.")
+  config_results = { user_tag : [ 1, 0, 0 ] }
   article = ww_articles.get_article_summary(
     arxiv_article          = arxiv_article,
     config_results = config_results
@@ -50,7 +52,7 @@ def fetch_from_arxiv(arxiv_id):
 ## ###############################################################
 
 def main():
-  obj_user_inputs = ww_user_inputs.GetUserInputs()
+  obj_user_inputs = ww_user_inputs.GetUserInputs(include_fetch=True)
   arxiv_id = obj_user_inputs.get_fetch_inputs()
   ww_file_io.init_directory(directories.output_mdfiles)
   fetch_from_arxiv(arxiv_id)

@@ -21,7 +21,11 @@ def main():
   print("Program started at {}".format(
     datetime.datetime.now().strftime("%H:%M:%S")
   ))
-  obj_user_inputs = ww_user_inputs.GetUserInputs()
+  obj_user_inputs = ww_user_inputs.GetUserInputs(
+    include_main   = True,
+    include_search = True,
+    include_fetch  = True,
+  )
   dict_program_flags = obj_user_inputs.get_program_inputs()
   if dict_program_flags["search"]:
     SearchArxiv.main()

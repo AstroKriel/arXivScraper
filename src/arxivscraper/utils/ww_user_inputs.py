@@ -13,14 +13,19 @@ from arxivscraper.io_configs import directories
 ## ###############################################################
 
 class GetUserInputs:
-  def __init__(self):
+  def __init__(
+      self,
+      include_main   = False,
+      include_search = False,
+      include_fetch  = False,
+    ):
     self.parser = argparse.ArgumentParser(
       description     = "arXiv-Scraper: program to search for relevant arXiv papers.",
       formatter_class = lambda prog: argparse.RawDescriptionHelpFormatter(prog, max_help_position=50),
     )
-    self._add_main_program_arguments()
-    self._add_search_arguments()
-    self._add_fetch_argument()
+    if include_main:   self._add_main_program_arguments()
+    if include_search: self._add_search_arguments()
+    if include_fetch:  self._add_fetch_argument()
     ## parse and store arguments
     self.args = vars(self.parser.parse_args())
 
