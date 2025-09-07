@@ -1,4 +1,4 @@
-# arxivscraper
+# arXivScraper
 
 **arxivscraper** is a lightweight paper management tool designed to help you find, filter, and rank new arXiv papers based on your research interests. It offers flexible search and ranking criteria, as well as seamless integration with Obsidian. This project was the foundations from which [ChiScraper](https://github.com/ChiScraper/ChiScraper) added many useful extensions. `ChiScraper` has now surpassed `arxivscraper`, and I suggest you go check it out instead (see more details [here](https://chiscraper.github.io/)).
 
