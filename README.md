@@ -1,6 +1,6 @@
 # arXivScraper
 
-**arxivscraper** is a lightweight paper management tool designed to help you find, filter, and rank new arXiv papers based on your research interests. It offers flexible search and ranking criteria, as well as seamless integration with Obsidian. This project was the foundations from which [ChiScraper](https://github.com/ChiScraper/ChiScraper) added many useful extensions. `ChiScraper` has now surpassed `arxivscraper`, and I suggest you go check it out instead (see more details [here](https://chiscraper.github.io/)).
+**arxivscraper** is a lightweight paper management tool designed to help you find, filter, and rank new arXiv papers based on your research interests. It offers flexible search and ranking criteria, as well as seamless integration with Obsidian.
 
 ![Logo](./logo.jpg)
 
@@ -33,7 +33,7 @@ Customise paper ranking with a personal profile (defined in `./configs/user_prof
 
 ```python main.py --rank```
 
-### 4. Read, Download, Remove (via Obsidian)
+### 4. Read, Download, Remove
 You can use Obsidian to manage your papers, and interface with `arxivscraper`. Create a vault in the project folder (I have provided default settings under `.Obsidian`).
 
 With Obsidian, you can:
