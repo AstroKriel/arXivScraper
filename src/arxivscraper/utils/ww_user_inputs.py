@@ -13,6 +13,7 @@ from arxivscraper.io_configs import directories
 ## ###############################################################
 
 class GetUserInputs:
+
   def __init__(
       self,
       include_main   = False,
@@ -27,7 +28,8 @@ class GetUserInputs:
     if include_search: self._add_search_arguments()
     if include_fetch:  self._add_fetch_argument()
     ## parse and store arguments
-    self.args = vars(self.parser.parse_args())
+    name_space, _extras = self.parser.parse_known_args()
+    self.args = vars(name_space)
 
   def _add_main_program_arguments(self):
     """Sets up main program flag arguments."""
@@ -67,7 +69,7 @@ class GetUserInputs:
       for key in ["search", "fetch", "score", "print", "download"]
     }
 
-  def get_search_nputs(self):
+  def get_search_inputs(self):
     """Returns only the search-specific arguments and prompts for any missing parameters if required."""
     ## collect relevant search-related arguments
     search_args = {
@@ -81,7 +83,8 @@ class GetUserInputs:
     if not search_args["config_name"]:
       search_args["config_name"] = input("Please provide --config_name: ")
     config_name = search_args["config_name"]
-    if not directories.search_configs / f"{config_name}.json":
+    config_path = directories.search_configs / f"{config_name}.json"
+    if not config_path.exists():
       raise Exception(f"Error: Config file `{config_name}.json` does not exist under: {directories.search_configs}")
     if search_args["lookback_days"] is None:
       search_args["lookback_days"] = int(input("Please provide --lookback_days: "))
