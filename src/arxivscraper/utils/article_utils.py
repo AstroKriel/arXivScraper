@@ -7,7 +7,7 @@ import yaml
 import unidecode
 from typing import Dict, Any
 from pathlib import Path
-from arxivscraper.utils import ww_dates, ww_file_io
+from arxivscraper.utils import datetime_utils, io_utils
 from arxivscraper.io_configs import directories
 
 
@@ -51,7 +51,7 @@ def print_article(article, num_pad_chars=13):
   ## print article information
   _print_line("Title",        article.get("title"))
   _print_line("PDF URL",      article.get("url_pdf"))
-  _print_line("Date Updated", ww_dates.cast_date_to_string(article.get("date_updated")))
+  _print_line("Date Updated", datetime_utils.cast_date_to_string(article.get("date_updated")))
   _print_line("Author(s)",    article.get("authors"))
 
 
@@ -69,8 +69,8 @@ def write_article_to_file(file_pointer, article):
     "title":            format_text(article.get("title")),
     "arxiv_id":         article.get("arxiv_id"),
     "url_pdf":          article.get("url_pdf"),
-    "date_published":   ww_dates.cast_date_to_string(article.get("date_published")),
-    "date_updated":     ww_dates.cast_date_to_string(article.get("date_updated")),
+    "date_published":   datetime_utils.cast_date_to_string(article.get("date_published")),
+    "date_updated":     datetime_utils.cast_date_to_string(article.get("date_updated")),
     "category_primary": article.get("category_primary"),
     "category_others":  _format_list_if_defined(article.get("category_others")),
     "config_tags":      _format_list_if_defined(article.get("config_tags")),
@@ -179,7 +179,7 @@ def get_article_summary(arxiv_article, config_results={}, ai_results={}, task_st
 ## ###############################################################
 
 def read_markdown_file(file_path: Path) -> Dict[str, Any]:
-  content = ww_file_io.read_markdown_file(file_path)
+  content = io_utils.read_markdown_file(file_path)
   ## split the file into frontmatter (YAML) and body (markdown)
   match = re.match(r"^---\n(.*?)\n---\n(.*)", content, re.DOTALL)
   if match:
@@ -225,8 +225,8 @@ def read_markdown_file(file_path: Path) -> Dict[str, Any]:
     "abstract"         : meta_data.get("abstract"),
     "arxiv_id"         : meta_data.get("arxiv_id"),
     "url_pdf"          : meta_data.get("url_pdf"),
-    "date_published"   : ww_dates.cast_string_to_date(meta_data.get("date_published")),
-    "date_updated"     : ww_dates.cast_string_to_date(meta_data.get("date_updated")),
+    "date_published"   : datetime_utils.cast_string_to_date(meta_data.get("date_published")),
+    "date_updated"     : datetime_utils.cast_string_to_date(meta_data.get("date_updated")),
     "category_primary" : meta_data.get("category_primary"),
     "category_others"  : meta_data.get("category_others"),
     "config_tags"      : meta_data.get("config_tags", []),

@@ -5,7 +5,7 @@
 import sys
 import arxiv
 import unidecode
-from arxivscraper.utils import ww_file_io, ww_articles, ww_dates, ww_filter_criteria, ww_user_inputs
+from arxivscraper.utils import io_utils, article_utils, datetime_utils, filter_utils, argparse_utils
 from arxivscraper.io_configs import directories
 
 
@@ -25,7 +25,7 @@ class SearchArxiv():
     self._read_search_criteria()
     for search_category in self.dict_search_criteria["categories"]:
       print(f"Searching: {search_category}")
-      print(f"Date range: {ww_dates.cast_date_to_string(self.lookback_date)} to {ww_dates.cast_date_to_string(self.current_date)}")
+      print(f"Date range: {datetime_utils.cast_date_to_string(self.lookback_date)} to {datetime_utils.cast_date_to_string(self.current_date)}")
       self.client = arxiv.Client(
         page_size     = 200,
         delay_seconds = 1,
@@ -42,7 +42,7 @@ class SearchArxiv():
         is_relevant, reasons = self._check_config_conditions(arxiv_article)
         if is_relevant:
           config_results = { self.config_name : reasons }
-          article = ww_articles.get_article_summary(
+          article = article_utils.get_article_summary(
             arxiv_article  = arxiv_article,
             config_results = config_results
           )
@@ -58,17 +58,17 @@ class SearchArxiv():
     )
 
   def _read_search_criteria(self):
-    self.dict_search_criteria = ww_filter_criteria.read_search_criteria(
+    self.dict_search_criteria = filter_utils.read_search_criteria(
       directory   = directories.search_configs,
       config_name = self.config_name,
     )
     print(f"Searching for articles:")
-    print("> from: {}".format(ww_dates.cast_date_to_string(self.lookback_date)))
-    print("> to:   {}".format(ww_dates.cast_date_to_string(self.current_date)))
+    print("> from: {}".format(datetime_utils.cast_date_to_string(self.lookback_date)))
+    print("> to:   {}".format(datetime_utils.cast_date_to_string(self.current_date)))
     print(" ")
     print(f"> using the `#{self.config_name}` config file")
     print(" ")
-    ww_filter_criteria.print_search_criteria(self.dict_search_criteria)
+    filter_utils.print_search_criteria(self.dict_search_criteria)
 
   def _create_search_query(self, category):
     return arxiv.Search(
@@ -88,10 +88,10 @@ class SearchArxiv():
     ])
 
   def _check_config_conditions(self, arxiv_article):
-    if ww_filter_criteria.meets_search_criteria(arxiv_article.title.lower(), self.dict_search_criteria["keywords_to_exclude"]): return False, None
-    title_passed = ww_filter_criteria.meets_search_criteria(arxiv_article.title.lower(), self.dict_search_criteria["keywords_to_include"])
-    if ww_filter_criteria.meets_search_criteria(arxiv_article.summary.lower(), self.dict_search_criteria["keywords_to_exclude"]): return False, None
-    abstract_passed = ww_filter_criteria.meets_search_criteria(arxiv_article.summary.lower(), self.dict_search_criteria["keywords_to_include"])
+    if filter_utils.meets_search_criteria(arxiv_article.title.lower(), self.dict_search_criteria["keywords_to_exclude"]): return False, None
+    title_passed = filter_utils.meets_search_criteria(arxiv_article.title.lower(), self.dict_search_criteria["keywords_to_include"])
+    if filter_utils.meets_search_criteria(arxiv_article.summary.lower(), self.dict_search_criteria["keywords_to_exclude"]): return False, None
+    abstract_passed = filter_utils.meets_search_criteria(arxiv_article.summary.lower(), self.dict_search_criteria["keywords_to_include"])
     author_last_names = [
       unidecode.unidecode(str(author).lower().split(" ")[-1])
       for author in arxiv_article.authors
@@ -114,18 +114,18 @@ class SearchArxiv():
 ## ###############################################################
 
 def main():
-  obj_user_inputs = ww_user_inputs.GetUserInputs(include_search=True)
+  obj_user_inputs = argparse_utils.GetUserInputs(include_search=True)
   dict_search_params = obj_user_inputs.get_search_inputs()
   obj_search_arxiv = SearchArxiv(
-    current_date  = ww_dates.get_date_today(),
-    lookback_date = ww_dates.get_date_n_days_ago(dict_search_params["lookback_days"]),
+    current_date  = datetime_utils.get_date_today(),
+    lookback_date = datetime_utils.get_date_n_days_ago(dict_search_params["lookback_days"]),
     config_name   = dict_search_params["config_name"],
   )
   obj_search_arxiv.search()
   articles = obj_search_arxiv.get_sorted_articles()
-  ww_file_io.init_directory(directories.output_mdfiles)
+  io_utils.init_directory(directories.output_mdfiles)
   for article in articles:
-    ww_articles.save_article(article, verbose=False, force=True)
+    article_utils.save_article(article, verbose=False, force=True)
   print(f"Saved {len(articles)} articles.")
   print(" ")
 

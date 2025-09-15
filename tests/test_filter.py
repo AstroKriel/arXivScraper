@@ -3,7 +3,7 @@
 ## ###############################################################
 
 import sys, unittest
-from arxivscraper.utils import ww_filter_criteria
+from arxivscraper.utils import filter_utils
 
 
 ## ###############################################################
@@ -23,7 +23,7 @@ class TestHelperFuncs(unittest.TestCase):
     matching_phrases = {
       phrase
       for phrase in self.phrases
-      if ww_filter_criteria.meets_search_criteria(phrase, search_condition)
+      if filter_utils.meets_search_criteria(phrase, search_condition)
     }
     self.assertEqual(matching_phrases, expected_phrases)
 

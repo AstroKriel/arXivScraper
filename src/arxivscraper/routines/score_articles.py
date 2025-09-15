@@ -7,7 +7,7 @@ import time
 import json
 from openai import OpenAI
 from typing import Any, Dict, Optional
-from arxivscraper.utils import ww_articles, ww_file_io
+from arxivscraper.utils import article_utils, io_utils
 from arxivscraper.io_configs import directories, file_names
 
 
@@ -142,7 +142,7 @@ def main():
     raise RuntimeError(f"OpenAI API key not found. Add it to {directories.search_configs / file_names.ai_api_key}.")
   ai_client = build_ai_client(api_key)
   print("Reading in all articles...")
-  articles = ww_articles.read_all_markdown_files()
+  articles = article_utils.read_all_markdown_files()
   articles = [
     article
     for article in articles
@@ -150,8 +150,8 @@ def main():
   ]
   num_articles = len(articles)
   print(f"Preparing to score {len(articles)} articles.")
-  prompt_rules    = ww_file_io.read_text_file(directories.search_configs / file_names.ai_rules)
-  prompt_criteria = ww_file_io.read_text_file(directories.search_configs / file_names.ai_criteria)
+  prompt_rules    = io_utils.read_text_file(directories.search_configs / file_names.ai_rules)
+  prompt_criteria = io_utils.read_text_file(directories.search_configs / file_names.ai_criteria)
   for article_index, article in enumerate(articles):
     print(f"({article_index+1}/{num_articles})")
     is_scored = get_ai_score(
@@ -160,7 +160,7 @@ def main():
       prompt_rules    = prompt_rules,
       prompt_criteria = prompt_criteria,
     )
-    if is_scored: ww_articles.save_article(article, force=True)
+    if is_scored: article_utils.save_article(article, force=True)
     print(" ")
 
 

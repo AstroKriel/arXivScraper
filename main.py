@@ -5,7 +5,7 @@
 import sys
 import time
 import datetime
-from arxivscraper.utils import ww_user_inputs
+from arxivscraper.utils import argparse_utils
 from arxivscraper.routines import search_arxiv as SearchArxiv
 from arxivscraper.routines import score_articles as ScoreArticle
 from arxivscraper.routines import fetch_from_arxiv as FetchFromArxiv
@@ -21,7 +21,7 @@ def main():
   print("Program started at {}".format(
     datetime.datetime.now().strftime("%H:%M:%S")
   ))
-  obj_user_inputs = ww_user_inputs.GetUserInputs(
+  obj_user_inputs = argparse_utils.GetUserInputs(
     include_main   = True,
     include_search = True,
     include_fetch  = True,

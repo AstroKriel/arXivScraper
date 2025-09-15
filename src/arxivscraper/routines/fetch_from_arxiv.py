@@ -4,7 +4,7 @@
 
 import sys
 import arxiv
-from arxivscraper.utils import ww_articles, ww_user_inputs, ww_file_io
+from arxivscraper.utils import article_utils, argparse_utils, io_utils
 from arxivscraper.io_configs import directories
 
 
@@ -19,9 +19,9 @@ def fetch_from_arxiv(arxiv_id):
   if arxiv_article is None:
     print(f"Error: the arXiv article `{arxiv_id}` does not exist.")
     return None
-  _article = ww_articles.get_article_summary(arxiv_article)
+  _article = article_utils.get_article_summary(arxiv_article)
   print("The article you have requested:")
-  ww_articles.print_article(_article)
+  article_utils.print_article(_article)
   print(" ")
   user_confirmation = input("Was this the article you intended to fetch? (y/N): ").strip().lower()
   print(" ")
@@ -39,11 +39,11 @@ def fetch_from_arxiv(arxiv_id):
   if user_tag == "": raise Exception("Error: config tag cannot be empty.")
   if " " in user_tag: raise Exception("Error: config tag cannot contain spaces.")
   config_results = { user_tag : [ 1, 0, 0 ] }
-  article = ww_articles.get_article_summary(
+  article = article_utils.get_article_summary(
     arxiv_article          = arxiv_article,
     config_results = config_results
   )
-  ww_articles.save_article(article)
+  article_utils.save_article(article)
   return article
 
 
@@ -52,9 +52,9 @@ def fetch_from_arxiv(arxiv_id):
 ## ###############################################################
 
 def main():
-  obj_user_inputs = ww_user_inputs.GetUserInputs(include_fetch=True)
+  obj_user_inputs = argparse_utils.GetUserInputs(include_fetch=True)
   arxiv_id = obj_user_inputs.get_fetch_inputs()
-  ww_file_io.init_directory(directories.output_mdfiles)
+  io_utils.init_directory(directories.output_mdfiles)
   fetch_from_arxiv(arxiv_id)
 
 

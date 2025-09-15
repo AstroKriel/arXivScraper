@@ -3,7 +3,7 @@
 ## ###############################################################
 
 from pathlib import Path
-from arxivscraper.utils import ww_file_io
+from arxivscraper.utils import io_utils
 
 
 ## ###############################################################
@@ -21,7 +21,7 @@ def read_search_criteria(
     "keywords_to_include"
   }
   config_path = directory / f"{config_name}.json"
-  config_criteria = ww_file_io.read_file(config_path, expected_extension=".json")
+  config_criteria = io_utils.read_file(config_path, expected_extension=".json")
   missing_keys = required_keys - config_criteria.keys()
   if len(missing_keys) > 0:
     print(f"The following config keys are missing:")

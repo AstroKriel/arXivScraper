@@ -4,7 +4,7 @@
 
 import sys
 import requests
-from arxivscraper.utils import ww_articles, ww_file_io
+from arxivscraper.utils import article_utils, io_utils
 from arxivscraper.io_configs import directories
 
 
@@ -28,7 +28,7 @@ def download_pdf(article):
   ## update task status stored in the markdown file
   article["task_status"] = "D"
   with open(file_path_md, "w") as file_pointer:
-    ww_articles.write_article_to_file(file_pointer, article)
+    article_utils.write_article_to_file(file_pointer, article)
 
 
 ## ###############################################################
@@ -49,8 +49,8 @@ def download_pdfs(articles, verbose=False):
 ## ###############################################################
 
 def main():
-  ww_file_io.init_directory(directories.output_pdfs)
-  articles = ww_articles.read_all_markdown_files()
+  io_utils.init_directory(directories.output_pdfs)
+  articles = article_utils.read_all_markdown_files()
   download_pdfs(articles, verbose=False)
 
 
