@@ -115,7 +115,7 @@ class SearchArxiv():
 
 def main():
   obj_user_inputs = ww_user_inputs.GetUserInputs(include_search=True)
-  dict_search_params = obj_user_inputs.get_search_nputs()
+  dict_search_params = obj_user_inputs.get_search_inputs()
   obj_search_arxiv = SearchArxiv(
     current_date  = ww_dates.get_date_today(),
     lookback_date = ww_dates.get_date_n_days_ago(dict_search_params["lookback_days"]),
