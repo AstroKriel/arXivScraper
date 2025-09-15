@@ -14,10 +14,10 @@ __pycache__/
 summary.md
 
 ## secret api key
-search_configs/api_key.txt
+configs/api_key.txt
 
 ## output directories
-output_mdfiles/
-output_pdfs/
+mdfiles/
+pdfs/
 
 ## .
