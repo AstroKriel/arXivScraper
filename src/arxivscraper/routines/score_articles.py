@@ -1,18 +1,25 @@
-## ###############################################################
-## LOAD MODULES
-## ###############################################################
+## { MODULE
 
+##
+## === DEPENDENCIES
+##
+
+## stdlib
+import json
 import sys
 import time
-import json
-from openai import OpenAI
 from typing import Any, Dict, Optional
-from arxivscraper.utils import article_utils, io_utils
-from arxivscraper.io_configs import directories, file_names
 
-## ###############################################################
-## REQUEST GPT TO SCORE ARTICLE
-## ###############################################################
+## third-party
+from openai import OpenAI
+
+## local
+from arxivscraper.io_configs import directories, file_names
+from arxivscraper.utils import article_utils, io_utils
+
+##
+## === AI CLIENT SETUP
+##
 
 
 def load_api_key() -> Optional[str]:
@@ -34,6 +41,11 @@ def load_api_key() -> Optional[str]:
 
 def build_ai_client(api_key: str) -> OpenAI:
     return OpenAI(api_key=api_key)
+
+
+##
+## === AI RESPONSE
+##
 
 
 def get_ai_response(
@@ -107,13 +119,13 @@ def get_ai_response(
         }
 
 
-## ###############################################################
-## FUNCTION TO INTERPRET AI RESPONSE
-## ###############################################################
+##
+## === SCORE ARTICLE
+##
 
 
 def get_ai_score(
-    article: Dict[str, Any],
+    article,
     ai_client: OpenAI,
     prompt_rules: str,
     prompt_criteria: str,
@@ -121,8 +133,8 @@ def get_ai_score(
     time_start = time.time()
     response_dict = get_ai_response(
         ai_client=ai_client,
-        article_title=article.get("title", ""),
-        article_abstract=article.get("abstract", ""),
+        article_title=article.title,
+        article_abstract=article.abstract,
         prompt_rules=prompt_rules,
         prompt_criteria=prompt_criteria,
     )
@@ -132,18 +144,18 @@ def get_ai_score(
         ai_response = response_dict.get("ai_response")
         if ai_response: print("Raw LLM response:", ai_response)
         return False
-    print("arXiv-id:", article.get("arxiv_id", "<unknown id>"))
-    print("Title:", article.get("title", "").strip())
+    print("arXiv-id:", article.arxiv_id)
+    print("Title:", article.title.strip())
     print("Rating:", response_dict.get("ai_rating"))
     print(f"Elapsed time: {time_elapsed:.2f} seconds.")
-    article["ai_rating"] = response_dict.get("ai_rating")
-    article["ai_reason"] = response_dict.get("ai_reason")
+    article.ai_rating = response_dict.get("ai_rating")
+    article.ai_reason = response_dict.get("ai_reason")
     return True
 
 
-## ###############################################################
-## ROUTINE MAIN
-## ###############################################################
+##
+## === MAIN
+##
 
 
 def main():
@@ -155,7 +167,7 @@ def main():
     ai_client = build_ai_client(api_key)
     print("Reading in all articles...")
     articles = article_utils.read_all_markdown_files()
-    articles = [article for article in articles if article.get("ai_rating") is None]
+    articles = [article for article in articles if article.ai_rating is None]
     num_articles = len(articles)
     print(f"Preparing to score {len(articles)} articles.")
     prompt_rules = io_utils.read_text_file(directories.search_configs / file_names.ai_rules)
@@ -172,12 +184,12 @@ def main():
         print(" ")
 
 
-## ###############################################################
-## ROUTINE ENTRY POINT
-## ###############################################################
+##
+## === ENTRY POINT
+##
 
 if __name__ == "__main__":
     main()
     sys.exit(0)
 
-## END OF ROUTINE
+## } MODULE

@@ -1,16 +1,23 @@
-## ###############################################################
-## LOAD MODULES
-## ###############################################################
+## { MODULE
 
+##
+## === DEPENDENCIES
+##
+
+## stdlib
 import sys
+
+## third-party
 import arxiv
 import unidecode
-from arxivscraper.utils import io_utils, article_utils, datetime_utils, filter_utils, argparse_utils
-from arxivscraper.io_configs import directories
 
-## ###############################################################
-## OPPERATOR CLASS
-## ###############################################################
+## local
+from arxivscraper.io_configs import directories
+from arxivscraper.utils import argparse_utils, article_utils, datetime_utils, filter_utils, io_utils
+
+##
+## === OPERATOR CLASS
+##
 
 
 class SearchArxiv():
@@ -57,7 +64,7 @@ class SearchArxiv():
     def get_sorted_articles(self):
         return sorted(
             self.articles,
-            key=lambda article: article.get("date_updated"),
+            key=lambda article: article.date_updated,
             reverse=True,
         )
 
@@ -86,7 +93,7 @@ class SearchArxiv():
         return (self.lookback_date.date() <= article_date) and (article_date <= self.current_date.date())
 
     def _is_duplicate(self, this_arxiv_id):
-        return any([this_arxiv_id == article_dict["arxiv_id"] for article_dict in self.articles])
+        return any([this_arxiv_id == article.arxiv_id for article in self.articles])
 
     def _check_config_conditions(self, arxiv_article):
         if filter_utils.meets_search_criteria(arxiv_article.title.lower(),
@@ -116,9 +123,9 @@ class SearchArxiv():
         elif (num_articles_looked_at_in_category % 50) == 0: print(" ", end="")
 
 
-## ###############################################################
-## ROUTINE MAIN
-## ###############################################################
+##
+## === MAIN
+##
 
 
 def main():
@@ -138,12 +145,12 @@ def main():
     print(" ")
 
 
-## ###############################################################
-## ROUTINE ENTRY POINT
-## ###############################################################
+##
+## === ENTRY POINT
+##
 
 if __name__ == "__main__":
     main()
     sys.exit(0)
 
-## END OF ROUTINE
+## } MODULE

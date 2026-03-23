@@ -1,15 +1,22 @@
-## ###############################################################
-## LOAD MODULES
-## ###############################################################
+## { MODULE
 
+##
+## === DEPENDENCIES
+##
+
+## stdlib
 import sys
-import arxiv
-from arxivscraper.utils import article_utils, argparse_utils, io_utils
-from arxivscraper.io_configs import directories
 
-## ###############################################################
-## FETCH ARTICLE FROM THE ARXIV
-## ###############################################################
+## third-party
+import arxiv
+
+## local
+from arxivscraper.io_configs import directories
+from arxivscraper.utils import argparse_utils, article_utils, io_utils
+
+##
+## === FETCH ARTICLE
+##
 
 
 def fetch_from_arxiv(arxiv_id):
@@ -47,9 +54,9 @@ def fetch_from_arxiv(arxiv_id):
     return article
 
 
-## ###############################################################
-## ROUTINE MAIN
-## ###############################################################
+##
+## === MAIN
+##
 
 
 def main():
@@ -59,12 +66,12 @@ def main():
     fetch_from_arxiv(arxiv_id)
 
 
-## ###############################################################
-## ROUTINE ENTRY POINT
-## ###############################################################
+##
+## === ENTRY POINT
+##
 
 if __name__ == "__main__":
     main()
     sys.exit(0)
 
-## END OF ROUTINE
+## } MODULE
