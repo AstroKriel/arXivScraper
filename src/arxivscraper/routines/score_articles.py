@@ -39,7 +39,9 @@ def load_api_key() -> Optional[str]:
     return None
 
 
-def build_ai_client(api_key: str) -> OpenAI:
+def build_ai_client(
+    api_key: str,
+) -> OpenAI:
     return OpenAI(api_key=api_key)
 
 
@@ -125,7 +127,8 @@ def get_ai_response(
 
 
 def get_ai_score(
-    article,
+    *,
+    article: article_utils.Article,
     ai_client: OpenAI,
     prompt_rules: str,
     prompt_criteria: str,
@@ -180,7 +183,10 @@ def main():
             prompt_rules=prompt_rules,
             prompt_criteria=prompt_criteria,
         )
-        if is_scored: article_utils.save_article(article, force=True)
+        if is_scored: article_utils.save_article(
+            article,
+            force=True,
+        )
         print(" ")
 
 

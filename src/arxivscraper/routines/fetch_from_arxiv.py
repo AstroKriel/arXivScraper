@@ -19,7 +19,9 @@ from arxivscraper.utils import argparse_utils, article_utils, io_utils
 ##
 
 
-def fetch_from_arxiv(arxiv_id):
+def fetch_from_arxiv(
+    arxiv_id: str,
+) -> article_utils.Article | None:
     client = arxiv.Client()
     search = arxiv.Search(id_list=[arxiv_id])
     arxiv_article = next(client.results(search), None)

@@ -19,22 +19,36 @@ from arxivscraper.utils import filter_utils
 class TestHelperFuncs(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(
+        cls,
+    ):
         cls.phrases = []
         for animal in ["fox", "turtle", "cow"]:
             for action in ["jumped", "leaped"]:
                 for subject in ["moon", "log", "river"]:
                     cls.phrases.append(f"the {animal} {action} over the {subject}")
 
-    def _testCondition(self, search_condition, expected_phrases):
+    def _testCondition(
+        self,
+        search_condition,
+        expected_phrases,
+    ):
         matching_phrases = {
             phrase
             for phrase in self.phrases
-            if filter_utils.meets_search_criteria(phrase, search_condition)
+            if filter_utils.meets_search_criteria(
+                phrase=phrase,
+                search_keywords=search_condition,
+            )
         }
-        self.assertEqual(matching_phrases, expected_phrases)
+        self.assertEqual(
+            first=matching_phrases,
+            second=expected_phrases,
+        )
 
-    def test_singleWord(self):
+    def test_singleWord(
+        self,
+    ):
         search_condition = ["turtle"]
         expected_phrases = {
             "the turtle jumped over the moon",
@@ -44,9 +58,14 @@ class TestHelperFuncs(unittest.TestCase):
             "the turtle leaped over the log",
             "the turtle leaped over the river",
         }
-        self._testCondition(search_condition, expected_phrases)
+        self._testCondition(
+            search_condition=search_condition,
+            expected_phrases=expected_phrases,
+        )
 
-    def test_AND_opperator(self):
+    def test_AND_opperator(
+        self,
+    ):
         ## "fox" AND "leaped" AND "river"
         search_condition = [
             ["fox", "leaped", "river"],
@@ -54,9 +73,14 @@ class TestHelperFuncs(unittest.TestCase):
         expected_phrases = {
             "the fox leaped over the river",
         }
-        self._testCondition(search_condition, expected_phrases)
+        self._testCondition(
+            search_condition=search_condition,
+            expected_phrases=expected_phrases,
+        )
 
-    def test_OR_opperator(self):
+    def test_OR_opperator(
+        self,
+    ):
         ## "fox" OR "moon"
         search_condition = [
             [["fox", "moon"]],
@@ -73,9 +97,14 @@ class TestHelperFuncs(unittest.TestCase):
             "the cow jumped over the moon",
             "the cow leaped over the moon",
         }
-        self._testCondition(search_condition, expected_phrases)
+        self._testCondition(
+            search_condition=search_condition,
+            expected_phrases=expected_phrases,
+        )
 
-    def test_mix_opperators(self):
+    def test_mix_opperators(
+        self,
+    ):
         ## ("cow" OR ("leaped" AND "moon"))
         ## OR
         ## ("fox" AND "jumped" AND "river")
@@ -94,9 +123,14 @@ class TestHelperFuncs(unittest.TestCase):
             "the cow leaped over the log",
             "the cow leaped over the river",
         }
-        self._testCondition(search_condition, expected_phrases)
+        self._testCondition(
+            search_condition=search_condition,
+            expected_phrases=expected_phrases,
+        )
 
-    def test_case_insensitive(self):
+    def test_case_insensitive(
+        self,
+    ):
         search_condition = ["FOX"]
         expected_phrases = {
             "the fox jumped over the moon",
@@ -106,7 +140,10 @@ class TestHelperFuncs(unittest.TestCase):
             "the fox leaped over the log",
             "the fox leaped over the river",
         }
-        self._testCondition(search_condition, expected_phrases)
+        self._testCondition(
+            search_condition=search_condition,
+            expected_phrases=expected_phrases,
+        )
 
 
 ##

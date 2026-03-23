@@ -17,12 +17,15 @@ import yaml
 ##
 
 
-def init_directory(directory: Path) -> None:
+def init_directory(
+    directory: Path,
+) -> None:
     directory.mkdir(parents=True, exist_ok=True)
 
 
 def read_file(
     file_path: Path,
+    *,
     expected_extension: str,
 ) -> Any:
     received_extension = file_path.suffix.lower()
@@ -44,15 +47,30 @@ def read_file(
         raise IOError(f"Error reading {file_path}: {e}")
 
 
-def read_text_file(file_path: Path) -> str:
-    return read_file(file_path, expected_extension=".txt")
+def read_text_file(
+    file_path: Path,
+) -> str:
+    return read_file(
+        file_path,
+        expected_extension=".txt",
+    )
 
 
-def read_markdown_file(file_path: Path) -> str:
-    return read_file(file_path, expected_extension=".md")
+def read_markdown_file(
+    file_path: Path,
+) -> str:
+    return read_file(
+        file_path,
+        expected_extension=".md",
+    )
 
 
-def read_yaml_file(file_path: Path) -> Any:
-    return read_file(file_path, expected_extension=".yaml")
+def read_yaml_file(
+    file_path: Path,
+) -> Any:
+    return read_file(
+        file_path,
+        expected_extension=".yaml",
+    )
 
 ## } MODULE

@@ -7,6 +7,7 @@
 ## stdlib
 import argparse
 import re
+from typing import Any
 
 ## local
 from arxivscraper.io_configs import directories
@@ -26,7 +27,10 @@ class GetUserInputs:
     ):
         self.parser = argparse.ArgumentParser(
             description="arXiv-Scraper: program to search for relevant arXiv papers.",
-            formatter_class=lambda prog: argparse.RawDescriptionHelpFormatter(prog, max_help_position=50),
+            formatter_class=lambda prog: argparse.RawDescriptionHelpFormatter(
+                prog=prog,
+                max_help_position=50,
+            ),
         )
         if include_main: self._add_main_program_arguments()
         if include_search: self._add_search_arguments()
@@ -35,7 +39,9 @@ class GetUserInputs:
         name_space, _ = self.parser.parse_known_args()
         self.args = vars(name_space)
 
-    def _add_main_program_arguments(self):
+    def _add_main_program_arguments(
+        self,
+    ):
         """Sets up main program flag arguments."""
         main_args = {
             "default": False,
@@ -50,7 +56,9 @@ class GetUserInputs:
         parse_flags.add_argument("-p", "--print", **main_args)
         parse_flags.add_argument("-d", "--download", **main_args)
 
-    def _add_search_arguments(self):
+    def _add_search_arguments(
+        self,
+    ):
         """Sets up search-specific arguments."""
         search_args = self.parser.add_argument_group(
             description="Search arguments (relevant when main program is run with `-s`):"
@@ -72,7 +80,9 @@ class GetUserInputs:
             help="Lookback period (in days) to start search."
         )
 
-    def _add_fetch_argument(self):
+    def _add_fetch_argument(
+        self,
+    ):
         """Sets up fetch-specific arguments."""
         fetch_args = self.parser.add_argument_group(
             description="Fetch argument (relevant when running with `-f`):"
@@ -81,7 +91,9 @@ class GetUserInputs:
             "-id", type=str, required=False, metavar="", help="arXiv ID in the format `2310.17036`."
         )
 
-    def get_program_inputs(self):
+    def get_program_inputs(
+        self,
+    ):
         """Returns main program flags, and ensures at least one is set."""
         main_flags = ["search", "fetch", "score", "download"]
         if not any(self.args.get(flag) for flag in main_flags):
@@ -91,7 +103,9 @@ class GetUserInputs:
             self.parser.print_help()
         return {key: self.args.get(key) for key in ["search", "fetch", "score", "print", "download"]}
 
-    def get_search_inputs(self):
+    def get_search_inputs(
+        self,
+    ) -> dict[str, Any]:
         """Returns only the search-specific arguments and prompts for any missing parameters if required."""
         ## collect relevant search-related arguments
         search_args = {
@@ -114,7 +128,9 @@ class GetUserInputs:
             search_args["lookback_days"] = int(input("Please provide --lookback_days: "))
         return search_args
 
-    def get_fetch_inputs(self):
+    def get_fetch_inputs(
+        self,
+    ):
         """Returns only the fetch-specific arguments, prompting if the arXiv ID is not passed, and validates the ID-format."""
         arxiv_id = self.args.get("id")
         ## prompt for missing value
@@ -124,7 +140,10 @@ class GetUserInputs:
         print(" ")
         ## check the arXiv ID follows the right format
         re_pattern = r"^\d{4}\.\d{4,5}$"
-        if not re.match(re_pattern, arxiv_id):
+        if not re.match(
+            pattern=re_pattern,
+            string=arxiv_id,
+        ):
             raise Exception(
                 f"The ID you entered `{arxiv_id}` was invalid. Please enter it in the format `2310.17036`."
             )

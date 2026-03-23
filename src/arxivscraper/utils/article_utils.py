@@ -9,9 +9,11 @@ import re
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
-from typing import Optional
+from collections.abc import Mapping
+from typing import Any, Optional, TextIO
 
 ## third-party
+import arxiv
 import unidecode
 import yaml
 
@@ -48,7 +50,10 @@ class Article:
 ##
 
 
-def truncate_list(elems, max_elems=5):
+def truncate_list(
+    elems: list,
+    max_elems: int = 5,
+) -> list[str]:
     truncated_elems = []
     for elem_index, elem in enumerate(elems):
         if elem_index < max_elems:
@@ -59,16 +64,26 @@ def truncate_list(elems, max_elems=5):
     return truncated_elems
 
 
-def format_text(text):
+def format_text(
+    text: str,
+) -> str:
     ## adjust text for things that go wrong with Obsidian's tex-rendering
     text = text.replace("#", "")
     text = text.replace("\'", "")
     text = text.replace(":", "...")
     text = text.replace('"', "`")
     ## add spaces before and after text between two dollar signs (LaTeX math)
-    text = re.sub(r"(\$.*?\$)", lambda m: f" {m.group(1)} ", text)
+    text = re.sub(
+        pattern=r"(\$.*?\$)",
+        repl=lambda m: f" {m.group(1)} ",
+        string=text,
+    )
     ## remove any extra (eg, double) spaces that might have been added inadvertently
-    text = re.sub(r"\s+", " ", text).strip()
+    text = re.sub(
+        pattern=r"\s+",
+        repl=" ",
+        string=text,
+    ).strip()
     return text
 
 
@@ -77,18 +92,37 @@ def format_text(text):
 ##
 
 
-def print_article(article: Article, num_pad_chars=13):
+def print_article(
+    article: Article,
+    *,
+    num_pad_chars: int = 13,
+) -> None:
     ## helper function
-    def _print_line(category, content):
+    def _print_line(
+        category: str,
+        content: str | list,
+    ) -> None:
         if isinstance(content, list): content = ", ".join(content)
         category = f"{category}".ljust(num_pad_chars)
         print(f"{category}: {content}")
 
     ## print article information
-    _print_line("Title", article.title)
-    _print_line("PDF URL", article.url_pdf)
-    _print_line("Date Updated", datetime_utils.cast_date_to_string(article.date_updated))
-    _print_line("Author(s)", article.authors)
+    _print_line(
+        category="Title",
+        content=article.title,
+    )
+    _print_line(
+        category="PDF URL",
+        content=article.url_pdf,
+    )
+    _print_line(
+        category="Date Updated",
+        content=datetime_utils.cast_date_to_string(article.date_updated),
+    )
+    _print_line(
+        category="Author(s)",
+        content=article.authors,
+    )
 
 
 ##
@@ -96,7 +130,10 @@ def print_article(article: Article, num_pad_chars=13):
 ##
 
 
-def write_article_to_file(file_pointer, article: Article):
+def write_article_to_file(
+    file_pointer: TextIO,
+    article: Article,
+) -> None:
     ## prepare the YAML frontmatter
     yaml_content = {
         "title": article.title,
@@ -123,14 +160,23 @@ def write_article_to_file(file_pointer, article: Article):
     ## dump the sorted YAML frontmatter to the file
     file_pointer.write("---\n")
     yaml.dump(
-        sorted_yaml_content, file_pointer, default_flow_style=False, sort_keys=False, allow_unicode=True
+        data=sorted_yaml_content,
+        stream=file_pointer,
+        default_flow_style=False,
+        sort_keys=False,
+        allow_unicode=True,
     )
     file_pointer.write("---\n")
     ## write the task status
     file_pointer.write(f" - [{article.task_status}] #task status\n")
 
 
-def save_article(article: Article, verbose=True, force=False):
+def save_article(
+    article: Article,
+    *,
+    verbose: bool = True,
+    force: bool = False,
+) -> None:
     file_name = article.arxiv_id + ".md"
     file_path = directories.output_mdfiles / file_name
     if file_path.exists():
@@ -168,7 +214,15 @@ def save_article(article: Article, verbose=True, force=False):
 ##
 
 
-def get_article_summary(arxiv_article, config_results={}, ai_results={}, task_status="u") -> Article:
+def get_article_summary(
+    arxiv_article: arxiv.Result,
+    *,
+    config_results: Mapping[str, list] | None = None,
+    ai_results: dict[str, Any] | None = None,
+    task_status: str = "u",
+) -> Article:
+    if config_results is None: config_results = {}
+    if ai_results is None: ai_results = {}
     authors = [unidecode.unidecode(str(author)) for author in truncate_list(arxiv_article.authors)]
     other_categories = [
         format_text(elem)
@@ -200,10 +254,16 @@ def get_article_summary(arxiv_article, config_results={}, ai_results={}, task_st
 ##
 
 
-def read_markdown_file(file_path: Path) -> Article:
+def read_markdown_file(
+    file_path: Path,
+) -> Article:
     content = io_utils.read_markdown_file(file_path)
     ## split the file into frontmatter (YAML) and body (markdown)
-    match = re.match(r"^---\n(.*?)\n---\n(.*)", content, re.DOTALL)
+    match = re.match(
+        pattern=r"^---\n(.*?)\n---\n(.*)",
+        string=content,
+        flags=re.DOTALL,
+    )
     if match:
         front_matter = match.group(1)
         body = match.group(2)
@@ -238,7 +298,11 @@ def read_markdown_file(file_path: Path) -> Article:
     }
     ## find the character inside the brackets [] on the same line as `#task`
     task_status = "u"
-    task_match = re.search(r"^\s*-\s+\[([^\]]+)\].*#task", body, re.MULTILINE)
+    task_match = re.search(
+        pattern=r"^\s*-\s+\[([^\]]+)\].*#task",
+        string=body,
+        flags=re.MULTILINE,
+    )
     if task_match: task_status = task_match.group(1)
     return Article(
         title=meta_data.get("title"),

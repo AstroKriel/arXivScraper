@@ -6,6 +6,7 @@
 
 ## stdlib
 from pathlib import Path
+from typing import Any
 
 ## local
 from arxivscraper.utils import io_utils
@@ -16,9 +17,10 @@ from arxivscraper.utils import io_utils
 
 
 def read_search_criteria(
+    *,
     directory: Path,
     config_name: str,
-):
+) -> dict[str, Any]:
     required_keys = {
         "authors",
         "categories",
@@ -26,7 +28,10 @@ def read_search_criteria(
         "keywords_to_include",
     }
     config_path = directory / f"{config_name}.json"
-    config_criteria = io_utils.read_file(config_path, expected_extension=".json")
+    config_criteria = io_utils.read_file(
+        config_path,
+        expected_extension=".json",
+    )
     missing_keys = required_keys - config_criteria.keys()
     if len(missing_keys) > 0:
         print(f"The following config keys are missing:")
@@ -40,7 +45,10 @@ def read_search_criteria(
 ##
 
 
-def does_text_contain_all_keywords(phrase, search_keywords):
+def does_text_contain_all_keywords(
+    phrase: str,
+    search_keywords: list,
+) -> bool:
     if len(search_keywords) == 0: return False
     results = []
     for keyword in search_keywords:
@@ -48,12 +56,18 @@ def does_text_contain_all_keywords(phrase, search_keywords):
             result = keyword.lower() in phrase
             results.append(result)
         elif isinstance(keyword, list):
-            result = does_text_contain_any_keywords(phrase, keyword)
+            result = does_text_contain_any_keywords(
+                phrase=phrase,
+                search_keywords=keyword,
+            )
             results.append(result)
     return all(results)
 
 
-def does_text_contain_any_keywords(phrase, search_keywords):
+def does_text_contain_any_keywords(
+    phrase: str,
+    search_keywords: list,
+) -> bool:
     if len(search_keywords) == 0: return False
     results = []
     for keyword in search_keywords:
@@ -62,13 +76,22 @@ def does_text_contain_any_keywords(phrase, search_keywords):
             results.append(result)
             if result: break
         elif isinstance(keyword, list):
-            result = does_text_contain_all_keywords(phrase, keyword)
+            result = does_text_contain_all_keywords(
+                phrase=phrase,
+                search_keywords=keyword,
+            )
             results.append(result)
     return any(results)
 
 
-def meets_search_criteria(phrase, search_keywords):
-    return does_text_contain_any_keywords(phrase, search_keywords)
+def meets_search_criteria(
+    phrase: str,
+    search_keywords: list,
+) -> bool:
+    return does_text_contain_any_keywords(
+        phrase=phrase,
+        search_keywords=search_keywords,
+    )
 
 
 ##
@@ -76,20 +99,32 @@ def meets_search_criteria(phrase, search_keywords):
 ##
 
 
-def search_keywords_to_set_notation(search_keywords, set_level=0):
+def search_keywords_to_set_notation(
+    search_keywords: list | str,
+    set_level: int = 0,
+) -> str:
     while isinstance(search_keywords, list) and (len(search_keywords) == 1):
         search_keywords = search_keywords[0]
         set_level += 1
     if not isinstance(search_keywords, list): return f"`{search_keywords}`"
     if set_level % 2 == 1: operator = " AND "
     else: operator = " OR "
-    return operator.join(
-        f"({search_keywords_to_set_notation(keyword, set_level+1)})"
-        if isinstance(keyword, list) else f"`{keyword}`" for keyword in search_keywords
-    )
+    parts = []
+    for keyword in search_keywords:
+        if isinstance(keyword, list):
+            inner = search_keywords_to_set_notation(
+                search_keywords=keyword,
+                set_level=set_level + 1,
+            )
+            parts.append(f"({inner})")
+        else:
+            parts.append(f"`{keyword}`")
+    return operator.join(parts)
 
 
-def print_search_criteria(search_config):
+def print_search_criteria(
+    search_config: dict[str, Any],
+) -> None:
     keywords_to_include = search_config["keywords_to_include"]
     keywords_to_exclude = search_config["keywords_to_exclude"]
     authors = search_config["authors"]

@@ -5,6 +5,7 @@
 ##
 
 ## stdlib
+import datetime
 import sys
 
 ## third-party
@@ -22,13 +23,21 @@ from arxivscraper.utils import argparse_utils, article_utils, datetime_utils, fi
 
 class SearchArxiv():
 
-    def __init__(self, lookback_date, current_date, config_name):
+    def __init__(
+        self,
+        *,
+        lookback_date: datetime.datetime,
+        current_date: datetime.datetime,
+        config_name: str,
+    ) -> None:
         self.lookback_date = lookback_date
         self.current_date = current_date
         self.config_name = config_name
-        self.articles = []
+        self.articles: list[article_utils.Article] = []
 
-    def search(self):
+    def search(
+        self,
+    ) -> None:
         self._read_search_criteria()
         for search_category in self.dict_search_criteria["categories"]:
             print(f"Searching: {search_category}")
@@ -61,14 +70,18 @@ class SearchArxiv():
                 f"\nFound {num_new_articles_saved_in_category} interesting articles from the {num_articles_looked_at_in_category} looked at.\n"
             )
 
-    def get_sorted_articles(self):
+    def get_sorted_articles(
+        self,
+    ) -> list[article_utils.Article]:
         return sorted(
             self.articles,
             key=lambda article: article.date_updated,
             reverse=True,
         )
 
-    def _read_search_criteria(self):
+    def _read_search_criteria(
+        self,
+    ) -> None:
         self.dict_search_criteria = filter_utils.read_search_criteria(
             directory=directories.search_configs,
             config_name=self.config_name,
@@ -81,32 +94,50 @@ class SearchArxiv():
         print(" ")
         filter_utils.print_search_criteria(self.dict_search_criteria)
 
-    def _create_search_query(self, category):
+    def _create_search_query(
+        self,
+        category: str,
+    ) -> arxiv.Search:
         return arxiv.Search(
             query=category,
             max_results=10**4,
             sort_by=arxiv.SortCriterion.SubmittedDate,
         )
 
-    def _is_within_date_range(self, arxiv_article):
+    def _is_within_date_range(
+        self,
+        arxiv_article: arxiv.Result,
+    ) -> bool:
         article_date = arxiv_article.updated.date()
         return (self.lookback_date.date() <= article_date) and (article_date <= self.current_date.date())
 
-    def _is_duplicate(self, this_arxiv_id):
+    def _is_duplicate(
+        self,
+        this_arxiv_id: str,
+    ) -> bool:
         return any([this_arxiv_id == article.arxiv_id for article in self.articles])
 
-    def _check_config_conditions(self, arxiv_article):
-        if filter_utils.meets_search_criteria(arxiv_article.title.lower(),
-                                              self.dict_search_criteria["keywords_to_exclude"]):
-            return False, None
+    def _check_config_conditions(
+        self,
+        arxiv_article: arxiv.Result,
+    ) -> tuple[bool, list[bool]]:
+        if filter_utils.meets_search_criteria(
+            phrase=arxiv_article.title.lower(),
+            search_keywords=self.dict_search_criteria["keywords_to_exclude"],
+        ):
+            return False, []
         title_passed = filter_utils.meets_search_criteria(
-            arxiv_article.title.lower(), self.dict_search_criteria["keywords_to_include"]
+            phrase=arxiv_article.title.lower(),
+            search_keywords=self.dict_search_criteria["keywords_to_include"],
         )
-        if filter_utils.meets_search_criteria(arxiv_article.summary.lower(),
-                                              self.dict_search_criteria["keywords_to_exclude"]):
-            return False, None
+        if filter_utils.meets_search_criteria(
+            phrase=arxiv_article.summary.lower(),
+            search_keywords=self.dict_search_criteria["keywords_to_exclude"],
+        ):
+            return False, []
         abstract_passed = filter_utils.meets_search_criteria(
-            arxiv_article.summary.lower(), self.dict_search_criteria["keywords_to_include"]
+            phrase=arxiv_article.summary.lower(),
+            search_keywords=self.dict_search_criteria["keywords_to_include"],
         )
         author_last_names = [
             unidecode.unidecode(str(author).lower().split(" ")[-1]) for author in arxiv_article.authors
@@ -117,7 +148,10 @@ class SearchArxiv():
         reasons = [title_passed, abstract_passed, authors_passes]
         return any(reasons), reasons
 
-    def _display_progress(self, num_articles_looked_at_in_category):
+    def _display_progress(
+        self,
+        num_articles_looked_at_in_category: int,
+    ) -> None:
         if num_articles_looked_at_in_category == 0: print("Progress:", end=" ")
         elif (num_articles_looked_at_in_category % 10) == 0: print("x", end="")
         elif (num_articles_looked_at_in_category % 50) == 0: print(" ", end="")
@@ -140,7 +174,11 @@ def main():
     articles = obj_search_arxiv.get_sorted_articles()
     io_utils.init_directory(directories.output_mdfiles)
     for article in articles:
-        article_utils.save_article(article, verbose=False, force=True)
+        article_utils.save_article(
+            article=article,
+            verbose=False,
+            force=True,
+        )
     print(f"Saved {len(articles)} articles.")
     print(" ")
 
