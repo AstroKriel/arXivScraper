@@ -1,19 +1,24 @@
-## ###############################################################
-## LOAD MODULES
-## ###############################################################
+## { MODULE
 
+##
+## === DEPENDENCIES
+##
+
+## stdlib
+import datetime
 import sys
 import time
-import datetime
-from arxivscraper.utils import argparse_utils
-from arxivscraper.routines import search_arxiv as SearchArxiv
-from arxivscraper.routines import score_articles as ScoreArticle
-from arxivscraper.routines import fetch_from_arxiv as FetchFromArxiv
-from arxivscraper.routines import download_articles as DownloadArticles
 
-## ###############################################################
-## ROUTINE MAIN
-## ###############################################################
+## local
+from arxivscraper.routines import download_articles as DownloadArticles
+from arxivscraper.routines import fetch_from_arxiv as FetchFromArxiv
+from arxivscraper.routines import score_articles as ScoreArticle
+from arxivscraper.routines import search_arxiv as SearchArxiv
+from arxivscraper.utils import argparse_utils
+
+##
+## === MAIN
+##
 
 
 def main():
@@ -39,12 +44,12 @@ def main():
     print(f"Elapsed time: {time_elapsed:.2f} seconds.")
 
 
-## ###############################################################
-## ROUTINE ENTRY POINT
-## ###############################################################
+##
+## === ENTRY POINT
+##
 
 if __name__ == "__main__":
     main()
     sys.exit(0)
 
-## END OF ROUTINE
+## } MODULE

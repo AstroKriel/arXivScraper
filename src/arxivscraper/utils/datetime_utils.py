@@ -1,12 +1,15 @@
-## ###############################################################
-## DEPENDENCIES
-## ###############################################################
+## { MODULE
 
+##
+## === DEPENDENCIES
+##
+
+## stdlib
 import datetime
 
-## ###############################################################
-## HELPER FUNCTIONS TO WORK WITH DATES
-## ###############################################################
+##
+## === DATE HELPERS
+##
 
 
 def cast_date_to_string(date):
@@ -30,5 +33,4 @@ def get_date_n_days_ago(num_days):
     date_ago = date_today - date_delta
     return date_ago
 
-
-## END OF MODULE
+## } MODULE

@@ -1,13 +1,18 @@
-## ###############################################################
-## DEPENDENCIES
-## ###############################################################
+## { MODULE
 
+##
+## === DEPENDENCIES
+##
+
+## stdlib
 from pathlib import Path
+
+## local
 from arxivscraper.utils import io_utils
 
-## ###############################################################
-## READ SEARCH CRITERIA
-## ###############################################################
+##
+## === READ SEARCH CRITERIA
+##
 
 
 def read_search_criteria(
@@ -30,9 +35,9 @@ def read_search_criteria(
     return config_criteria
 
 
-## ###############################################################
-## APPLY SEARCH CRITERIA
-## ###############################################################
+##
+## === APPLY SEARCH CRITERIA
+##
 
 
 def does_text_contain_all_keywords(phrase, search_keywords):
@@ -66,9 +71,9 @@ def meets_search_criteria(phrase, search_keywords):
     return does_text_contain_any_keywords(phrase, search_keywords)
 
 
-## ###############################################################
-## PRINT SEARCH CRITERIA
-## ###############################################################
+##
+## === PRINT SEARCH CRITERIA
+##
 
 
 def search_keywords_to_set_notation(search_keywords, set_level=0):
@@ -100,5 +105,4 @@ def print_search_criteria(search_config):
         print("\n\t- " + "\n\t- ".join(authors))
         print(" ")
 
-
-## END OF MODULE
+## } MODULE

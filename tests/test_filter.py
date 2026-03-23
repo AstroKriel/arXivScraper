@@ -1,13 +1,19 @@
-## ###############################################################
-## DEPENDENCIES
-## ###############################################################
+## { MODULE
 
-import sys, unittest
+##
+## === DEPENDENCIES
+##
+
+## stdlib
+import sys
+import unittest
+
+## local
 from arxivscraper.utils import filter_utils
 
-## ###############################################################
-## UNIT TESTS
-## ###############################################################
+##
+## === UNIT TESTS
+##
 
 
 class TestHelperFuncs(unittest.TestCase):
@@ -103,12 +109,12 @@ class TestHelperFuncs(unittest.TestCase):
         self._testCondition(search_condition, expected_phrases)
 
 
-## ###############################################################
-## TEST ENTRY POINT
-## ###############################################################
+##
+## === ENTRY POINT
+##
 
 if __name__ == "__main__":
     unittest.main()
     sys.exit(0)
 
-## END OF TEST PROGRAM
+## } MODULE

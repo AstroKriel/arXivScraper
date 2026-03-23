@@ -1,14 +1,19 @@
-## ###############################################################
-## DEPENDENCIES
-## ###############################################################
+## { MODULE
 
-import re
+##
+## === DEPENDENCIES
+##
+
+## stdlib
 import argparse
+import re
+
+## local
 from arxivscraper.io_configs import directories
 
-## ###############################################################
-## GROUP DIFFERENT TYPES OF USER INPUTS
-## ###############################################################
+##
+## === USER INPUT HANDLER
+##
 
 
 class GetUserInputs:
@@ -125,5 +130,4 @@ class GetUserInputs:
             )
         return arxiv_id
 
-
-## END OF MODULE
+## } MODULE

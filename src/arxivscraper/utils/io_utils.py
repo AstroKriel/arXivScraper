@@ -1,15 +1,20 @@
-## ###############################################################
-## DEPENDENCIES
-## ###############################################################
+## { MODULE
 
+##
+## === DEPENDENCIES
+##
+
+## stdlib
 import json
-import yaml
-from typing import Any
 from pathlib import Path
+from typing import Any
 
-## ###############################################################
-## READING FILES
-## ###############################################################
+## third-party
+import yaml
+
+##
+## === FILE I/O
+##
 
 
 def init_directory(directory: Path) -> None:
@@ -50,5 +55,4 @@ def read_markdown_file(file_path: Path) -> str:
 def read_yaml_file(file_path: Path) -> Any:
     return read_file(file_path, expected_extension=".yaml")
 
-
-## END OF MODULE
+## } MODULE
