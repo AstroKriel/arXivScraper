@@ -1,0 +1,12 @@
+# Copy this file to ai_provider.toml and fill in your values.
+# CLI flags --model and --base-url override these.
+
+# Provider examples:
+#   OpenAI:    base_url = ""                              api_key = "sk-..."        model = "gpt-4o-mini"
+#   Anthropic: base_url = "https://api.anthropic.com/v1" api_key = "sk-ant-..."    model = "claude-sonnet-4-6"
+#   Ollama:    base_url = "http://localhost:11434/v1"     api_key = "ollama"        model = "llama3.2"
+#   LM Studio: base_url = "http://localhost:1234/v1"      api_key = "lm-studio"    model = "local-model"
+
+base_url = ""
+api_key  = "your-api-key-here"
+model    = "gpt-4o-mini"

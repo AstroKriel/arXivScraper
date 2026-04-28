@@ -8,6 +8,7 @@
 import json
 import sys
 import time
+import tomllib
 from typing import Any, Dict, Optional
 
 ## third-party
@@ -35,7 +36,8 @@ def load_provider_config(
     provider_path = directories.search_configs / file_names.ai_provider
     if provider_path.is_file():
         try:
-            config = json.loads(provider_path.read_text(encoding="utf-8"))
+            with provider_path.open("rb") as f:
+                config = tomllib.load(f)
         except Exception as e:
             print(f"Error reading {provider_path.name}: {e}")
             return None
@@ -46,7 +48,7 @@ def load_provider_config(
             print(
                 f"Error: no AI config found.\n"
                 f"Create configs/{file_names.ai_provider} "
-                f"(see configs/{file_names.ai_provider.replace('.json', '.example.json')}) "
+                f"(see configs/{file_names.ai_provider_example}) "
                 f"or the legacy configs/{file_names.ai_api_key}."
             )
             return None
