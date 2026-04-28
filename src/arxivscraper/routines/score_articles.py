@@ -9,7 +9,7 @@ import json
 import sys
 import time
 import tomllib
-from typing import Any, Dict, Optional
+from typing import Any
 
 ## third-party
 from openai import OpenAI
@@ -26,20 +26,21 @@ _DEFAULT_MODEL = "gpt-4o-mini"
 
 
 def load_provider_config(
-    cli_model: Optional[str] = None,
-    cli_base_url: Optional[str] = None,
-) -> Optional[Dict[str, Any]]:
-    """Load AI provider config from ai_provider.json, falling back to legacy api_key.txt.
+    *,
+    cli_model: str | None = None,
+    cli_base_url: str | None = None,
+) -> dict[str, Any] | None:
+    """Load AI provider config from `ai_provider.toml`, falling back to the legacy `api_key.txt`.
 
     CLI arguments override any config file values.
     """
     provider_path = directories.search_configs / file_names.ai_provider
     if provider_path.is_file():
         try:
-            with provider_path.open("rb") as f:
-                config = tomllib.load(f)
-        except Exception as e:
-            print(f"Error reading {provider_path.name}: {e}")
+            with provider_path.open("rb") as file_pointer:
+                config = tomllib.load(file_pointer)
+        except Exception as error:
+            print(f"Error reading {provider_path.name}: {error}")
             return None
     else:
         ## fall back to legacy api_key.txt
@@ -86,12 +87,13 @@ def load_provider_config(
 
 def build_ai_client(
     api_key: str,
-    base_url: Optional[str] = None,
+    *,
+    base_url: str | None = None,
 ) -> OpenAI:
-    kwargs: Dict[str, Any] = {"api_key": api_key}
+    client_kwargs: dict[str, Any] = {"api_key": api_key}
     if base_url:
-        kwargs["base_url"] = base_url
-    return OpenAI(**kwargs)
+        client_kwargs["base_url"] = base_url
+    return OpenAI(**client_kwargs)
 
 
 ##
@@ -107,7 +109,7 @@ def get_ai_response(
     prompt_rules: str,
     prompt_criteria: str,
     ai_model: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if not article_title:
         return {
             "status": "error",
@@ -140,10 +142,10 @@ def get_ai_response(
             ],
             temperature=0.0,
         )
-    except Exception as e:
+    except Exception as error:
         return {
             "status": "error",
-            "error": f"API call failed: {e}",
+            "error": f"API call failed: {error}",
             "ai_rating": None,
             "ai_reason": None,
             "ai_response": None,
@@ -160,10 +162,10 @@ def get_ai_response(
             "ai_reason": ai_reason,
             "ai_response": response_text,
         }
-    except Exception as e:
+    except Exception as error:
         return {
             "status": "error",
-            "error": f"JSON parsing failed: {e}",
+            "error": f"JSON parsing failed: {error}",
             "ai_rating": None,
             "ai_reason": None,
             "ai_response": response_text,

@@ -17,9 +17,10 @@ import yaml
 ##
 
 
-def init_directory(
+def create_directory(
     directory: Path,
 ) -> None:
+    """Create `directory` and any missing parents; do nothing if it already exists."""
     directory.mkdir(parents=True, exist_ok=True)
 
 
@@ -28,28 +29,34 @@ def read_file(
     *,
     expected_extension: str,
 ) -> Any:
+    """Read and return the contents of `file_path`, dispatching on extension."""
     received_extension = file_path.suffix.lower()
     if received_extension != expected_extension:
-        raise ValueError(f"File must use a `{expected_extension}` extension. Received: {file_path.name}")
+        raise ValueError(
+            f"`expected_extension` must be `{expected_extension}`; got `{received_extension}`."
+        )
     if not file_path.is_file():
-        raise FileNotFoundError(f"File was not found: {file_path}")
+        raise FileNotFoundError(f"file not found: {file_path}.")
     try:
-        with file_path.open("r", encoding="utf-8") as fp:
+        with file_path.open("r", encoding="utf-8") as file_pointer:
             if expected_extension == ".json":
-                return json.load(fp)
+                return json.load(file_pointer)
             elif expected_extension == ".yaml":
-                return yaml.safe_load(fp)
+                return yaml.safe_load(file_pointer)
             elif expected_extension in (".txt", ".md"):
-                return fp.read()
+                return file_pointer.read()
             else:
-                raise NotImplementedError(f"Unsupported file extension: {expected_extension}")
-    except Exception as e:
-        raise IOError(f"Error reading {file_path}: {e}")
+                raise NotImplementedError(f"unsupported file extension: `{expected_extension}`.")
+    except (ValueError, FileNotFoundError, NotImplementedError):
+        raise
+    except Exception as error:
+        raise IOError(f"error reading {file_path}.") from error
 
 
 def read_text_file(
     file_path: Path,
 ) -> str:
+    """Read and return the contents of a `.txt` file at `file_path`."""
     return read_file(
         file_path,
         expected_extension=".txt",
@@ -59,6 +66,7 @@ def read_text_file(
 def read_markdown_file(
     file_path: Path,
 ) -> str:
+    """Read and return the contents of a `.md` file at `file_path`."""
     return read_file(
         file_path,
         expected_extension=".md",
@@ -68,6 +76,7 @@ def read_markdown_file(
 def read_yaml_file(
     file_path: Path,
 ) -> Any:
+    """Read and return the parsed contents of a `.yaml` file at `file_path`."""
     return read_file(
         file_path,
         expected_extension=".yaml",

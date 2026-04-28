@@ -9,7 +9,7 @@ import sys
 import webbrowser
 
 ## third-party
-from rich.markup import escape
+from rich.markup import escape as rich_escape
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import DataTable, Footer, Header, Static
@@ -86,7 +86,7 @@ class BrowseApp(App):
         table.add_columns("St", "Date", "Category", "Tags", "Title")
         self._refresh_table()
 
-    def _visible(
+    def _get_visible_articles(
         self,
     ) -> list[article_utils.Article]:
         if self.filter_status is None:
@@ -99,7 +99,7 @@ class BrowseApp(App):
     ) -> None:
         table = self.query_one(DataTable)
         table.clear()
-        articles = self._visible()
+        articles = self._get_visible_articles()
         for article in articles:
             table.add_row(
                 article.task_status,
@@ -120,20 +120,20 @@ class BrowseApp(App):
         self,
         row_index: int,
     ) -> None:
-        articles = self._visible()
+        articles = self._get_visible_articles()
         if not articles:
             return
         article = articles[row_index]
         self.query_one("#abstract", Static).update(
-            f"[bold]{escape(article.title)}[/bold]\n"
-            f"[dim]{escape(', '.join(article.authors))}[/dim]\n\n"
-            f"{escape(article.abstract)}"
+            f"[bold]{rich_escape(article.title)}[/bold]\n"
+            f"[dim]{rich_escape(', '.join(article.authors))}[/dim]\n\n"
+            f"{rich_escape(article.abstract)}"
         )
 
     def _update_subtitle(
         self,
     ) -> None:
-        articles = self._visible()
+        articles = self._get_visible_articles()
         filter_label = "all" if self.filter_status is None else _STATUS_LABELS.get(self.filter_status, self.filter_status)
         self.sub_title = f"filter: {filter_label}  ({len(articles)} papers)"
 
@@ -143,11 +143,11 @@ class BrowseApp(App):
     ) -> None:
         self._update_abstract(event.cursor_row)
 
-    def _current_article(
+    def _get_current_article(
         self,
     ) -> article_utils.Article | None:
         table = self.query_one(DataTable)
-        articles = self._visible()
+        articles = self._get_visible_articles()
         if not articles:
             return None
         return articles[table.cursor_row]
@@ -158,19 +158,19 @@ class BrowseApp(App):
     ) -> None:
         table = self.query_one(DataTable)
         current_row = table.cursor_row
-        article = self._current_article()
+        article = self._get_current_article()
         if article is None:
             return
         article.task_status = status
         file_path = directories.output_mdfiles / f"{article.arxiv_id}.md"
-        with open(file_path, "w") as fp:
-            article_utils.write_article_to_file(fp, article)
+        with open(file_path, "w") as file_pointer:
+            article_utils.write_article_to_file(file_pointer, article=article)
         self._refresh_table(keep_row=current_row)
 
     def action_open_pdf(
         self,
     ) -> None:
-        article = self._current_article()
+        article = self._get_current_article()
         if article is None:
             return
         webbrowser.open(article.url_pdf)

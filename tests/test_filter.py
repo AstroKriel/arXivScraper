@@ -1,4 +1,4 @@
-## { MODULE
+## { U-TEST
 
 ##
 ## === DEPENDENCIES
@@ -12,7 +12,7 @@ import unittest
 from arxivscraper.utils import filter_utils
 
 ##
-## === UNIT TESTS
+## === TEST SUITE
 ##
 
 
@@ -28,7 +28,7 @@ class TestHelperFuncs(unittest.TestCase):
                 for subject in ["moon", "log", "river"]:
                     cls.phrases.append(f"the {animal} {action} over the {subject}")
 
-    def _testCondition(
+    def _test_condition(
         self,
         search_condition,
         expected_phrases,
@@ -46,7 +46,7 @@ class TestHelperFuncs(unittest.TestCase):
             second=expected_phrases,
         )
 
-    def test_singleWord(
+    def test_single_word(
         self,
     ):
         search_condition = ["turtle"]
@@ -58,12 +58,12 @@ class TestHelperFuncs(unittest.TestCase):
             "the turtle leaped over the log",
             "the turtle leaped over the river",
         }
-        self._testCondition(
+        self._test_condition(
             search_condition=search_condition,
             expected_phrases=expected_phrases,
         )
 
-    def test_AND_opperator(
+    def test_and_operator(
         self,
     ):
         ## "fox" AND "leaped" AND "river"
@@ -73,12 +73,12 @@ class TestHelperFuncs(unittest.TestCase):
         expected_phrases = {
             "the fox leaped over the river",
         }
-        self._testCondition(
+        self._test_condition(
             search_condition=search_condition,
             expected_phrases=expected_phrases,
         )
 
-    def test_OR_opperator(
+    def test_or_operator(
         self,
     ):
         ## "fox" OR "moon"
@@ -97,12 +97,12 @@ class TestHelperFuncs(unittest.TestCase):
             "the cow jumped over the moon",
             "the cow leaped over the moon",
         }
-        self._testCondition(
+        self._test_condition(
             search_condition=search_condition,
             expected_phrases=expected_phrases,
         )
 
-    def test_mix_opperators(
+    def test_mixed_operators(
         self,
     ):
         ## ("cow" OR ("leaped" AND "moon"))
@@ -123,7 +123,7 @@ class TestHelperFuncs(unittest.TestCase):
             "the cow leaped over the log",
             "the cow leaped over the river",
         }
-        self._testCondition(
+        self._test_condition(
             search_condition=search_condition,
             expected_phrases=expected_phrases,
         )
@@ -140,7 +140,7 @@ class TestHelperFuncs(unittest.TestCase):
             "the fox leaped over the log",
             "the fox leaped over the river",
         }
-        self._testCondition(
+        self._test_condition(
             search_condition=search_condition,
             expected_phrases=expected_phrases,
         )
@@ -154,4 +154,4 @@ if __name__ == "__main__":
     unittest.main()
     sys.exit(0)
 
-## } MODULE
+## } U-TEST

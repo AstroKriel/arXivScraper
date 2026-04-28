@@ -21,6 +21,7 @@ def read_search_criteria(
     directory: Path,
     config_name: str,
 ) -> dict[str, Any]:
+    """Load and validate the JSON search config named `config_name` from `directory`."""
     required_keys = {
         "authors",
         "categories",
@@ -34,9 +35,9 @@ def read_search_criteria(
     )
     missing_keys = required_keys - config_criteria.keys()
     if len(missing_keys) > 0:
-        print(f"The following config keys are missing:")
-        print("\t", ", ".join(missing_keys), "\n")
-        raise Exception("Error: Config file is missing search keys")
+        raise ValueError(
+            f"config file `{config_name}.json` is missing required keys: {', '.join(sorted(missing_keys))}."
+        )
     return config_criteria
 
 
@@ -47,8 +48,10 @@ def read_search_criteria(
 
 def does_text_contain_all_keywords(
     phrase: str,
+    *,
     search_keywords: list,
 ) -> bool:
+    """Return `True` if `phrase` contains all keywords in `search_keywords`."""
     if len(search_keywords) == 0: return False
     results = []
     for keyword in search_keywords:
@@ -66,8 +69,10 @@ def does_text_contain_all_keywords(
 
 def does_text_contain_any_keywords(
     phrase: str,
+    *,
     search_keywords: list,
 ) -> bool:
+    """Return `True` if `phrase` contains at least one keyword in `search_keywords`."""
     if len(search_keywords) == 0: return False
     results = []
     for keyword in search_keywords:
@@ -88,6 +93,7 @@ def meets_search_criteria(
     phrase: str,
     search_keywords: list,
 ) -> bool:
+    """Return `True` if `phrase` meets the search criteria defined by `search_keywords`."""
     return does_text_contain_any_keywords(
         phrase=phrase,
         search_keywords=search_keywords,
@@ -101,8 +107,10 @@ def meets_search_criteria(
 
 def search_keywords_to_set_notation(
     search_keywords: list | str,
+    *,
     set_level: int = 0,
 ) -> str:
+    """Format `search_keywords` as a human-readable set-notation string."""
     while isinstance(search_keywords, list) and (len(search_keywords) == 1):
         search_keywords = search_keywords[0]
         set_level += 1
@@ -113,7 +121,7 @@ def search_keywords_to_set_notation(
     for keyword in search_keywords:
         if isinstance(keyword, list):
             inner = search_keywords_to_set_notation(
-                search_keywords=keyword,
+                keyword,
                 set_level=set_level + 1,
             )
             parts.append(f"({inner})")
@@ -125,6 +133,7 @@ def search_keywords_to_set_notation(
 def print_search_criteria(
     search_config: dict[str, Any],
 ) -> None:
+    """Print the include/exclude keywords and tracked authors from `search_config`."""
     keywords_to_include = search_config["keywords_to_include"]
     keywords_to_exclude = search_config["keywords_to_exclude"]
     authors = search_config["authors"]

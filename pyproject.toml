@@ -3,6 +3,7 @@ name = "arxivscraper"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
+authors = [{ name = "Neco Kriel", email = "necokriel@gmail.com" }]
 requires-python = ">=3.13"
 dependencies = [
     "arxiv>=2.2.0",
@@ -13,6 +14,11 @@ dependencies = [
     "unidecode>=1.4.0",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -20,7 +26,11 @@ build-backend = "hatchling.build"
 [tool.hatch.build]
 sources = ["src"]
 
-[tool.pyright]
+[tool.basedpyright]
 include = [".", "src", "tests"]
 reportMissingImports = true
-reportMissingTypeStubs = false
+reportMissingTypeStubs = false  ## third-party packages rarely ship stubs
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

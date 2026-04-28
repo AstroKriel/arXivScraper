@@ -31,16 +31,16 @@ def download_pdf(
             stream=True,
         )
         response.raise_for_status()
-        with open(file_path_pdf, "wb") as fp:
+        with open(file_path_pdf, "wb") as file_pointer:
             for chunk in response.iter_content(chunk_size=8192):
-                fp.write(chunk)
+                file_pointer.write(chunk)
         print(f"Downloaded: {file_path_pdf}\n")
-    except requests.RequestException as e:
-        print(f"Error downloading file: {e}")
+    except requests.RequestException as error:
+        print(f"Error downloading file: {error}")
     ## update task status stored in the markdown file
     article.task_status = "D"
     with open(file_path_md, "w") as file_pointer:
-        article_utils.write_article_to_file(file_pointer, article)
+        article_utils.write_article_to_file(file_pointer, article=article)
 
 
 def download_pdfs(
@@ -63,7 +63,7 @@ def download_pdfs(
 
 
 def main():
-    io_utils.init_directory(directories.output_pdfs)
+    io_utils.create_directory(directories.output_pdfs)
     articles = article_utils.read_all_markdown_files()
     download_pdfs(
         articles,

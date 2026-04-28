@@ -15,28 +15,28 @@ import datetime
 def cast_date_to_string(
     date: datetime.date,
 ) -> str:
-    str_year = str(date.year).zfill(4)
-    str_month = str(date.month).zfill(2)
-    str_day = str(date.day).zfill(2)
-    return f"{str_year}-{str_month}-{str_day}"
+    """Format `date` as an ISO-8601 string (`YYYY-MM-DD`)."""
+    return f"{str(date.year).zfill(4)}-{str(date.month).zfill(2)}-{str(date.day).zfill(2)}"
 
 
 def cast_string_to_date(
     str_date: str,
 ) -> datetime.date:
+    """Parse an ISO-8601 date string (`YYYY-MM-DD`) and return a `datetime.date`."""
     return datetime.datetime.strptime(str_date, "%Y-%m-%d").date()
 
 
 def get_date_today() -> datetime.datetime:
+    """Return the current date and time."""
     return datetime.datetime.now()
 
 
 def get_date_n_days_ago(
     num_days: int,
 ) -> datetime.datetime:
+    """Return the date and time `num_days` before now."""
     date_today = datetime.datetime.now()
     date_delta = datetime.timedelta(days=int(num_days))
-    date_ago = date_today - date_delta
-    return date_ago
+    return date_today - date_delta
 
 ## } MODULE

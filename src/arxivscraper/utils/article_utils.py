@@ -28,6 +28,8 @@ from arxivscraper.utils import datetime_utils, io_utils
 
 @dataclass
 class Article:
+    """Represents a single arXiv paper and its triage state."""
+
     title: str
     arxiv_id: str
     url_pdf: str
@@ -54,6 +56,7 @@ def truncate_list(
     elems: list,
     max_elems: int = 5,
 ) -> list[str]:
+    """Return `elems` as strings, truncated to `max_elems` with `"..."` appended if longer."""
     truncated_elems = []
     for elem_index, elem in enumerate(elems):
         if elem_index < max_elems:
@@ -67,6 +70,7 @@ def truncate_list(
 def format_text(
     text: str,
 ) -> str:
+    """Sanitise raw arXiv text for storage: strip special characters and normalise whitespace."""
     ## adjust text for things that go wrong with Obsidian's tex-rendering
     text = text.replace("#", "")
     text = text.replace("\'", "")
@@ -97,7 +101,7 @@ def print_article(
     *,
     num_pad_chars: int = 13,
 ) -> None:
-    ## helper function
+    """Print a compact summary of `article` to stdout."""
     def _print_line(
         category: str,
         content: str | list,
@@ -106,23 +110,10 @@ def print_article(
         category = f"{category}".ljust(num_pad_chars)
         print(f"{category}: {content}")
 
-    ## print article information
-    _print_line(
-        category="Title",
-        content=article.title,
-    )
-    _print_line(
-        category="PDF URL",
-        content=article.url_pdf,
-    )
-    _print_line(
-        category="Date Updated",
-        content=datetime_utils.cast_date_to_string(article.date_updated),
-    )
-    _print_line(
-        category="Author(s)",
-        content=article.authors,
-    )
+    _print_line(category="Title", content=article.title)
+    _print_line(category="PDF URL", content=article.url_pdf)
+    _print_line(category="Date Updated", content=datetime_utils.cast_date_to_string(article.date_updated))
+    _print_line(category="Author(s)", content=article.authors)
 
 
 ##
@@ -132,8 +123,10 @@ def print_article(
 
 def write_article_to_file(
     file_pointer: TextIO,
+    *,
     article: Article,
 ) -> None:
+    """Serialise `article` as YAML frontmatter followed by a task-status checkbox to `file_pointer`."""
     ## prepare the YAML frontmatter
     yaml_content = {
         "title": article.title,
@@ -177,6 +170,7 @@ def save_article(
     verbose: bool = True,
     force: bool = False,
 ) -> None:
+    """Write `article` to its mdfile, merging state from any existing file at that path."""
     file_name = article.arxiv_id + ".md"
     file_path = directories.output_mdfiles / file_name
     if file_path.exists():
@@ -205,7 +199,7 @@ def save_article(
                 article.config_reasons[config_name] = reasons
     ## overwrite the file, retaining merged state
     with open(file_path, "w") as file_pointer:
-        write_article_to_file(file_pointer, article)
+        write_article_to_file(file_pointer, article=article)
     if verbose: print(f"Saved: {file_path}")
 
 
@@ -221,6 +215,7 @@ def get_article_summary(
     ai_results: dict[str, Any] | None = None,
     task_status: str = "u",
 ) -> Article:
+    """Build an `Article` from a raw arXiv result, optionally attaching config and AI results."""
     if config_results is None: config_results = {}
     if ai_results is None: ai_results = {}
     authors = [unidecode.unidecode(str(author)) for author in truncate_list(arxiv_article.authors)]
@@ -257,6 +252,7 @@ def get_article_summary(
 def read_markdown_file(
     file_path: Path,
 ) -> Article:
+    """Parse an mdfile at `file_path` and return it as an `Article`."""
     content = io_utils.read_markdown_file(file_path)
     ## split the file into frontmatter (YAML) and body (markdown)
     match = re.match(
@@ -268,12 +264,12 @@ def read_markdown_file(
         front_matter = match.group(1)
         body = match.group(2)
     else:
-        raise ValueError("Missing frontmatter section in the Markdown file.")
+        raise ValueError("missing frontmatter section in the markdown file.")
     ## parse the YAML frontmatter
     try:
         meta_data = yaml.safe_load(front_matter)
-    except yaml.YAMLError as e:
-        raise ValueError(f"Error parsing YAML frontmatter: {e}")
+    except yaml.YAMLError as error:
+        raise ValueError(f"error parsing YAML frontmatter.") from error
     ## ensure all required keys are present in the meta_data
     missing_keys = [
         key for key in [
@@ -289,7 +285,8 @@ def read_markdown_file(
             "config_tags",
         ] if key not in meta_data
     ]
-    if missing_keys: raise ValueError("Missing required keys in frontmatter:", ", ".join(missing_keys))
+    if missing_keys:
+        raise ValueError(f"missing required keys in frontmatter: {', '.join(missing_keys)}.")
     ## collect config_reason_* keys into a dict keyed by config name
     config_reasons = {
         key[len("config_reason_"):]: value
@@ -323,6 +320,7 @@ def read_markdown_file(
 
 
 def read_all_markdown_files() -> list[Article]:
+    """Load and return all mdfiles in the output directory as `Article` objects."""
     return [read_markdown_file(file_path) for file_path in sorted(directories.output_mdfiles.glob("*.md"))]
 
 ## } MODULE

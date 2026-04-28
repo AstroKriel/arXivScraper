@@ -18,6 +18,7 @@ from arxivscraper.io_configs import directories
 
 
 class GetUserInputs:
+    """Parse and validate CLI arguments for the main program, search, score, and fetch modes."""
 
     def __init__(
         self,
@@ -146,8 +147,8 @@ class GetUserInputs:
         config_name = search_args["config_name"]
         config_path = directories.search_configs / f"{config_name}.json"
         if not config_path.exists():
-            raise Exception(
-                f"Error: Config file `{config_name}.json` does not exist under: {directories.search_configs}"
+            raise FileNotFoundError(
+                f"config file not found: `{config_name}.json`; searched in {directories.search_configs}."
             )
         if search_args["lookback_days"] is None:
             search_args["lookback_days"] = int(input("Please provide --lookback_days: "))
@@ -171,12 +172,9 @@ class GetUserInputs:
         print(" ")
         ## check the arXiv ID follows the right format
         re_pattern = r"^\d{4}\.\d{4,5}$"
-        if not re.match(
-            pattern=re_pattern,
-            string=arxiv_id,
-        ):
-            raise Exception(
-                f"The ID you entered `{arxiv_id}` was invalid. Please enter it in the format `2310.17036`."
+        if not re.match(pattern=re_pattern, string=arxiv_id):
+            raise ValueError(
+                f"`arxiv_id` must match the format `2310.17036`; got `{arxiv_id}`."
             )
         return arxiv_id
 

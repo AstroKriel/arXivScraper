@@ -29,19 +29,19 @@ def main():
             datetime.datetime.now().strftime("%H:%M:%S"),
         ),
     )
-    obj_user_inputs = argparse_utils.GetUserInputs(
+    user_inputs = argparse_utils.GetUserInputs(
         include_main=True,
         include_search=True,
         include_fetch=True,
     )
-    dict_program_flags = obj_user_inputs.get_program_inputs()
-    if dict_program_flags["search"]:
+    program_flags = user_inputs.get_program_inputs()
+    if program_flags["search"]:
         SearchArxiv.main()
-        if dict_program_flags["score"]: ScoreArticle.main()
-    elif dict_program_flags["score"]: ScoreArticle.main()
-    elif dict_program_flags["fetch"]: FetchFromArxiv.main()
-    elif dict_program_flags["download"]: DownloadArticles.main()
-    elif dict_program_flags["print"]: BrowseArticles.main()
+        if program_flags["score"]: ScoreArticle.main()
+    elif program_flags["score"]: ScoreArticle.main()
+    elif program_flags["fetch"]: FetchFromArxiv.main()
+    elif program_flags["download"]: DownloadArticles.main()
+    elif program_flags["print"]: BrowseArticles.main()
     time_elapsed = time.time() - time_start
     print(f"Elapsed time: {time_elapsed:.2f} seconds.")
 
