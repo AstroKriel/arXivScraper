@@ -15,34 +15,81 @@ from openai import OpenAI
 
 ## local
 from arxivscraper.io_configs import directories, file_names
-from arxivscraper.utils import article_utils, io_utils
+from arxivscraper.utils import argparse_utils, article_utils, io_utils
+
+##
+## === PROVIDER CONFIG
+##
+
+_DEFAULT_MODEL = "gpt-4o-mini"
+
+
+def load_provider_config(
+    cli_model: Optional[str] = None,
+    cli_base_url: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """Load AI provider config from ai_provider.json, falling back to legacy api_key.txt.
+
+    CLI arguments override any config file values.
+    """
+    provider_path = directories.search_configs / file_names.ai_provider
+    if provider_path.is_file():
+        try:
+            config = json.loads(provider_path.read_text(encoding="utf-8"))
+        except Exception as e:
+            print(f"Error reading {provider_path.name}: {e}")
+            return None
+    else:
+        ## fall back to legacy api_key.txt
+        key_path = directories.search_configs / file_names.ai_api_key
+        if not key_path.is_file():
+            print(
+                f"Error: no AI config found.\n"
+                f"Create configs/{file_names.ai_provider} "
+                f"(see configs/{file_names.ai_provider.replace('.json', '.example.json')}) "
+                f"or the legacy configs/{file_names.ai_api_key}."
+            )
+            return None
+        api_key = None
+        for line in key_path.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip().strip("'").strip('"')
+            if stripped:
+                api_key = stripped
+                break
+        if not api_key:
+            print(f"Error: {file_names.ai_api_key} is empty.")
+            return None
+        config = {"api_key": api_key, "base_url": None, "model": _DEFAULT_MODEL}
+
+    ## CLI overrides
+    if cli_model:
+        config["model"] = cli_model
+    if cli_base_url:
+        config["base_url"] = cli_base_url
+
+    if not config.get("api_key"):
+        print("Error: no api_key in provider config. Local servers (Ollama, LM Studio) use a placeholder like 'local'.")
+        return None
+    if not config.get("model"):
+        print("Error: no model specified in provider config.")
+        return None
+
+    return config
+
 
 ##
 ## === AI CLIENT SETUP
 ##
 
 
-def load_api_key() -> Optional[str]:
-    file_path = directories.search_configs / file_names.ai_api_key
-    try:
-        if not file_path.is_file():
-            print(
-                f"Error. Could not locate the API key file: {file_path}\n"
-                f"Create this file and put your key in it.",
-            )
-            return None
-        for line in file_path.read_text(encoding="utf-8").splitlines():
-            api_key = line.strip().strip("'").strip('"')
-            if api_key: return api_key
-    except Exception as e:
-        print(f"Error. Unable to read the API key.\n{e}")
-    return None
-
-
 def build_ai_client(
     api_key: str,
+    base_url: Optional[str] = None,
 ) -> OpenAI:
-    return OpenAI(api_key=api_key)
+    kwargs: Dict[str, Any] = {"api_key": api_key}
+    if base_url:
+        kwargs["base_url"] = base_url
+    return OpenAI(**kwargs)
 
 
 ##
@@ -57,7 +104,7 @@ def get_ai_response(
     article_abstract: str,
     prompt_rules: str,
     prompt_criteria: str,
-    ai_model: str = "gpt-4o-mini",
+    ai_model: str,
 ) -> Dict[str, Any]:
     if not article_title:
         return {
@@ -132,6 +179,7 @@ def get_ai_score(
     ai_client: OpenAI,
     prompt_rules: str,
     prompt_criteria: str,
+    ai_model: str,
 ) -> bool:
     time_start = time.time()
     response_dict = get_ai_response(
@@ -140,6 +188,7 @@ def get_ai_score(
         article_abstract=article.abstract,
         prompt_rules=prompt_rules,
         prompt_criteria=prompt_criteria,
+        ai_model=ai_model,
     )
     time_elapsed = time.time() - time_start
     if response_dict.get("status") != "success":
@@ -162,17 +211,29 @@ def get_ai_score(
 
 
 def main():
-    api_key = load_api_key()
-    if not api_key:
-        raise RuntimeError(
-            f"OpenAI API key not found. Add it to {directories.search_configs / file_names.ai_api_key}."
-        )
-    ai_client = build_ai_client(api_key)
+    user_inputs = argparse_utils.GetUserInputs(include_score=True)
+    score_inputs = user_inputs.get_score_inputs()
+
+    config = load_provider_config(
+        cli_model=score_inputs.get("model"),
+        cli_base_url=score_inputs.get("base_url"),
+    )
+    if not config:
+        raise RuntimeError("Failed to load AI provider config.")
+
+    ai_client = build_ai_client(
+        api_key=config["api_key"],
+        base_url=config.get("base_url"),
+    )
+    print(f"Model: {config['model']}")
+    if config.get("base_url"):
+        print(f"Base URL: {config['base_url']}")
+
     print("Reading in all articles...")
     articles = article_utils.read_all_markdown_files()
     articles = [article for article in articles if article.ai_rating is None]
     num_articles = len(articles)
-    print(f"Preparing to score {len(articles)} articles.")
+    print(f"Preparing to score {num_articles} articles.")
     prompt_rules = io_utils.read_text_file(directories.search_configs / file_names.ai_rules)
     prompt_criteria = io_utils.read_text_file(directories.search_configs / file_names.ai_criteria)
     for article_index, article in enumerate(articles):
@@ -182,6 +243,7 @@ def main():
             ai_client=ai_client,
             prompt_rules=prompt_rules,
             prompt_criteria=prompt_criteria,
+            ai_model=config["model"],
         )
         if is_scored: article_utils.save_article(
             article,

@@ -24,6 +24,7 @@ class GetUserInputs:
         include_main=False,
         include_search=False,
         include_fetch=False,
+        include_score=False,
     ):
         self.parser = argparse.ArgumentParser(
             description="arXiv-Scraper: program to search for relevant arXiv papers.",
@@ -35,6 +36,7 @@ class GetUserInputs:
         if include_main: self._add_main_program_arguments()
         if include_search: self._add_search_arguments()
         if include_fetch: self._add_fetch_argument()
+        if include_score: self._add_score_arguments()
         ## parse and store arguments
         name_space, _ = self.parser.parse_known_args()
         self.args = vars(name_space)
@@ -91,6 +93,29 @@ class GetUserInputs:
             "-id", type=str, required=False, metavar="", help="arXiv ID in the format `2310.17036`."
         )
 
+    def _add_score_arguments(
+        self,
+    ):
+        """Sets up score-specific arguments."""
+        score_args = self.parser.add_argument_group(
+            description="Score arguments (relevant when running with `-r`):"
+        )
+        score_args.add_argument(
+            "--model",
+            type=str,
+            required=False,
+            metavar="",
+            help="Model name override (e.g. 'gpt-4o-mini', 'llama3.2'). Overrides ai_provider.json.",
+        )
+        score_args.add_argument(
+            "--base-url",
+            type=str,
+            required=False,
+            metavar="",
+            dest="base_url",
+            help="API base URL override (e.g. 'http://localhost:11434/v1'). Overrides ai_provider.json.",
+        )
+
     def get_program_inputs(
         self,
     ):
@@ -127,6 +152,12 @@ class GetUserInputs:
         if search_args["lookback_days"] is None:
             search_args["lookback_days"] = int(input("Please provide --lookback_days: "))
         return search_args
+
+    def get_score_inputs(
+        self,
+    ) -> dict[str, Any]:
+        """Returns score-specific CLI overrides (model, base_url). None values mean 'use config file'."""
+        return {key: self.args.get(key) for key in ["model", "base_url"]}
 
     def get_fetch_inputs(
         self,
