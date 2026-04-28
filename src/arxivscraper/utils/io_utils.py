@@ -21,7 +21,10 @@ def create_directory(
     directory: Path,
 ) -> None:
     """Create `directory` and any missing parents; do nothing if it already exists."""
-    directory.mkdir(parents=True, exist_ok=True)
+    directory.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
 
 def read_file(
@@ -33,7 +36,7 @@ def read_file(
     received_extension = file_path.suffix.lower()
     if received_extension != expected_extension:
         raise ValueError(
-            f"`expected_extension` must be `{expected_extension}`; got `{received_extension}`."
+            f"`expected_extension` must be `{expected_extension}`; got `{received_extension}`.",
         )
     if not file_path.is_file():
         raise FileNotFoundError(f"file not found: {file_path}.")
@@ -81,5 +84,6 @@ def read_yaml_file(
         file_path,
         expected_extension=".yaml",
     )
+
 
 ## } MODULE

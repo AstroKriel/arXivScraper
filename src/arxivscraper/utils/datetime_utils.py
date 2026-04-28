@@ -39,4 +39,5 @@ def get_date_n_days_ago(
     date_delta = datetime.timedelta(days=int(num_days))
     return date_today - date_delta
 
+
 ## } MODULE

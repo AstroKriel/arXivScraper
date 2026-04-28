@@ -50,7 +50,8 @@ def download_pdfs(
 ) -> None:
     num_articles = len(articles)
     for article_index, article in enumerate(articles):
-        if verbose: print(f"({article_index+1}/{num_articles})")
+        if verbose:
+            print(f"({article_index+1}/{num_articles})")
         if article.task_status == "d":
             download_pdf(article)
         elif verbose:

@@ -50,7 +50,7 @@ def load_provider_config(
                 f"Error: no AI config found.\n"
                 f"Create configs/{file_names.ai_provider} "
                 f"(see configs/{file_names.ai_provider_example}) "
-                f"or the legacy configs/{file_names.ai_api_key}."
+                f"or the legacy configs/{file_names.ai_api_key}.",
             )
             return None
         api_key = None
@@ -71,7 +71,9 @@ def load_provider_config(
         config["base_url"] = cli_base_url
 
     if not config.get("api_key"):
-        print("Error: no api_key in provider config. Local servers (Ollama, LM Studio) use a placeholder like 'local'.")
+        print(
+            "Error: no api_key in provider config. Local servers (Ollama, LM Studio) use a placeholder like 'local'."
+        )
         return None
     if not config.get("model"):
         print("Error: no model specified in provider config.")
@@ -133,11 +135,11 @@ def get_ai_response(
             messages=[
                 {
                     "role": "system",
-                    "content": prompt_rules
+                    "content": prompt_rules,
                 },
                 {
                     "role": "user",
-                    "content": prompt_input
+                    "content": prompt_input,
                 },
             ],
             temperature=0.0,
@@ -198,7 +200,8 @@ def get_ai_score(
     if response_dict.get("status") != "success":
         print("Error:", response_dict.get("error", "<unknown error>"))
         ai_response = response_dict.get("ai_response")
-        if ai_response: print("Raw LLM response:", ai_response)
+        if ai_response:
+            print("Raw LLM response:", ai_response)
         return False
     print("arXiv-id:", article.arxiv_id)
     print("Title:", article.title.strip())
@@ -249,10 +252,11 @@ def main():
             prompt_criteria=prompt_criteria,
             ai_model=config["model"],
         )
-        if is_scored: article_utils.save_article(
-            article,
-            force=True,
-        )
+        if is_scored:
+            article_utils.save_article(
+                article,
+                force=True,
+            )
         print(" ")
 
 
