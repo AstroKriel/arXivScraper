@@ -36,7 +36,7 @@ def read_search_criteria(
     missing_keys = required_keys - config_criteria.keys()
     if len(missing_keys) > 0:
         raise ValueError(
-            f"config file `{config_name}.json` is missing required keys: {', '.join(sorted(missing_keys))}."
+            f"config file `{config_name}.json` is missing required keys: {', '.join(sorted(missing_keys))}.",
         )
     return config_criteria
 
@@ -49,10 +49,11 @@ def read_search_criteria(
 def does_text_contain_all_keywords(
     phrase: str,
     *,
-    search_keywords: list,
+    search_keywords: list[Any],
 ) -> bool:
     """Return `True` if `phrase` contains all keywords in `search_keywords`."""
-    if len(search_keywords) == 0: return False
+    if len(search_keywords) == 0:
+        return False
     results = []
     for keyword in search_keywords:
         if isinstance(keyword, str):
@@ -70,16 +71,18 @@ def does_text_contain_all_keywords(
 def does_text_contain_any_keywords(
     phrase: str,
     *,
-    search_keywords: list,
+    search_keywords: list[Any],
 ) -> bool:
     """Return `True` if `phrase` contains at least one keyword in `search_keywords`."""
-    if len(search_keywords) == 0: return False
+    if len(search_keywords) == 0:
+        return False
     results = []
     for keyword in search_keywords:
         if isinstance(keyword, str):
             result = keyword.lower() in phrase.lower()
             results.append(result)
-            if result: break
+            if result:
+                break
         elif isinstance(keyword, list):
             result = does_text_contain_all_keywords(
                 phrase=phrase,
@@ -91,7 +94,7 @@ def does_text_contain_any_keywords(
 
 def meets_search_criteria(
     phrase: str,
-    search_keywords: list,
+    search_keywords: list[Any],
 ) -> bool:
     """Return `True` if `phrase` meets the search criteria defined by `search_keywords`."""
     return does_text_contain_any_keywords(
@@ -106,7 +109,7 @@ def meets_search_criteria(
 
 
 def search_keywords_to_set_notation(
-    search_keywords: list | str,
+    search_keywords: list[Any] | str,
     *,
     set_level: int = 0,
 ) -> str:
@@ -114,9 +117,12 @@ def search_keywords_to_set_notation(
     while isinstance(search_keywords, list) and (len(search_keywords) == 1):
         search_keywords = search_keywords[0]
         set_level += 1
-    if not isinstance(search_keywords, list): return f"`{search_keywords}`"
-    if set_level % 2 == 1: operator = " AND "
-    else: operator = " OR "
+    if not isinstance(search_keywords, list):
+        return f"`{search_keywords}`"
+    if set_level % 2 == 1:
+        operator = " AND "
+    else:
+        operator = " OR "
     parts = []
     for keyword in search_keywords:
         if isinstance(keyword, list):
@@ -148,5 +154,6 @@ def print_search_criteria(
         print("> including articles with authors:", end="")
         print("\n\t- " + "\n\t- ".join(authors))
         print(" ")
+
 
 ## } MODULE

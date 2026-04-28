@@ -45,8 +45,10 @@ def fetch_from_arxiv(
             return _article
     user_tag = input("Enter a config tag: ").strip().lower()
     print(" ")
-    if user_tag == "": raise Exception("Error: config tag cannot be empty.")
-    if " " in user_tag: raise Exception("Error: config tag cannot contain spaces.")
+    if user_tag == "":
+        raise ValueError("config tag cannot be empty.")
+    if " " in user_tag:
+        raise ValueError("config tag cannot contain spaces.")
     config_results = {user_tag: [1, 0, 0]}
     article = article_utils.get_article_summary(
         arxiv_article=arxiv_article,
@@ -62,9 +64,9 @@ def fetch_from_arxiv(
 
 
 def main():
-    obj_user_inputs = argparse_utils.GetUserInputs(include_fetch=True)
-    arxiv_id = obj_user_inputs.get_fetch_inputs()
-    io_utils.init_directory(directories.output_mdfiles)
+    user_inputs = argparse_utils.GetUserInputs(include_fetch=True)
+    arxiv_id = user_inputs.get_fetch_inputs()
+    io_utils.create_directory(directories.output_mdfiles)
     fetch_from_arxiv(arxiv_id)
 
 

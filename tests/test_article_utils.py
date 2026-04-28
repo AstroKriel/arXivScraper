@@ -11,6 +11,7 @@ import pathlib
 import sys
 import tempfile
 import unittest
+from typing import Any
 
 ## local
 from arxivscraper.utils import article_utils
@@ -21,9 +22,9 @@ from arxivscraper.utils import article_utils
 
 
 def _make_article(
-    **kwargs,
+    **kwargs: Any,
 ) -> article_utils.Article:
-    defaults = dict(
+    defaults: dict[str, Any] = dict(
         title="Turbulent MHD in the galactic halo",
         arxiv_id="2310.17036",
         url_pdf="https://arxiv.org/pdf/2310.17036",
@@ -54,9 +55,9 @@ def _roundtrip(
     )
     md_text = buf.getvalue()
     with tempfile.NamedTemporaryFile(
-        mode="w",
-        suffix=".md",
-        delete=False,
+            mode="w",
+            suffix=".md",
+            delete=False,
     ) as file_pointer:
         file_pointer.write(md_text)
         tmp_path = pathlib.Path(file_pointer.name)
@@ -129,7 +130,10 @@ class TestTruncateList(unittest.TestCase):
         self,
     ):
         self.assertEqual(
-            first=article_utils.truncate_list(elems=["a", "b", "c"], max_elems=5),
+            first=article_utils.truncate_list(
+                elems=["a", "b", "c"],
+                max_elems=5,
+            ),
             second=["a", "b", "c"],
         )
 
@@ -175,14 +179,38 @@ class TestRoundtrip(unittest.TestCase):
     ):
         original = _make_article()
         restored = _roundtrip(original)
-        self.assertEqual(first=restored.title, second=original.title)
-        self.assertEqual(first=restored.arxiv_id, second=original.arxiv_id)
-        self.assertEqual(first=restored.url_pdf, second=original.url_pdf)
-        self.assertEqual(first=restored.authors, second=original.authors)
-        self.assertEqual(first=restored.date_published, second=original.date_published)
-        self.assertEqual(first=restored.date_updated, second=original.date_updated)
-        self.assertEqual(first=restored.category_primary, second=original.category_primary)
-        self.assertEqual(first=restored.category_others, second=original.category_others)
+        self.assertEqual(
+            first=restored.title,
+            second=original.title,
+        )
+        self.assertEqual(
+            first=restored.arxiv_id,
+            second=original.arxiv_id,
+        )
+        self.assertEqual(
+            first=restored.url_pdf,
+            second=original.url_pdf,
+        )
+        self.assertEqual(
+            first=restored.authors,
+            second=original.authors,
+        )
+        self.assertEqual(
+            first=restored.date_published,
+            second=original.date_published,
+        )
+        self.assertEqual(
+            first=restored.date_updated,
+            second=original.date_updated,
+        )
+        self.assertEqual(
+            first=restored.category_primary,
+            second=original.category_primary,
+        )
+        self.assertEqual(
+            first=restored.category_others,
+            second=original.category_others,
+        )
 
     def test_task_status_preserved(
         self,
@@ -220,12 +248,18 @@ class TestRoundtrip(unittest.TestCase):
         self,
     ):
         original = _make_article(
-            config_reasons={"mhd": [True, False, True], "hydro": [False, True, False]},
+            config_reasons={
+                "mhd": [True, False, True],
+                "hydro": [False, True, False]
+            },
         )
         restored = _roundtrip(original)
         self.assertEqual(
             first=restored.config_reasons,
-            second={"mhd": [True, False, True], "hydro": [False, True, False]},
+            second={
+                "mhd": [True, False, True],
+                "hydro": [False, True, False]
+            },
         )
 
     def test_ai_rating_preserved(
@@ -236,7 +270,12 @@ class TestRoundtrip(unittest.TestCase):
             ai_reason="Highly relevant to dynamo theory.",
         )
         restored = _roundtrip(original)
-        self.assertAlmostEqual(first=restored.ai_rating, second=7.5)
+        self.assertIsNotNone(restored.ai_rating)
+        assert restored.ai_rating is not None
+        self.assertAlmostEqual(
+            first=restored.ai_rating,
+            second=7.5,
+        )
         self.assertEqual(
             first=restored.ai_reason,
             second="Highly relevant to dynamo theory.",
@@ -292,14 +331,25 @@ class TestMergeLogic(unittest.TestCase):
     def test_ai_rating_retained_from_existing(
         self,
     ):
-        existing = _make_article(ai_rating=8.0, ai_reason="Very relevant.")
-        incoming = _make_article(ai_rating=None, ai_reason=None)
+        existing = _make_article(
+            ai_rating=8.0,
+            ai_reason="Very relevant.",
+        )
+        incoming = _make_article(
+            ai_rating=None,
+            ai_reason=None,
+        )
         ## simulate the merge logic from save_article
         if existing.ai_rating is not None and incoming.ai_rating is None:
             incoming.ai_rating = existing.ai_rating
         if existing.ai_reason is not None and incoming.ai_reason is None:
             incoming.ai_reason = existing.ai_reason
-        self.assertAlmostEqual(first=incoming.ai_rating, second=8.0)
+        self.assertIsNotNone(incoming.ai_rating)
+        assert incoming.ai_rating is not None
+        self.assertAlmostEqual(
+            first=incoming.ai_rating,
+            second=8.0,
+        )
         self.assertEqual(
             first=incoming.ai_reason,
             second="Very relevant.",
@@ -313,13 +363,21 @@ class TestMergeLogic(unittest.TestCase):
         ## simulate the merge logic from save_article
         if existing.ai_rating is not None and incoming.ai_rating is None:
             incoming.ai_rating = existing.ai_rating
-        self.assertAlmostEqual(first=incoming.ai_rating, second=6.5)
+        self.assertIsNotNone(incoming.ai_rating)
+        assert incoming.ai_rating is not None
+        self.assertAlmostEqual(
+            first=incoming.ai_rating,
+            second=6.5,
+        )
 
     def test_config_reasons_merged_without_overwriting(
         self,
     ):
         existing = _make_article(
-            config_reasons={"mhd": [True, False, True], "hydro": [False, True, False]},
+            config_reasons={
+                "mhd": [True, False, True],
+                "hydro": [False, True, False]
+            },
         )
         incoming = _make_article(config_reasons={"mhd": [False, True, False]})
         ## simulate the merge logic from save_article

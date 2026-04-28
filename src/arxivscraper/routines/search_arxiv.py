@@ -7,6 +7,7 @@
 ## stdlib
 import datetime
 import sys
+from typing import Any
 
 ## third-party
 import arxiv
@@ -34,6 +35,8 @@ class SearchArxiv():
         self.current_date = current_date
         self.config_name = config_name
         self.articles: list[article_utils.Article] = []
+        self.client: arxiv.Client | None = None
+        self.search_criteria: dict[str, Any] = {}
 
     def search(
         self,
@@ -43,7 +46,7 @@ class SearchArxiv():
         for search_category in self.search_criteria["categories"]:
             print(f"Searching: {search_category}")
             print(
-                f"Date range: {datetime_utils.cast_date_to_string(self.lookback_date)} to {datetime_utils.cast_date_to_string(self.current_date)}"
+                f"Date range: {datetime_utils.cast_date_to_string(self.lookback_date)} to {datetime_utils.cast_date_to_string(self.current_date)}",
             )
             self.client = arxiv.Client(
                 page_size=200,
@@ -55,9 +58,11 @@ class SearchArxiv():
             for arxiv_article in self.client.results(self._create_search_query(search_category)):
                 self._display_progress(num_articles_looked_at_in_category)
                 num_articles_looked_at_in_category += 1
-                if not (self._is_within_date_range(arxiv_article)): break
+                if not (self._is_within_date_range(arxiv_article)):
+                    break
                 arxiv_id = str(arxiv_article.pdf_url).split("/")[-1].split("v")[0]
-                if self._is_duplicate(arxiv_id): continue
+                if self._is_duplicate(arxiv_id):
+                    continue
                 is_relevant, reasons = self._check_config_conditions(arxiv_article)
                 if is_relevant:
                     config_results = {self.config_name: reasons}
@@ -68,7 +73,7 @@ class SearchArxiv():
                     self.articles.append(article)
                     num_new_articles_saved_in_category += 1
             print(
-                f"\nFound {num_new_articles_saved_in_category} interesting articles from the {num_articles_looked_at_in_category} looked at.\n"
+                f"\nFound {num_new_articles_saved_in_category} interesting articles from the {num_articles_looked_at_in_category} looked at.\n",
             )
 
     def get_sorted_articles(
@@ -88,7 +93,7 @@ class SearchArxiv():
             directory=directories.search_configs,
             config_name=self.config_name,
         )
-        print(f"Searching for articles:")
+        print("Searching for articles:")
         print("> from: {}".format(datetime_utils.cast_date_to_string(self.lookback_date)))
         print("> to:   {}".format(datetime_utils.cast_date_to_string(self.current_date)))
         print(" ")
@@ -124,8 +129,8 @@ class SearchArxiv():
         arxiv_article: arxiv.Result,
     ) -> tuple[bool, list[bool]]:
         if filter_utils.meets_search_criteria(
-            phrase=arxiv_article.title.lower(),
-            search_keywords=self.search_criteria["keywords_to_exclude"],
+                phrase=arxiv_article.title.lower(),
+                search_keywords=self.search_criteria["keywords_to_exclude"],
         ):
             return False, []
         is_title_matching = filter_utils.meets_search_criteria(
@@ -133,8 +138,8 @@ class SearchArxiv():
             search_keywords=self.search_criteria["keywords_to_include"],
         )
         if filter_utils.meets_search_criteria(
-            phrase=arxiv_article.summary.lower(),
-            search_keywords=self.search_criteria["keywords_to_exclude"],
+                phrase=arxiv_article.summary.lower(),
+                search_keywords=self.search_criteria["keywords_to_exclude"],
         ):
             return False, []
         is_abstract_matching = filter_utils.meets_search_criteria(
@@ -154,9 +159,12 @@ class SearchArxiv():
         self,
         num_articles_looked_at_in_category: int,
     ) -> None:
-        if num_articles_looked_at_in_category == 0: print("Progress:", end=" ")
-        elif (num_articles_looked_at_in_category % 10) == 0: print("x", end="")
-        elif (num_articles_looked_at_in_category % 50) == 0: print(" ", end="")
+        if num_articles_looked_at_in_category == 0:
+            print("Progress:", end=" ")
+        elif (num_articles_looked_at_in_category % 10) == 0:
+            print("x", end="")
+        elif (num_articles_looked_at_in_category % 50) == 0:
+            print(" ", end="")
 
 
 ##

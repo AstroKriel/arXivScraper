@@ -7,6 +7,7 @@
 ## stdlib
 import sys
 import unittest
+from typing import Any
 
 ## local
 from arxivscraper.utils import filter_utils
@@ -30,9 +31,9 @@ class TestHelperFuncs(unittest.TestCase):
 
     def _test_condition(
         self,
-        search_condition,
-        expected_phrases,
-    ):
+        search_condition: list[Any],
+        expected_phrases: set[str],
+    ) -> None:
         matching_phrases = {
             phrase
             for phrase in self.phrases

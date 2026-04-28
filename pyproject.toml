@@ -16,6 +16,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "basedpyright>=1.39.3",
     "pytest>=9.0.2",
 ]
 
@@ -30,6 +31,18 @@ sources = ["src"]
 include = [".", "src", "tests"]
 reportMissingImports = true
 reportMissingTypeStubs = false  ## third-party packages rarely ship stubs
+
+## --- rules to suppress
+reportAny = "none"  ## cascade from untyped third-party stubs (arxiv, yaml, openai, requests)
+reportUnknownMemberType = "none"  ## cascade from untyped third-party stubs
+reportUnknownVariableType = "none"  ## cascade from untyped third-party stubs
+reportUnknownArgumentType = "none"  ## cascade from untyped third-party stubs
+reportImplicitStringConcatenation = "none"  ## valid style for multi-line strings
+reportImplicitOverride = "none"  ## too verbose to require @override on every override
+reportUnusedCallResult = "none"  ## UI and I/O calls are invoked for side effects
+reportUnannotatedClassAttribute = "none"  ## Textual DSL attributes are not typed by the framework
+reportExplicitAny = "none"  ## dict[str, Any] is unavoidable at external boundaries
+reportUninitializedInstanceVariable = "none"  ## instance vars initialized in non-__init__ methods
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

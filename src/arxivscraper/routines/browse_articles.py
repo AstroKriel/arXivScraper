@@ -26,7 +26,7 @@ _STATUS_LABELS = {
     "u": "unread",
     "r": "2read",
     "D": "done",
-    "-":  "skip",
+    "-": "skip",
 }
 
 _FILTER_CYCLE = [None, "u", "r", "D", "-"]
@@ -36,7 +36,7 @@ _FILTER_CYCLE = [None, "u", "r", "D", "-"]
 ##
 
 
-class BrowseApp(App):
+class BrowseApp(App[None]):
 
     CSS = """
     DataTable {
@@ -51,13 +51,13 @@ class BrowseApp(App):
     """
 
     BINDINGS = [
-        Binding("r",     "set_status('r')", "2read"),
-        Binding("u",     "set_status('u')", "unread"),
-        Binding("d",     "set_status('D')", "done"),
-        Binding("i",     "set_status('-')", "skip"),
-        Binding("o",     "open_pdf",        "open PDF"),
-        Binding("f",     "cycle_filter",    "filter"),
-        Binding("q",     "quit",            "quit"),
+        Binding("r", "set_status('r')", "2read"),
+        Binding("u", "set_status('u')", "unread"),
+        Binding("d", "set_status('D')", "done"),
+        Binding("i", "set_status('-')", "skip"),
+        Binding("o", "open_pdf", "open PDF"),
+        Binding("f", "cycle_filter", "filter"),
+        Binding("q", "quit", "quit"),
     ]
 
     TITLE = "arXiv Browser"
@@ -110,7 +110,10 @@ class BrowseApp(App):
             )
         if articles:
             row = min(keep_row, len(articles) - 1)
-            table.move_cursor(row=row, scroll=True)
+            table.move_cursor(
+                row=row,
+                scroll=True,
+            )
             self._update_abstract(row)
         else:
             self.query_one("#abstract", Static).update("[dim]No papers match this filter.[/dim]")
@@ -127,14 +130,16 @@ class BrowseApp(App):
         self.query_one("#abstract", Static).update(
             f"[bold]{rich_escape(article.title)}[/bold]\n"
             f"[dim]{rich_escape(', '.join(article.authors))}[/dim]\n\n"
-            f"{rich_escape(article.abstract)}"
+            f"{rich_escape(article.abstract)}",
         )
 
     def _update_subtitle(
         self,
     ) -> None:
         articles = self._get_visible_articles()
-        filter_label = "all" if self.filter_status is None else _STATUS_LABELS.get(self.filter_status, self.filter_status)
+        filter_label = "all" if self.filter_status is None else _STATUS_LABELS.get(
+            self.filter_status, self.filter_status
+        )
         self.sub_title = f"filter: {filter_label}  ({len(articles)} papers)"
 
     def on_data_table_row_highlighted(
@@ -190,7 +195,11 @@ class BrowseApp(App):
 
 def main() -> None:
     articles = article_utils.read_all_markdown_files()
-    articles = sorted(articles, key=lambda a: a.date_updated, reverse=True)
+    articles = sorted(
+        articles,
+        key=lambda a: a.date_updated,
+        reverse=True,
+    )
     BrowseApp(articles).run()
 
 

@@ -22,10 +22,10 @@ class GetUserInputs:
 
     def __init__(
         self,
-        include_main=False,
-        include_search=False,
-        include_fetch=False,
-        include_score=False,
+        include_main: bool = False,
+        include_search: bool = False,
+        include_fetch: bool = False,
+        include_score: bool = False,
     ):
         self.parser = argparse.ArgumentParser(
             description="arXiv-Scraper: program to search for relevant arXiv papers.",
@@ -34,10 +34,14 @@ class GetUserInputs:
                 max_help_position=50,
             ),
         )
-        if include_main: self._add_main_program_arguments()
-        if include_search: self._add_search_arguments()
-        if include_fetch: self._add_fetch_argument()
-        if include_score: self._add_score_arguments()
+        if include_main:
+            self._add_main_program_arguments()
+        if include_search:
+            self._add_search_arguments()
+        if include_fetch:
+            self._add_fetch_argument()
+        if include_score:
+            self._add_score_arguments()
         ## parse and store arguments
         name_space, _ = self.parser.parse_known_args()
         self.args = vars(name_space)
@@ -46,25 +50,23 @@ class GetUserInputs:
         self,
     ):
         """Sets up main program flag arguments."""
-        main_args = {
-            "default": False,
-            "required": False,
-            "action": "store_true",
-            "help": "Type: bool, default: %(default)s",
-        }
         parse_flags = self.parser.add_argument_group(description="Main program flags:")
-        parse_flags.add_argument("-s", "--search", **main_args)
-        parse_flags.add_argument("-f", "--fetch", **main_args)
-        parse_flags.add_argument("-r", "--score", **main_args)
-        parse_flags.add_argument("-p", "--print", **main_args)
-        parse_flags.add_argument("-d", "--download", **main_args)
+        for short_flag, long_flag in [("-s", "--search"), ("-f", "--fetch"), ("-r", "--score"), ("-p", "--print"), ("-d", "--download")]:
+            parse_flags.add_argument(
+                short_flag,
+                long_flag,
+                default=False,
+                required=False,
+                action="store_true",
+                help="Type: bool, default: %(default)s",
+            )
 
     def _add_search_arguments(
         self,
     ):
         """Sets up search-specific arguments."""
         search_args = self.parser.add_argument_group(
-            description="Search arguments (relevant when main program is run with `-s`):"
+            description="Search arguments (relevant when main program is run with `-s`):",
         )
         search_args.add_argument(
             "-c",
@@ -72,7 +74,7 @@ class GetUserInputs:
             type=str,
             required=False,
             metavar="",
-            help="Name of the config-file that defines search parameters."
+            help="Name of the config-file that defines search parameters.",
         )
         search_args.add_argument(
             "-lb",
@@ -80,7 +82,7 @@ class GetUserInputs:
             type=int,
             required=False,
             metavar="",
-            help="Lookback period (in days) to start search."
+            help="Lookback period (in days) to start search.",
         )
 
     def _add_fetch_argument(
@@ -88,10 +90,14 @@ class GetUserInputs:
     ):
         """Sets up fetch-specific arguments."""
         fetch_args = self.parser.add_argument_group(
-            description="Fetch argument (relevant when running with `-f`):"
+            description="Fetch argument (relevant when running with `-f`):",
         )
         fetch_args.add_argument(
-            "-id", type=str, required=False, metavar="", help="arXiv ID in the format `2310.17036`."
+            "-id",
+            type=str,
+            required=False,
+            metavar="",
+            help="arXiv ID in the format `2310.17036`.",
         )
 
     def _add_score_arguments(
@@ -99,7 +105,7 @@ class GetUserInputs:
     ):
         """Sets up score-specific arguments."""
         score_args = self.parser.add_argument_group(
-            description="Score arguments (relevant when running with `-r`):"
+            description="Score arguments (relevant when running with `-r`):",
         )
         score_args.add_argument(
             "--model",
@@ -124,7 +130,7 @@ class GetUserInputs:
         main_flags = ["search", "fetch", "score", "download"]
         if not any(self.args.get(flag) for flag in main_flags):
             print(
-                "Error: At least one of the following flags must be provided: --search, --fetch, --score, --download\n"
+                "Error: At least one of the following flags must be provided: --search, --fetch, --score, --download\n",
             )
             self.parser.print_help()
         return {key: self.args.get(key) for key in ["search", "fetch", "score", "print", "download"]}
@@ -148,7 +154,7 @@ class GetUserInputs:
         config_path = directories.search_configs / f"{config_name}.json"
         if not config_path.exists():
             raise FileNotFoundError(
-                f"config file not found: `{config_name}.json`; searched in {directories.search_configs}."
+                f"config file not found: `{config_name}.json`; searched in {directories.search_configs}.",
             )
         if search_args["lookback_days"] is None:
             search_args["lookback_days"] = int(input("Please provide --lookback_days: "))
@@ -172,10 +178,14 @@ class GetUserInputs:
         print(" ")
         ## check the arXiv ID follows the right format
         re_pattern = r"^\d{4}\.\d{4,5}$"
-        if not re.match(pattern=re_pattern, string=arxiv_id):
+        if not re.match(
+                pattern=re_pattern,
+                string=arxiv_id,
+        ):
             raise ValueError(
-                f"`arxiv_id` must match the format `2310.17036`; got `{arxiv_id}`."
+                f"`arxiv_id` must match the format `2310.17036`; got `{arxiv_id}`.",
             )
         return arxiv_id
+
 
 ## } MODULE

@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 from collections.abc import Mapping
-from typing import Any, Optional, TextIO
+from typing import Any, TextIO
 
 ## third-party
 import arxiv
@@ -41,10 +41,10 @@ class Article:
     category_others: list[str]
     config_tags: list[str] = field(default_factory=list)
     task_status: str = "u"
-    ai_rating: Optional[float] = None
-    ai_reason: Optional[str] = None
+    ai_rating: float | None = None
+    ai_reason: str | None = None
     ## keyed by config name (without the "config_reason_" prefix)
-    config_reasons: dict[str, list] = field(default_factory=dict)
+    config_reasons: dict[str, list[Any]] = field(default_factory=dict)
 
 
 ##
@@ -53,7 +53,7 @@ class Article:
 
 
 def truncate_list(
-    elems: list,
+    elems: list[Any],
     max_elems: int = 5,
 ) -> list[str]:
     """Return `elems` as strings, truncated to `max_elems` with `"..."` appended if longer."""
@@ -102,18 +102,32 @@ def print_article(
     num_pad_chars: int = 13,
 ) -> None:
     """Print a compact summary of `article` to stdout."""
+
     def _print_line(
         category: str,
-        content: str | list,
+        content: str | list[Any],
     ) -> None:
-        if isinstance(content, list): content = ", ".join(content)
+        if isinstance(content, list):
+            content = ", ".join(content)
         category = f"{category}".ljust(num_pad_chars)
         print(f"{category}: {content}")
 
-    _print_line(category="Title", content=article.title)
-    _print_line(category="PDF URL", content=article.url_pdf)
-    _print_line(category="Date Updated", content=datetime_utils.cast_date_to_string(article.date_updated))
-    _print_line(category="Author(s)", content=article.authors)
+    _print_line(
+        category="Title",
+        content=article.title,
+    )
+    _print_line(
+        category="PDF URL",
+        content=article.url_pdf,
+    )
+    _print_line(
+        category="Date Updated",
+        content=datetime_utils.cast_date_to_string(article.date_updated),
+    )
+    _print_line(
+        category="Author(s)",
+        content=article.authors,
+    )
 
 
 ##
@@ -128,7 +142,7 @@ def write_article_to_file(
 ) -> None:
     """Serialise `article` as YAML frontmatter followed by a task-status checkbox to `file_pointer`."""
     ## prepare the YAML frontmatter
-    yaml_content = {
+    yaml_content: dict[str, Any] = {
         "title": article.title,
         "arxiv_id": article.arxiv_id,
         "url_pdf": article.url_pdf,
@@ -177,8 +191,10 @@ def save_article(
         existing_article = read_markdown_file(file_path)
         ## if the article has already been assessed, do not overwrite it
         if not (force) and existing_article.task_status in ["D", "-"]:
-            if existing_article.task_status == "D": print("The following article has already been downloaded:")
-            if existing_article.task_status == "-": print("The following article has already been ignored:")
+            if existing_article.task_status == "D":
+                print("The following article has already been downloaded:")
+            if existing_article.task_status == "-":
+                print("The following article has already been ignored:")
             print_article(article)
             user_input = input("Do you want to save it again? (y/N): ").strip().lower()
             print(" ")
@@ -200,7 +216,8 @@ def save_article(
     ## overwrite the file, retaining merged state
     with open(file_path, "w") as file_pointer:
         write_article_to_file(file_pointer, article=article)
-    if verbose: print(f"Saved: {file_path}")
+    if verbose:
+        print(f"Saved: {file_path}")
 
 
 ##
@@ -211,13 +228,15 @@ def save_article(
 def get_article_summary(
     arxiv_article: arxiv.Result,
     *,
-    config_results: Mapping[str, list] | None = None,
+    config_results: Mapping[str, list[Any]] | None = None,
     ai_results: dict[str, Any] | None = None,
     task_status: str = "u",
 ) -> Article:
     """Build an `Article` from a raw arXiv result, optionally attaching config and AI results."""
-    if config_results is None: config_results = {}
-    if ai_results is None: ai_results = {}
+    if config_results is None:
+        config_results = {}
+    if ai_results is None:
+        ai_results = {}
     authors = [unidecode.unidecode(str(author)) for author in truncate_list(arxiv_article.authors)]
     other_categories = [
         format_text(elem)
@@ -226,10 +245,11 @@ def get_article_summary(
     ]
     config_tags = [f"#{key}" if ("#" not in key) else key for key in config_results.keys()]
     config_reasons = {key: reasons for key, reasons in config_results.items()}
+    pdf_url: str = arxiv_article.pdf_url or ""
     return Article(
         title=format_text(arxiv_article.title),
-        arxiv_id=arxiv_article.pdf_url.split("/")[-1].split("v")[0],
-        url_pdf=arxiv_article.pdf_url,
+        arxiv_id=pdf_url.split("/")[-1].split("v")[0],
+        url_pdf=pdf_url,
         authors=authors,
         abstract=format_text(arxiv_article.summary),
         date_published=arxiv_article.published.date(),
@@ -269,7 +289,7 @@ def read_markdown_file(
     try:
         meta_data = yaml.safe_load(front_matter)
     except yaml.YAMLError as error:
-        raise ValueError(f"error parsing YAML frontmatter.") from error
+        raise ValueError("error parsing YAML frontmatter.") from error
     ## ensure all required keys are present in the meta_data
     missing_keys = [
         key for key in [
@@ -300,7 +320,8 @@ def read_markdown_file(
         string=body,
         flags=re.MULTILINE,
     )
-    if task_match: task_status = task_match.group(1)
+    if task_match:
+        task_status = task_match.group(1)
     return Article(
         title=meta_data.get("title"),
         authors=meta_data.get("authors"),
@@ -322,5 +343,6 @@ def read_markdown_file(
 def read_all_markdown_files() -> list[Article]:
     """Load and return all mdfiles in the output directory as `Article` objects."""
     return [read_markdown_file(file_path) for file_path in sorted(directories.output_mdfiles.glob("*.md"))]
+
 
 ## } MODULE
