@@ -10,6 +10,7 @@ import sys
 import time
 
 ## local
+from arxivscraper.routines import browse_articles as BrowseArticles
 from arxivscraper.routines import download_articles as DownloadArticles
 from arxivscraper.routines import fetch_from_arxiv as FetchFromArxiv
 from arxivscraper.routines import score_articles as ScoreArticle
@@ -40,6 +41,7 @@ def main():
     elif dict_program_flags["score"]: ScoreArticle.main()
     elif dict_program_flags["fetch"]: FetchFromArxiv.main()
     elif dict_program_flags["download"]: DownloadArticles.main()
+    elif dict_program_flags["print"]: BrowseArticles.main()
     time_elapsed = time.time() - time_start
     print(f"Elapsed time: {time_elapsed:.2f} seconds.")
 
