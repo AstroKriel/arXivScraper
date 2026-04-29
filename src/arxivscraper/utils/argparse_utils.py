@@ -157,7 +157,7 @@ class GetUserInputs:
         if not search_args["config_name"]:
             search_args["config_name"] = input("Please provide --config_name: ")
         config_name = search_args["config_name"]
-        config_path = directories.configs_dir / f"{config_name}.json"
+        config_path = directories.configs_dir / f"{config_name}.toml"
         if not config_path.exists():
             raise FileNotFoundError(
                 f"config file not found: `{config_name}.json`; searched in {directories.configs_dir}.",

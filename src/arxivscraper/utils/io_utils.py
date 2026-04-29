@@ -5,7 +5,7 @@
 ##
 
 ## stdlib
-import json
+import tomllib
 from pathlib import Path
 from typing import Any
 
@@ -41,10 +41,11 @@ def read_file(
     if not file_path.is_file():
         raise FileNotFoundError(f"file not found: {file_path}.")
     try:
+        if expected_extension == ".toml":
+            with file_path.open("rb") as file_pointer:
+                return tomllib.load(file_pointer)
         with file_path.open("r", encoding="utf-8") as file_pointer:
-            if expected_extension == ".json":
-                return json.load(file_pointer)
-            elif expected_extension == ".yaml":
+            if expected_extension == ".yaml":
                 return yaml.safe_load(file_pointer)
             elif expected_extension in (".txt", ".md"):
                 return file_pointer.read()
@@ -73,6 +74,16 @@ def read_markdown_file(
     return read_file(
         file_path,
         expected_extension=".md",
+    )
+
+
+def read_toml_file(
+    file_path: Path,
+) -> Any:
+    """Read and return the parsed contents of a `.toml` file at `file_path`."""
+    return read_file(
+        file_path,
+        expected_extension=".toml",
     )
 
 

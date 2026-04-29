@@ -21,22 +21,22 @@ def read_search_criteria(
     directory: Path,
     config_name: str,
 ) -> dict[str, Any]:
-    """Load and validate the JSON search config named `config_name` from `directory`."""
+    """Load and validate the TOML search config named `config_name` from `directory`."""
     required_keys = {
         "authors",
         "categories",
         "keywords_to_exclude",
         "keywords_to_include",
     }
-    config_path = directory / f"{config_name}.json"
+    config_path = directory / f"{config_name}.toml"
     config_criteria = io_utils.read_file(
         config_path,
-        expected_extension=".json",
+        expected_extension=".toml",
     )
     missing_keys = required_keys - config_criteria.keys()
     if len(missing_keys) > 0:
         raise ValueError(
-            f"config file `{config_name}.json` is missing required keys: {', '.join(sorted(missing_keys))}.",
+            f"config file `{config_name}.toml` is missing required keys: {', '.join(sorted(missing_keys))}.",
         )
     return config_criteria
 

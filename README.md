@@ -88,7 +88,7 @@ uv sync
 
 | File | Purpose |
 |---|---|
-| `configs/<profile>.json` | search criteria for one topic |
+| `configs/<profile>.toml` | search criteria for one topic |
 | `configs/ai_provider.toml` | AI provider settings (model, API key, base URL) |
 | `configs/user_profile.txt` | scoring criteria sent to the AI |
 | `configs/ai_guidelines.txt` | system prompt rules for AI scoring |
@@ -97,13 +97,11 @@ uv sync
 
 Each `.json` file in `configs/` defines one search profile. Pass the filename without extension as `--config_name`.
 
-```json
-{
-  "categories": ["<arxiv-category>"],
-  "keywords_to_include": ["<keyword>"],
-  "keywords_to_exclude": [],
-  "authors": []
-}
+```toml
+authors = []
+categories = ["<arxiv-category>"]
+keywords_to_exclude = []
+keywords_to_include = ["<keyword>"]
 ```
 
 ### AI provider
