@@ -25,20 +25,20 @@ def _make_article(
     **kwargs: Any,
 ) -> article_utils.Article:
     defaults: dict[str, Any] = dict(
-        title="Turbulent MHD in the galactic halo",
-        arxiv_id="2310.17036",
-        url_pdf="https://arxiv.org/pdf/2310.17036",
-        authors=["Smith, J.", "Jones, A."],
-        abstract="We study magnetic field amplification via turbulent dynamo action.",
-        date_published=datetime.date(2023, 10, 26),
-        date_updated=datetime.date(2023, 10, 27),
-        category_primary="astro-ph.GA",
-        category_others=["physics.plasm-ph"],
-        config_tags=["#mhd"],
+        title="sample title",
+        arxiv_id="0000.00000",
+        url_pdf="https://arxiv.org/pdf/0000.00000",
+        authors=["Author A", "Author B"],
+        abstract="sample abstract text.",
+        date_published=datetime.date(2000, 1, 1),
+        date_updated=datetime.date(2000, 1, 2),
+        category_primary="cat.AA",
+        category_others=["cat.BB"],
+        config_tags=["#tag-a"],
         task_status="u",
         ai_rating=None,
         ai_reason=None,
-        config_reasons={"mhd": [True, False, True]},
+        config_reasons={"tag-a": [True, False, True]},
     )
     defaults.update(kwargs)
     return article_utils.Article(**defaults)
@@ -79,32 +79,32 @@ class TestFormatText_Cases(unittest.TestCase):
         self,
     ):
         self.assertEqual(
-            first=article_utils.format_text("Hello #world"),
-            second="Hello world",
+            first=article_utils.format_text("word #tag word"),
+            second="word tag word",
         )
 
     def test_replaces_colon_with_ellipsis(
         self,
     ):
         self.assertEqual(
-            first=article_utils.format_text("title: subtitle"),
-            second="title... subtitle",
+            first=article_utils.format_text("prefix: suffix"),
+            second="prefix... suffix",
         )
 
     def test_replaces_double_quote_with_backtick(
         self,
     ):
         self.assertEqual(
-            first=article_utils.format_text('say "hello"'),
-            second="say `hello`",
+            first=article_utils.format_text('say "word"'),
+            second="say `word`",
         )
 
     def test_adds_spaces_around_latex(
         self,
     ):
-        result = article_utils.format_text("energy$E=mc^2$here")
+        result = article_utils.format_text("word$x=y^2$word")
         self.assertIn(
-            member=" $E=mc^2$ ",
+            member=" $x=y^2$ ",
             container=result,
         )
 
@@ -228,21 +228,21 @@ class TestArticle_Roundtrip(unittest.TestCase):
     def test_config_tags_preserved(
         self,
     ):
-        original = _make_article(config_tags=["#mhd", "#hydro"])
+        original = _make_article(config_tags=["#tag-a", "#tag-b"])
         restored = _roundtrip(article=original)
         self.assertEqual(
             first=set(restored.config_tags),
-            second={"#mhd", "#hydro"},
+            second={"#tag-a", "#tag-b"},
         )
 
     def test_config_reasons_preserved(
         self,
     ):
-        original = _make_article(config_reasons={"mhd": [True, False, True]})
+        original = _make_article(config_reasons={"tag-a": [True, False, True]})
         restored = _roundtrip(article=original)
         self.assertEqual(
             first=restored.config_reasons,
-            second={"mhd": [True, False, True]},
+            second={"tag-a": [True, False, True]},
         )
 
     def test_multiple_config_reasons_preserved(
@@ -250,16 +250,16 @@ class TestArticle_Roundtrip(unittest.TestCase):
     ):
         original = _make_article(
             config_reasons={
-                "mhd": [True, False, True],
-                "hydro": [False, True, False],
+                "tag-a": [True, False, True],
+                "tag-b": [False, True, False],
             },
         )
         restored = _roundtrip(article=original)
         self.assertEqual(
             first=restored.config_reasons,
             second={
-                "mhd": [True, False, True],
-                "hydro": [False, True, False],
+                "tag-a": [True, False, True],
+                "tag-b": [False, True, False],
             },
         )
 
@@ -268,7 +268,7 @@ class TestArticle_Roundtrip(unittest.TestCase):
     ):
         original = _make_article(
             ai_rating=7.5,
-            ai_reason="Highly relevant to dynamo theory.",
+            ai_reason="sample ai reason.",
         )
         restored = _roundtrip(article=original)
         self.assertIsNotNone(restored.ai_rating)
@@ -279,7 +279,7 @@ class TestArticle_Roundtrip(unittest.TestCase):
         )
         self.assertEqual(
             first=restored.ai_reason,
-            second="Highly relevant to dynamo theory.",
+            second="sample ai reason.",
         )
 
     def test_no_ai_rating_stays_none(
@@ -320,13 +320,13 @@ class TestSaveArticle_MergeLogic(unittest.TestCase):
     def test_config_tags_merge_deduplicates(
         self,
     ):
-        existing = _make_article(config_tags=["#mhd", "#hydro"])
-        incoming = _make_article(config_tags=["#mhd", "#dynamo"])
+        existing = _make_article(config_tags=["#tag-a", "#tag-b"])
+        incoming = _make_article(config_tags=["#tag-a", "#tag-c"])
         ## simulate the merge logic from save_article
         incoming.config_tags = list(set(incoming.config_tags) | set(existing.config_tags))
         self.assertEqual(
             first=set(incoming.config_tags),
-            second={"#mhd", "#hydro", "#dynamo"},
+            second={"#tag-a", "#tag-b", "#tag-c"},
         )
 
     def test_ai_rating_retained_from_existing(
@@ -334,7 +334,7 @@ class TestSaveArticle_MergeLogic(unittest.TestCase):
     ):
         existing = _make_article(
             ai_rating=8.0,
-            ai_reason="Very relevant.",
+            ai_reason="sample ai reason.",
         )
         incoming = _make_article(
             ai_rating=None,
@@ -353,7 +353,7 @@ class TestSaveArticle_MergeLogic(unittest.TestCase):
         )
         self.assertEqual(
             first=incoming.ai_reason,
-            second="Very relevant.",
+            second="sample ai reason.",
         )
 
     def test_ai_rating_not_overwritten_if_already_set(
@@ -376,22 +376,22 @@ class TestSaveArticle_MergeLogic(unittest.TestCase):
     ):
         existing = _make_article(
             config_reasons={
-                "mhd": [True, False, True],
-                "hydro": [False, True, False],
+                "tag-a": [True, False, True],
+                "tag-b": [False, True, False],
             },
         )
-        incoming = _make_article(config_reasons={"mhd": [False, True, False]})
+        incoming = _make_article(config_reasons={"tag-a": [False, True, False]})
         ## simulate the merge logic from save_article
         for config_name, reasons in existing.config_reasons.items():
             if config_name not in incoming.config_reasons:
                 incoming.config_reasons[config_name] = reasons
-        ## mhd should NOT be overwritten, hydro should be added
+        ## tag-a should NOT be overwritten, tag-b should be added
         self.assertEqual(
-            first=incoming.config_reasons["mhd"],
+            first=incoming.config_reasons["tag-a"],
             second=[False, True, False],
         )
         self.assertEqual(
-            first=incoming.config_reasons["hydro"],
+            first=incoming.config_reasons["tag-b"],
             second=[False, True, False],
         )
 
