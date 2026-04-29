@@ -38,7 +38,13 @@ def _make_article(
         task_status=articles.TaskStatus.PENDING,
         ai_rating=None,
         ai_reason=None,
-        config_reasons={"tag-a": [True, False, True]},
+        config_reasons={
+            "tag-a": articles.MatchReasons(
+                title_match=True,
+                abstract_match=False,
+                author_match=True,
+            ),
+        },
     )
     defaults.update(kwargs)
     return articles.Article(**defaults)
@@ -245,11 +251,25 @@ class TestArticle_Roundtrip(unittest.TestCase):
     def test_config_reasons_preserved(
         self,
     ):
-        original = _make_article(config_reasons={"tag-a": [True, False, True]})
+        original = _make_article(
+            config_reasons={
+                "tag-a": articles.MatchReasons(
+                    title_match=True,
+                    abstract_match=False,
+                    author_match=True,
+                ),
+            },
+        )
         restored = _roundtrip(article=original)
         self.assertEqual(
             first=restored.config_reasons,
-            second={"tag-a": [True, False, True]},
+            second={
+                "tag-a": articles.MatchReasons(
+                    title_match=True,
+                    abstract_match=False,
+                    author_match=True,
+                ),
+            },
         )
 
     def test_multiple_config_reasons_preserved(
@@ -257,16 +277,32 @@ class TestArticle_Roundtrip(unittest.TestCase):
     ):
         original = _make_article(
             config_reasons={
-                "tag-a": [True, False, True],
-                "tag-b": [False, True, False],
+                "tag-a": articles.MatchReasons(
+                    title_match=True,
+                    abstract_match=False,
+                    author_match=True,
+                ),
+                "tag-b": articles.MatchReasons(
+                    title_match=False,
+                    abstract_match=True,
+                    author_match=False,
+                ),
             },
         )
         restored = _roundtrip(article=original)
         self.assertEqual(
             first=restored.config_reasons,
             second={
-                "tag-a": [True, False, True],
-                "tag-b": [False, True, False],
+                "tag-a": articles.MatchReasons(
+                    title_match=True,
+                    abstract_match=False,
+                    author_match=True,
+                ),
+                "tag-b": articles.MatchReasons(
+                    title_match=False,
+                    abstract_match=True,
+                    author_match=False,
+                ),
             },
         )
 
@@ -383,11 +419,27 @@ class TestSaveArticle_MergeLogic(unittest.TestCase):
     ):
         existing = _make_article(
             config_reasons={
-                "tag-a": [True, False, True],
-                "tag-b": [False, True, False],
+                "tag-a": articles.MatchReasons(
+                    title_match=True,
+                    abstract_match=False,
+                    author_match=True,
+                ),
+                "tag-b": articles.MatchReasons(
+                    title_match=False,
+                    abstract_match=True,
+                    author_match=False,
+                ),
             },
         )
-        incoming = _make_article(config_reasons={"tag-a": [False, True, False]})
+        incoming = _make_article(
+            config_reasons={
+                "tag-a": articles.MatchReasons(
+                    title_match=False,
+                    abstract_match=True,
+                    author_match=False,
+                ),
+            },
+        )
         ## simulate the merge logic from save_article
         for config_name, reasons in existing.config_reasons.items():
             if config_name not in incoming.config_reasons:
@@ -395,11 +447,19 @@ class TestSaveArticle_MergeLogic(unittest.TestCase):
         ## tag-a should NOT be overwritten, tag-b should be added
         self.assertEqual(
             first=incoming.config_reasons["tag-a"],
-            second=[False, True, False],
+            second=articles.MatchReasons(
+                title_match=False,
+                abstract_match=True,
+                author_match=False,
+            ),
         )
         self.assertEqual(
             first=incoming.config_reasons["tag-b"],
-            second=[False, True, False],
+            second=articles.MatchReasons(
+                title_match=False,
+                abstract_match=True,
+                author_match=False,
+            ),
         )
 
     def test_task_status_retained_from_existing(

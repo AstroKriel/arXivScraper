@@ -46,7 +46,14 @@ def fetch_from_arxiv(
         raise ValueError("config tag cannot be empty.")
     if " " in user_tag:
         raise ValueError("config tag cannot contain spaces.")
-    config_results = {user_tag: [1, 0, 0]}
+    ## A manual fetch has no real search assessment, so tag it as a title-only hit.
+    config_results = {
+        user_tag: articles.MatchReasons(
+            title_match=True,
+            abstract_match=False,
+            author_match=False,
+        ),
+    }
     article = articles.get_article_summary(
         arxiv_article=arxiv_article,
         config_results=config_results,

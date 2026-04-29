@@ -55,9 +55,9 @@ class SearchArxiv():
                 arxiv_id = str(arxiv_article.pdf_url).split("/")[-1].split("v")[0]
                 if self._is_duplicate(this_arxiv_id=arxiv_id):
                     continue
-                is_relevant, reasons = self._check_config_conditions(arxiv_article=arxiv_article)
-                if is_relevant:
-                    config_results = {self.config_name: reasons}
+                assessment = self._check_config_conditions(arxiv_article=arxiv_article)
+                if assessment.is_match:
+                    config_results = {self.config_name: assessment.reasons}
                     article = articles.get_article_summary(
                         arxiv_article=arxiv_article,
                         config_results=config_results,
@@ -122,12 +122,18 @@ class SearchArxiv():
         self,
         *,
         arxiv_article: arxiv.Result,
-    ) -> tuple[bool, list[bool]]:
+    ) -> articles.MatchAssessment:
         if search_criteria.meets_search_criteria(
                 phrase=arxiv_article.title.lower(),
                 search_keywords=self.search_criteria_config["keywords_to_exclude"],
         ):
-            return False, []
+            return articles.MatchAssessment(
+                reasons=articles.MatchReasons(
+                    title_match=False,
+                    abstract_match=False,
+                    author_match=False,
+                ),
+            )
         is_title_matching = search_criteria.meets_search_criteria(
             phrase=arxiv_article.title.lower(),
             search_keywords=self.search_criteria_config["keywords_to_include"],
@@ -136,7 +142,13 @@ class SearchArxiv():
                 phrase=arxiv_article.summary.lower(),
                 search_keywords=self.search_criteria_config["keywords_to_exclude"],
         ):
-            return False, []
+            return articles.MatchAssessment(
+                reasons=articles.MatchReasons(
+                    title_match=False,
+                    abstract_match=False,
+                    author_match=False,
+                ),
+            )
         is_abstract_matching = search_criteria.meets_search_criteria(
             phrase=arxiv_article.summary.lower(),
             search_keywords=self.search_criteria_config["keywords_to_include"],
@@ -147,8 +159,13 @@ class SearchArxiv():
         is_authors_matching = any(
             author.lower() in author_last_names for author in self.search_criteria_config["authors"]
         )
-        reasons = [is_title_matching, is_abstract_matching, is_authors_matching]
-        return any(reasons), reasons
+        return articles.MatchAssessment(
+            reasons=articles.MatchReasons(
+                title_match=is_title_matching,
+                abstract_match=is_abstract_matching,
+                author_match=is_authors_matching,
+            ),
+        )
 
     def _display_progress(
         self,

@@ -7,7 +7,7 @@
 ## stdlib
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import date
 from enum import Enum
 from pathlib import Path
@@ -92,6 +92,67 @@ class TaskStatus(Enum):
     )
 
 
+@dataclass(frozen=True)
+class MatchReasons:
+    """Why a paper matched a search profile."""
+
+    title_match: bool
+    abstract_match: bool
+    author_match: bool
+
+    def to_list(
+        self,
+    ) -> list[bool]:
+        return [
+            self.title_match,
+            self.abstract_match,
+            self.author_match,
+        ]
+
+    @classmethod
+    def from_list(
+        cls,
+        reasons: list[Any],
+    ) -> "MatchReasons":
+        if len(reasons) != 3:
+            raise ValueError(f"`reasons` must contain exactly 3 values; got {len(reasons)}.")
+        return cls(
+            title_match=bool(reasons[0]),
+            abstract_match=bool(reasons[1]),
+            author_match=bool(reasons[2]),
+        )
+
+    @classmethod
+    def from_mapping(
+        cls,
+        reasons: Mapping[str, Any],
+    ) -> "MatchReasons":
+        return cls(
+            title_match=bool(reasons["title_match"]),
+            abstract_match=bool(reasons["abstract_match"]),
+            author_match=bool(reasons["author_match"]),
+        )
+
+
+@dataclass(frozen=True)
+class MatchAssessment:
+    """Complete assessment for whether a paper matched a search profile."""
+
+    reasons: MatchReasons
+
+    @property
+    def is_match(
+        self,
+    ) -> bool:
+        return any(
+            [
+                self.reasons.title_match,
+                self.reasons.abstract_match,
+                self.reasons.author_match,
+            ],
+        )
+
+
 ##
 ## === ARTICLE DATACLASS
 ##
@@ -115,7 +176,7 @@ class Article:
     ai_rating: float | None = None
     ai_reason: str | None = None
     ## keyed by config name (without the "config_reason_" prefix)
-    config_reasons: dict[str, list[Any]] = field(default_factory=dict)
+    config_reasons: dict[str, MatchReasons] = field(default_factory=dict)
 
 
 ##
@@ -233,7 +294,7 @@ def write_article_to_file(
         yaml_content["ai_reason"] = article.ai_reason
     ## expand config_reasons back to flat config_reason_{name} keys
     for config_name, reasons in article.config_reasons.items():
-        yaml_content[f"config_reason_{config_name}"] = reasons
+        yaml_content[f"config_reason_{config_name}"] = asdict(reasons)
     ## sort the yaml content alphabetically
     sorted_yaml_content = dict(sorted(yaml_content.items()))
     ## dump the sorted YAML frontmatter to the file
@@ -300,7 +361,7 @@ def save_article(
 def get_article_summary(
     arxiv_article: arxiv.Result,
     *,
-    config_results: Mapping[str, list[Any]] | None = None,
+    config_results: Mapping[str, MatchReasons] | None = None,
     ai_results: dict[str, Any] | None = None,
     task_status: TaskStatus = TaskStatus.PENDING,
 ) -> Article:
@@ -381,7 +442,11 @@ def read_markdown_file(
         raise ValueError(f"missing required keys in frontmatter: {', '.join(missing_keys)}.")
     ## collect config_reason_* keys into a dict keyed by config name
     config_reasons = {
-        key[len("config_reason_"):]: value
+        key[len("config_reason_"):]: (
+            MatchReasons.from_mapping(value)
+            if isinstance(value, Mapping)
+            else MatchReasons.from_list(value)
+        )
         for key, value in meta_data.items()
         if key.startswith("config_reason_")
     }
