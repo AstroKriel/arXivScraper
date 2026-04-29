@@ -11,11 +11,65 @@ from typing import Any
 
 ## third-party
 import arxiv
+import requests
 import unidecode
 
 ## local
 from arxivscraper.config_paths import directories
 from arxivscraper.support import articles, dates, file_io, script_cli, search_criteria
+
+
+_ARXIV_PAGE_SIZE = 100
+_ARXIV_DELAY_SECONDS = 3.0
+_ARXIV_NUM_RETRIES = 3
+_ARXIV_CONNECT_TIMEOUT_SECONDS = 10.0
+_ARXIV_READ_TIMEOUT_SECONDS = 20.0
+
+
+class TimeoutSession(requests.Session):
+    """Requests session that applies a default timeout to every request."""
+
+    def __init__(
+        self,
+        connect_timeout: float,
+        read_timeout: float,
+    ) -> None:
+        super().__init__()
+        self.timeout = (
+            connect_timeout,
+            read_timeout,
+        )
+
+    def request(
+        self,
+        *args: Any,
+        **kwargs: Any,
+    ) -> requests.Response:
+        kwargs.setdefault("timeout", self.timeout)
+        return super().request(*args, **kwargs)
+
+
+class TimeoutClient(arxiv.Client):
+    """arXiv client with explicit request timeouts on its internal session."""
+
+    def __init__(
+        self,
+        *,
+        page_size: int,
+        delay_seconds: float,
+        num_retries: int,
+        connect_timeout: float,
+        read_timeout: float,
+    ) -> None:
+        super().__init__(
+            page_size=page_size,
+            delay_seconds=delay_seconds,
+            num_retries=num_retries,
+        )
+        self._session = TimeoutSession(
+            connect_timeout=connect_timeout,
+            read_timeout=read_timeout,
+        )
 
 
 class SearchArxiv():
@@ -39,35 +93,43 @@ class SearchArxiv():
         self,
     ) -> None:
         self._read_search_criteria()
+        self.client = self._build_client()
         for search_category in self.search_criteria_config["categories"]:
             print(f"Searching: {search_category}")
             print(
                 f"Date range: {dates.cast_date_to_string(self.lookback_date)} to {dates.cast_date_to_string(self.current_date)}",
             )
-            self.client = arxiv.Client(
-                page_size=200,
-                delay_seconds=1,
-                num_retries=100,
-            )
+            print("Requesting results from arXiv...")
             num_articles_looked_at_in_category = 0
             num_new_articles_saved_in_category = 0
-            for arxiv_article in self.client.results(self._create_search_query(category=search_category)):
-                self._display_progress(num_articles_looked_at_in_category=num_articles_looked_at_in_category)
-                num_articles_looked_at_in_category += 1
-                if not (self._is_within_date_range(arxiv_article=arxiv_article)):
-                    break
-                arxiv_id = str(arxiv_article.pdf_url).split("/")[-1].split("v")[0]
-                if self._is_duplicate(this_arxiv_id=arxiv_id):
-                    continue
-                assessment = self._check_config_conditions(arxiv_article=arxiv_article)
-                if assessment.is_match:
-                    config_results = {self.config_name: assessment.reasons}
-                    article = articles.get_article_summary(
-                        arxiv_article=arxiv_article,
-                        config_results=config_results,
-                    )
-                    self.articles.append(article)
-                    num_new_articles_saved_in_category += 1
+            try:
+                assert self.client is not None
+                for arxiv_article in self.client.results(self._create_search_query(category=search_category)):
+                    self._display_progress(num_articles_looked_at_in_category=num_articles_looked_at_in_category)
+                    num_articles_looked_at_in_category += 1
+                    if not (self._is_within_date_range(arxiv_article=arxiv_article)):
+                        break
+                    arxiv_id = str(arxiv_article.pdf_url).split("/")[-1].split("v")[0]
+                    if self._is_duplicate(this_arxiv_id=arxiv_id):
+                        continue
+                    assessment = self._check_config_conditions(arxiv_article=arxiv_article)
+                    if assessment.is_match:
+                        config_results = {self.config_name: assessment.reasons}
+                        article = articles.get_article_summary(
+                            arxiv_article=arxiv_article,
+                            config_results=config_results,
+                        )
+                        self.articles.append(article)
+                        num_new_articles_saved_in_category += 1
+            except requests.exceptions.Timeout:
+                print(f"\nTimed out while reading arXiv results for {search_category}; skipping category.\n")
+                continue
+            except requests.exceptions.RequestException as error:
+                print(f"\nRequest failed for {search_category}: {error}; skipping category.\n")
+                continue
+            except arxiv.HTTPError as error:
+                print(f"\nHTTP error for {search_category}: {error}; skipping category.\n")
+                continue
             print(
                 f"\nFound {num_new_articles_saved_in_category} interesting articles from the {num_articles_looked_at_in_category} looked at.\n",
             )
@@ -95,6 +157,17 @@ class SearchArxiv():
         print(f"> using the `#{self.config_name}` config file")
         print(" ")
         search_criteria.print_search_criteria(self.search_criteria_config)
+
+    def _build_client(
+        self,
+    ) -> arxiv.Client:
+        return TimeoutClient(
+            page_size=_ARXIV_PAGE_SIZE,
+            delay_seconds=_ARXIV_DELAY_SECONDS,
+            num_retries=_ARXIV_NUM_RETRIES,
+            connect_timeout=_ARXIV_CONNECT_TIMEOUT_SECONDS,
+            read_timeout=_ARXIV_READ_TIMEOUT_SECONDS,
+        )
 
     def _create_search_query(
         self,

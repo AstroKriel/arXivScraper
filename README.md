@@ -21,6 +21,20 @@ cd arXivScraper
 uv sync
 ```
 
+3. Optional: install as a system-wide editable `uv` tool:
+
+```bash
+uv tool install --editable .
+```
+
+This adds `arxivscraper` to your `PATH`, so you can run:
+
+```bash
+arxivscraper --browse
+arxivscraper --search --config_name <profile> --lookback_days <n>
+arxivscraper --score
+```
+
 ---
 
 ## Workflow

@@ -17,7 +17,6 @@ dependencies = [
 
 [project.scripts]
 arxivscraper = "arxivscraper.app:main"
-arxivscraper-score = "arxivscraper.workflows.ai_score:main"
 
 [dependency-groups]
 dev = [
