@@ -22,6 +22,7 @@ from arxivscraper.utils import argparse_utils, article_utils, io_utils
 def fetch_from_arxiv(
     arxiv_id: str,
 ) -> article_utils.Article | None:
+    """Fetch a single article by arXiv ID, confirm with the user, and save it on acceptance."""
     client = arxiv.Client()
     search = arxiv.Search(id_list=[arxiv_id])
     arxiv_article = next(client.results(search), None)
@@ -63,7 +64,7 @@ def fetch_from_arxiv(
 ##
 
 
-def main():
+def main() -> None:
     user_inputs = argparse_utils.GetUserInputs(include_fetch=True)
     arxiv_id = user_inputs.get_fetch_inputs()
     io_utils.create_directory(directories.md_files_dir)

@@ -48,7 +48,7 @@ class GetUserInputs:
 
     def _add_main_program_arguments(
         self,
-    ):
+    ) -> None:
         """Sets up main program flag arguments."""
         parse_flags = self.parser.add_argument_group(description="Main program flags:")
         for short_flag, long_flag in [("-s", "--search"), ("-f", "--fetch"), ("-r", "--score"),
@@ -64,7 +64,7 @@ class GetUserInputs:
 
     def _add_search_arguments(
         self,
-    ):
+    ) -> None:
         """Sets up search-specific arguments."""
         search_args = self.parser.add_argument_group(
             description="Search arguments (relevant when main program is run with `-s`):",
@@ -88,7 +88,7 @@ class GetUserInputs:
 
     def _add_fetch_argument(
         self,
-    ):
+    ) -> None:
         """Sets up fetch-specific arguments."""
         fetch_args = self.parser.add_argument_group(
             description="Fetch argument (relevant when running with `-f`):",
@@ -103,7 +103,7 @@ class GetUserInputs:
 
     def _add_score_arguments(
         self,
-    ):
+    ) -> None:
         """Sets up score-specific arguments."""
         score_args = self.parser.add_argument_group(
             description="Score arguments (relevant when running with `-r`):",
@@ -126,7 +126,7 @@ class GetUserInputs:
 
     def get_program_inputs(
         self,
-    ):
+    ) -> dict[str, Any]:
         """Returns main program flags, and ensures at least one is set."""
         main_flags = ["search", "fetch", "score", "download"]
         if not any(self.args.get(flag) for flag in main_flags):
@@ -169,7 +169,7 @@ class GetUserInputs:
 
     def get_fetch_inputs(
         self,
-    ):
+    ) -> str:
         """Returns only the fetch-specific arguments, prompting if the arXiv ID is not passed, and validates the ID-format."""
         arxiv_id = self.args.get("id")
         ## prompt for missing value

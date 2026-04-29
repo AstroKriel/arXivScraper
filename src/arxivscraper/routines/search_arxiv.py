@@ -23,6 +23,7 @@ from arxivscraper.utils import argparse_utils, article_utils, datetime_utils, fi
 
 
 class SearchArxiv():
+    """Orchestrate a keyword-filtered arXiv search across all categories in a config file."""
 
     def __init__(
         self,
@@ -55,15 +56,15 @@ class SearchArxiv():
             )
             num_articles_looked_at_in_category = 0
             num_new_articles_saved_in_category = 0
-            for arxiv_article in self.client.results(self._create_search_query(search_category)):
-                self._display_progress(num_articles_looked_at_in_category)
+            for arxiv_article in self.client.results(self._create_search_query(category=search_category)):
+                self._display_progress(num_articles_looked_at_in_category=num_articles_looked_at_in_category)
                 num_articles_looked_at_in_category += 1
-                if not (self._is_within_date_range(arxiv_article)):
+                if not (self._is_within_date_range(arxiv_article=arxiv_article)):
                     break
                 arxiv_id = str(arxiv_article.pdf_url).split("/")[-1].split("v")[0]
-                if self._is_duplicate(arxiv_id):
+                if self._is_duplicate(this_arxiv_id=arxiv_id):
                     continue
-                is_relevant, reasons = self._check_config_conditions(arxiv_article)
+                is_relevant, reasons = self._check_config_conditions(arxiv_article=arxiv_article)
                 if is_relevant:
                     config_results = {self.config_name: reasons}
                     article = article_utils.get_article_summary(
@@ -103,6 +104,7 @@ class SearchArxiv():
 
     def _create_search_query(
         self,
+        *,
         category: str,
     ) -> arxiv.Search:
         return arxiv.Search(
@@ -113,6 +115,7 @@ class SearchArxiv():
 
     def _is_within_date_range(
         self,
+        *,
         arxiv_article: arxiv.Result,
     ) -> bool:
         article_date = arxiv_article.updated.date()
@@ -120,12 +123,14 @@ class SearchArxiv():
 
     def _is_duplicate(
         self,
+        *,
         this_arxiv_id: str,
     ) -> bool:
         return any([this_arxiv_id == article.arxiv_id for article in self.articles])
 
     def _check_config_conditions(
         self,
+        *,
         arxiv_article: arxiv.Result,
     ) -> tuple[bool, list[bool]]:
         if filter_utils.meets_search_criteria(
@@ -157,6 +162,7 @@ class SearchArxiv():
 
     def _display_progress(
         self,
+        *,
         num_articles_looked_at_in_category: int,
     ) -> None:
         if num_articles_looked_at_in_category == 0:
@@ -172,7 +178,7 @@ class SearchArxiv():
 ##
 
 
-def main():
+def main() -> None:
     user_inputs = argparse_utils.GetUserInputs(include_search=True)
     search_inputs = user_inputs.get_search_inputs()
     arxiv_searcher = SearchArxiv(

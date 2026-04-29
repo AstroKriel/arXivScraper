@@ -218,7 +218,7 @@ def get_ai_score(
 ##
 
 
-def main():
+def main() -> None:
     user_inputs = argparse_utils.GetUserInputs(include_score=True)
     score_inputs = user_inputs.get_score_inputs()
 

@@ -17,7 +17,7 @@ from arxivscraper.utils import filter_utils
 ##
 
 
-class TestHelperFuncs(unittest.TestCase):
+class TestMeetsSearchCriteria_Logic(unittest.TestCase):
 
     @classmethod
     def setUpClass(
@@ -31,6 +31,7 @@ class TestHelperFuncs(unittest.TestCase):
 
     def _test_condition(
         self,
+        *,
         search_condition: list[Any],
         expected_phrases: set[str],
     ) -> None:

@@ -45,6 +45,7 @@ def _make_article(
 
 
 def _roundtrip(
+    *,
     article: article_utils.Article,
 ) -> article_utils.Article:
     """Write an Article to a string buffer and read it back."""
@@ -72,7 +73,7 @@ def _roundtrip(
 ##
 
 
-class TestFormatText(unittest.TestCase):
+class TestFormatText_Cases(unittest.TestCase):
 
     def test_removes_hash(
         self,
@@ -124,7 +125,7 @@ class TestFormatText(unittest.TestCase):
         )
 
 
-class TestTruncateList(unittest.TestCase):
+class TestTruncateList_Cases(unittest.TestCase):
 
     def test_short_list_unchanged(
         self,
@@ -171,14 +172,14 @@ class TestTruncateList(unittest.TestCase):
         )
 
 
-class TestRoundtrip(unittest.TestCase):
+class TestArticle_Roundtrip(unittest.TestCase):
     """Checks that write_article_to_file + read_markdown_file is lossless."""
 
     def test_basic_fields_preserved(
         self,
     ):
         original = _make_article()
-        restored = _roundtrip(original)
+        restored = _roundtrip(article=original)
         self.assertEqual(
             first=restored.title,
             second=original.title,
@@ -218,7 +219,7 @@ class TestRoundtrip(unittest.TestCase):
         for status in ["u", "d", "D", "-"]:
             with self.subTest(status=status):
                 original = _make_article(task_status=status)
-                restored = _roundtrip(original)
+                restored = _roundtrip(article=original)
                 self.assertEqual(
                     first=restored.task_status,
                     second=status,
@@ -228,7 +229,7 @@ class TestRoundtrip(unittest.TestCase):
         self,
     ):
         original = _make_article(config_tags=["#mhd", "#hydro"])
-        restored = _roundtrip(original)
+        restored = _roundtrip(article=original)
         self.assertEqual(
             first=set(restored.config_tags),
             second={"#mhd", "#hydro"},
@@ -238,7 +239,7 @@ class TestRoundtrip(unittest.TestCase):
         self,
     ):
         original = _make_article(config_reasons={"mhd": [True, False, True]})
-        restored = _roundtrip(original)
+        restored = _roundtrip(article=original)
         self.assertEqual(
             first=restored.config_reasons,
             second={"mhd": [True, False, True]},
@@ -253,7 +254,7 @@ class TestRoundtrip(unittest.TestCase):
                 "hydro": [False, True, False],
             },
         )
-        restored = _roundtrip(original)
+        restored = _roundtrip(article=original)
         self.assertEqual(
             first=restored.config_reasons,
             second={
@@ -269,7 +270,7 @@ class TestRoundtrip(unittest.TestCase):
             ai_rating=7.5,
             ai_reason="Highly relevant to dynamo theory.",
         )
-        restored = _roundtrip(original)
+        restored = _roundtrip(article=original)
         self.assertIsNotNone(restored.ai_rating)
         assert restored.ai_rating is not None
         self.assertAlmostEqual(
@@ -288,7 +289,7 @@ class TestRoundtrip(unittest.TestCase):
             ai_rating=None,
             ai_reason=None,
         )
-        restored = _roundtrip(original)
+        restored = _roundtrip(article=original)
         self.assertIsNone(restored.ai_rating)
         self.assertIsNone(restored.ai_reason)
 
@@ -296,7 +297,7 @@ class TestRoundtrip(unittest.TestCase):
         self,
     ):
         original = _make_article(category_others=[])
-        restored = _roundtrip(original)
+        restored = _roundtrip(article=original)
         self.assertEqual(
             first=restored.category_others,
             second=[],
@@ -306,14 +307,14 @@ class TestRoundtrip(unittest.TestCase):
         self,
     ):
         original = _make_article(config_tags=[])
-        restored = _roundtrip(original)
+        restored = _roundtrip(article=original)
         self.assertEqual(
             first=restored.config_tags,
             second=[],
         )
 
 
-class TestMergeLogic(unittest.TestCase):
+class TestSaveArticle_MergeLogic(unittest.TestCase):
     """Tests the merge behaviour in save_article via direct attribute manipulation."""
 
     def test_config_tags_merge_deduplicates(

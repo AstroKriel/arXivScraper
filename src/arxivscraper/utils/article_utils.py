@@ -104,6 +104,7 @@ def print_article(
     """Print a compact summary of `article` to stdout."""
 
     def _print_line(
+        *,
         category: str,
         content: str | list[Any],
     ) -> None:

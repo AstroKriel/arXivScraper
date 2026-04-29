@@ -37,6 +37,7 @@ _FILTER_CYCLE = [None, "u", "r", "D", "-"]
 
 
 class BrowseApp(App[None]):
+    """TUI browser for reviewing and triaging saved arXiv articles."""
 
     CSS = """
     DataTable {
@@ -95,6 +96,7 @@ class BrowseApp(App[None]):
 
     def _refresh_table(
         self,
+        *,
         keep_row: int = 0,
     ) -> None:
         table = self.query_one(DataTable)
@@ -114,13 +116,14 @@ class BrowseApp(App[None]):
                 row=row,
                 scroll=True,
             )
-            self._update_abstract(row)
+            self._update_abstract(row_index=row)
         else:
             self.query_one("#abstract", Static).update("[dim]No papers match this filter.[/dim]")
         self._update_subtitle()
 
     def _update_abstract(
         self,
+        *,
         row_index: int,
     ) -> None:
         articles = self._get_visible_articles()
@@ -147,7 +150,7 @@ class BrowseApp(App[None]):
         self,
         event: DataTable.RowHighlighted,
     ) -> None:
-        self._update_abstract(event.cursor_row)
+        self._update_abstract(row_index=event.cursor_row)
 
     def _get_current_article(
         self,

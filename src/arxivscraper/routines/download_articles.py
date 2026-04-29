@@ -22,6 +22,7 @@ from arxivscraper.utils import article_utils, io_utils
 def download_pdf(
     article: article_utils.Article,
 ) -> None:
+    """Download the PDF for `article` and update its task status to `D` in the mdfile."""
     pdf_path = directories.pdfs_dir / f"{article.arxiv_id}.pdf"
     md_path = directories.md_files_dir / f"{article.arxiv_id}.md"
     try:
@@ -48,6 +49,7 @@ def download_pdfs(
     *,
     verbose: bool = False,
 ) -> None:
+    """Download PDFs for all articles whose task status is `d`."""
     num_articles = len(articles)
     for article_index, article in enumerate(articles):
         if verbose:
@@ -63,7 +65,7 @@ def download_pdfs(
 ##
 
 
-def main():
+def main() -> None:
     io_utils.create_directory(directories.pdfs_dir)
     articles = article_utils.read_all_markdown_files()
     download_pdfs(
