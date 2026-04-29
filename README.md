@@ -60,7 +60,7 @@ uv run arxivscraper --browse
 | Key | State |
 |---|---|
 | `p` | pending (default) |
-| `q` | queued (marked to read) |
+| `q` | queued |
 | `r` | read |
 | `d` | mark for download |
 | `D` | action downloads |
