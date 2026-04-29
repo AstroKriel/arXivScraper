@@ -26,16 +26,16 @@ Open the TUI browser to read abstracts and triage saved papers:
 uv run python main.py --browse
 ```
 
-| Key | Action |
+| Key | State |
 |---|---|
-| `p` | pending |
-| `q` | queued |
+| `p` | pending (default) |
+| `q` | queued (marked to read) |
 | `r` | read |
-| `d` | download |
-| `D` | apply downloads |
+| `d` | mark for download |
+| `D` | action downloads |
 | `n` | n/a |
 | `x` | mark for deletion |
-| `X` | apply deletions |
+| `X` | action deletions |
 | `o` | open PDF in browser |
 | `f` | cycle status filter |
 | `escape` | quit |
@@ -62,7 +62,9 @@ The script displays the title, authors, and abstract for confirmation before sav
 
 ### 5. Download
 
-Download PDFs for all papers with status `d` (to-download):
+From the TUI browser, press `d` to mark a paper for download. Use `f` to cycle the filter to `download` to review which papers are queued before pressing `D` to action the download. Downloaded papers return them back to a `pending` (`p`) state.
+
+Alternatively, you can also run the download step directly from the terminal:
 
 ```bash
 uv run python main.py --download
@@ -98,14 +100,34 @@ uv sync
 
 ### Search profiles
 
-Each `.json` file in `configs/` defines one search profile. Pass the filename without extension as `--config_name`.
+Each `.toml` file in `configs/` defines one search profile. Pass the filename without extension as `--config_name`.
 
 ```toml
 authors = []
 categories = ["<arxiv-category>"]
 keywords_to_exclude = []
-keywords_to_include = ["<keyword>"]
+keywords_to_include = ["<keyword>", ...]
 ```
+
+Keywords use a nested list notation where the operator alternates every level: OR at even depth, AND at odd depth.
+
+| Depth | Operator |
+|---|---|
+| 0 (top-level) | OR |
+| 1 (nested) | AND |
+| 2 (doubly-nested) | OR |
+| ... | ... |
+
+```toml
+keywords_to_include = [
+    "<keyword-a>",
+    ["<keyword-b>", ["<keyword-c>", "<keyword-d>"]],
+]
+```
+
+Matches: `<keyword-a>` OR (`<keyword-b>` AND (`<keyword-c>` OR `<keyword-d>`))
+
+See `tests/test_filter.py` for examples in action.
 
 ### AI provider
 
