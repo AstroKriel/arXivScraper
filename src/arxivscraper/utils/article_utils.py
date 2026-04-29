@@ -29,52 +29,66 @@ from arxivscraper.utils import datetime_utils, io_utils
 
 @dataclass(frozen=True)
 class StatusConfig:
-    value: str
-    key: str
-    description: str
+    """Configuration for a single task status.
+
+    Fields
+    ---
+    - `md_status`:
+        String written to and read from the markdown file.
+    - `tui_key`:
+        Keyboard shortcut used in the TUI browser.
+    - `tui_description`:
+        Label shown in the TUI footer.
+    """
+
+    md_status: str
+    tui_key: str
+    tui_description: str
 
 
 class TaskStatus(Enum):
+    key: str
+    description: str
 
     def __new__(
         cls,
         config: StatusConfig,
     ) -> "TaskStatus":
         obj = object.__new__(cls)
-        obj._value_ = config.value
-        obj.key = config.key
-        obj.description = config.description
+        obj._value_ = config.md_status
+        obj.key = config.tui_key
+        obj.description = config.tui_description
         return obj
 
     PENDING = StatusConfig(
-        value="pending",
-        key="p",
-        description="reset",
+        md_status="pending",
+        tui_key="p",
+        tui_description="reset",
     )
     QUEUED = StatusConfig(
-        value="queued",
-        key="q",
-        description="queue",
+        md_status="queued",
+        tui_key="q",
+        tui_description="queue",
     )
     READ = StatusConfig(
-        value="read",
-        key="r",
-        description="mark read",
+        md_status="read",
+        tui_key="r",
+        tui_description="mark read",
     )
     DOWNLOAD = StatusConfig(
-        value="download",
-        key="d",
-        description="mark download",
+        md_status="download",
+        tui_key="d",
+        tui_description="mark download",
     )
     NA = StatusConfig(
-        value="n/a",
-        key="n",
-        description="mark n/a",
+        md_status="n/a",
+        tui_key="n",
+        tui_description="mark n/a",
     )
     DELETE = StatusConfig(
-        value="delete",
-        key="x",
-        description="mark delete",
+        md_status="delete",
+        tui_key="x",
+        tui_description="mark delete",
     )
 
 
