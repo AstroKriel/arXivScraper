@@ -51,8 +51,13 @@ class GetUserInputs:
     ) -> None:
         """Sets up main program flag arguments."""
         parse_flags = self.parser.add_argument_group(description="Main program flags:")
-        for short_flag, long_flag in [("-s", "--search"), ("-f", "--fetch"), ("-r", "--score"),
-                                      ("-p", "--print"), ("-d", "--download")]:
+        for short_flag, long_flag in [
+            ("-s", "--search"),
+            ("-f", "--fetch"),
+            ("-r", "--score"),
+            ("-p", "--print"),
+            ("-d", "--download"),
+        ]:
             parse_flags.add_argument(
                 short_flag,
                 long_flag,
