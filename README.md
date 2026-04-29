@@ -33,7 +33,7 @@ uv run python main.py --browse
 | `r` | read |
 | `d` | mark for download |
 | `D` | action downloads |
-| `n` | n/a |
+| `n` | n/a (not relevant) |
 | `x` | mark for deletion |
 | `X` | action deletions |
 | `o` | open PDF in browser |
