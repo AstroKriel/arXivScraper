@@ -19,6 +19,8 @@ from arxivscraper.config_paths import directories
 from arxivscraper.support import articles, dates, file_io, script_cli, search_criteria
 
 
+## keep these near arxiv.py defaults to avoid brittle request behavior and to
+## respect arXiv's requested pacing between API calls.
 _ARXIV_PAGE_SIZE = 100
 _ARXIV_DELAY_SECONDS = 3.0
 _ARXIV_NUM_RETRIES = 3
@@ -87,12 +89,14 @@ class SearchArxiv():
         self.config_name = config_name
         self.articles: list[articles.Article] = []
         self.client: arxiv.Client | None = None
+        self.existing_ids: set[str] = set()
         self.search_criteria_config: dict[str, Any] = {}
 
     def search(
         self,
     ) -> None:
         self._read_search_criteria()
+        self._read_existing_ids()
         self.client = self._build_client()
         for search_category in self.search_criteria_config["categories"]:
             print(f"Searching: {search_category}")
@@ -101,7 +105,8 @@ class SearchArxiv():
             )
             print("Requesting results from arXiv...")
             num_articles_looked_at_in_category = 0
-            num_new_articles_saved_in_category = 0
+            num_interesting_articles_in_category = 0
+            num_new_articles_in_category = 0
             try:
                 assert self.client is not None
                 for arxiv_article in self.client.results(self._create_search_query(category=search_category)):
@@ -114,13 +119,16 @@ class SearchArxiv():
                         continue
                     assessment = self._check_config_conditions(arxiv_article=arxiv_article)
                     if assessment.is_match:
+                        num_interesting_articles_in_category += 1
+                        if arxiv_id in self.existing_ids:
+                            continue
                         config_results = {self.config_name: assessment.reasons}
                         article = articles.get_article_summary(
                             arxiv_article=arxiv_article,
                             config_results=config_results,
                         )
                         self.articles.append(article)
-                        num_new_articles_saved_in_category += 1
+                        num_new_articles_in_category += 1
             except requests.exceptions.Timeout:
                 print(f"\nTimed out while reading arXiv results for {search_category}; skipping category.\n")
                 continue
@@ -131,7 +139,9 @@ class SearchArxiv():
                 print(f"\nHTTP error for {search_category}: {error}; skipping category.\n")
                 continue
             print(
-                f"\nFound {num_new_articles_saved_in_category} interesting articles from the {num_articles_looked_at_in_category} looked at.\n",
+                f"\nFound {num_interesting_articles_in_category} interesting articles "
+                f"({num_new_articles_in_category} new to local database) "
+                f"from the {num_articles_looked_at_in_category} looked at.\n",
             )
 
     def get_sorted_articles(
@@ -157,6 +167,17 @@ class SearchArxiv():
         print(f"> using the `#{self.config_name}` config file")
         print(" ")
         search_criteria.print_search_criteria(self.search_criteria_config)
+
+    def _read_existing_ids(
+        self,
+    ) -> None:
+        if not directories.md_files_dir.exists():
+            self.existing_ids = set()
+            return
+        self.existing_ids = {
+            file_path.stem
+            for file_path in directories.md_files_dir.glob("*.md")
+        }
 
     def _build_client(
         self,
