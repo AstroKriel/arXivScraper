@@ -6,18 +6,7 @@ __pycache__/
 
 ## code env
 .venv/
-.vscode/
-*.code-workspace
-
-## obsidian env 
-.obsidian/
-summary.md
-
-## secret api key
-configs/api_key.txt
 
 ## output directories
-mdfiles/
+md_files/
 pdfs/
-
-## .
