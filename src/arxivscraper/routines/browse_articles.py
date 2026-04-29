@@ -7,11 +7,12 @@
 ## stdlib
 import sys
 import webbrowser
+from typing import ClassVar
 
 ## third-party
 from rich.markup import escape as rich_escape
 from textual.app import App, ComposeResult
-from textual.binding import Binding
+from textual.binding import Binding, BindingType
 from textual.widgets import DataTable, Footer, Header, Static
 
 ## local
@@ -56,13 +57,15 @@ class BrowseApp(App[None]):
 
     TITLE = "arXiv Browser"
 
-    BINDINGS = [
-        Binding(
-            key=status.key,
-            action=f"set_status('{status.value}')",
-            description=status.description,
-        ) for status in TaskStatus
-    ] + [
+    BINDINGS: ClassVar[list[BindingType]] = [
+        *(
+            Binding(
+                key=status.key,
+                action=f"set_status('{status.value}')",
+                description=status.description,
+            )
+            for status in TaskStatus
+        ),
         Binding(
             key="D",
             action="apply_downloads",
