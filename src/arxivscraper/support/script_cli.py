@@ -118,7 +118,7 @@ class GetUserInputs:
             type=str,
             required=False,
             metavar="",
-            help="Model name override (e.g. 'gpt-4o-mini', 'llama3.2'). Overrides configs/ai/ai_provider.toml.",
+            help="Model name override. Overrides configs/ai/ai_provider.toml.",
         )
         score_args.add_argument(
             "--base-url",
@@ -126,7 +126,7 @@ class GetUserInputs:
             required=False,
             metavar="",
             dest="base_url",
-            help="API base URL override (e.g. 'http://localhost:11434/v1'). Overrides configs/ai/ai_provider.toml.",
+            help="API base URL override. Overrides configs/ai/ai_provider.toml.",
         )
 
     def get_program_inputs(

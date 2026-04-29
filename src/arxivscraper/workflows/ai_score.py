@@ -98,30 +98,65 @@ def get_ai_response(
     ai_model: str,
 ) -> dict[str, Any]:
     if not article_title:
-        return {"status": "error", "error": "Missing article title.", "ai_rating": None, "ai_reason": None, "ai_response": None}
+        return {
+            "status": "error",
+            "error": "Missing article title.",
+            "ai_rating": None,
+            "ai_reason": None,
+            "ai_response": None
+        }
     if not article_abstract:
-        return {"status": "error", "error": "Missing article abstract.", "ai_rating": None, "ai_reason": None, "ai_response": None}
+        return {
+            "status": "error",
+            "error": "Missing article abstract.",
+            "ai_rating": None,
+            "ai_reason": None,
+            "ai_response": None
+        }
     prompt_input = f"{prompt_criteria}\n\nTITLE: {article_title}\n\nABSTRACT: {article_abstract}"
     try:
         ai_response = ai_client.chat.completions.create(
             model=ai_model,
             messages=[
-                {"role": "system", "content": prompt_rules},
-                {"role": "user", "content": prompt_input},
+                {
+                    "role": "system",
+                    "content": prompt_rules
+                },
+                {
+                    "role": "user",
+                    "content": prompt_input
+                },
             ],
             temperature=0.0,
         )
     except Exception as error:
-        return {"status": "error", "error": f"API call failed: {error}", "ai_rating": None, "ai_reason": None, "ai_response": None}
+        return {
+            "status": "error",
+            "error": f"API call failed: {error}",
+            "ai_rating": None,
+            "ai_reason": None,
+            "ai_response": None
+        }
     response_text = ""
     try:
         response_text = (ai_response.choices[0].message.content or "").strip()
         response_dict = json.loads(response_text)
         ai_rating = float(response_dict["rating"])
         ai_reason = response_dict["reason"]
-        return {"status": "success", "ai_rating": ai_rating, "ai_reason": ai_reason, "ai_response": response_text}
+        return {
+            "status": "success",
+            "ai_rating": ai_rating,
+            "ai_reason": ai_reason,
+            "ai_response": response_text
+        }
     except Exception as error:
-        return {"status": "error", "error": f"JSON parsing failed: {error}", "ai_rating": None, "ai_reason": None, "ai_response": response_text}
+        return {
+            "status": "error",
+            "error": f"JSON parsing failed: {error}",
+            "ai_rating": None,
+            "ai_reason": None,
+            "ai_response": response_text
+        }
 
 
 def get_ai_score(

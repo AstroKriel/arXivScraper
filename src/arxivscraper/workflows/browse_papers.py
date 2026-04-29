@@ -59,14 +59,33 @@ class BrowseApp(App[None]):
                 key=status.key,
                 action=f"set_status('{status.value}')",
                 description=status.description,
-            )
-            for status in TaskStatus
+            ) for status in TaskStatus
         ),
-        Binding(key="D", action="apply_downloads", description="apply download"),
-        Binding(key="X", action="apply_deletions", description="apply delete"),
-        Binding(key="o", action="open_pdf", description="open PDF"),
-        Binding(key="f", action="cycle_filter", description="filter"),
-        Binding(key="escape", action="quit", description="quit"),
+        Binding(
+            key="D",
+            action="apply_downloads",
+            description="apply download",
+        ),
+        Binding(
+            key="X",
+            action="apply_deletions",
+            description="apply delete",
+        ),
+        Binding(
+            key="o",
+            action="open_pdf",
+            description="open PDF",
+        ),
+        Binding(
+            key="f",
+            action="cycle_filter",
+            description="filter",
+        ),
+        Binding(
+            key="escape",
+            action="quit",
+            description="quit",
+        ),
     ]
 
     def __init__(
@@ -119,7 +138,10 @@ class BrowseApp(App[None]):
             )
         if visible_articles:
             row = min(keep_row, len(visible_articles) - 1)
-            table.move_cursor(row=row, scroll=True)
+            table.move_cursor(
+                row=row,
+                scroll=True,
+            )
             self._update_abstract(row_index=row)
         else:
             self.query_one("#abstract", Static).update("[dim]No papers match this filter.[/dim]")

@@ -144,13 +144,11 @@ class MatchAssessment:
     def is_match(
         self,
     ) -> bool:
-        return any(
-            [
-                self.reasons.title_match,
-                self.reasons.abstract_match,
-                self.reasons.author_match,
-            ],
-        )
+        return any([
+            self.reasons.title_match,
+            self.reasons.abstract_match,
+            self.reasons.author_match,
+        ], )
 
 
 ##
@@ -442,11 +440,8 @@ def read_markdown_file(
         raise ValueError(f"missing required keys in frontmatter: {', '.join(missing_keys)}.")
     ## collect config_reason_* keys into a dict keyed by config name
     config_reasons = {
-        key[len("config_reason_"):]: (
-            MatchReasons.from_mapping(value)
-            if isinstance(value, Mapping)
-            else MatchReasons.from_list(value)
-        )
+        key[len("config_reason_"):]:
+        (MatchReasons.from_mapping(value) if isinstance(value, Mapping) else MatchReasons.from_list(value))
         for key, value in meta_data.items()
         if key.startswith("config_reason_")
     }

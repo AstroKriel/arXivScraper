@@ -44,7 +44,11 @@ class SearchArxiv():
             print(
                 f"Date range: {dates.cast_date_to_string(self.lookback_date)} to {dates.cast_date_to_string(self.current_date)}",
             )
-            self.client = arxiv.Client(page_size=200, delay_seconds=1, num_retries=100)
+            self.client = arxiv.Client(
+                page_size=200,
+                delay_seconds=1,
+                num_retries=100,
+            )
             num_articles_looked_at_in_category = 0
             num_new_articles_saved_in_category = 0
             for arxiv_article in self.client.results(self._create_search_query(category=search_category)):

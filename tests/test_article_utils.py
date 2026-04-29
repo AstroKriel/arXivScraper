@@ -223,12 +223,12 @@ class TestArticle_Roundtrip(unittest.TestCase):
         self,
     ):
         for status in [
-            articles.TaskStatus.PENDING,
-            articles.TaskStatus.QUEUED,
-            articles.TaskStatus.READ,
-            articles.TaskStatus.DOWNLOAD,
-            articles.TaskStatus.NA,
-            articles.TaskStatus.DELETE,
+                articles.TaskStatus.PENDING,
+                articles.TaskStatus.QUEUED,
+                articles.TaskStatus.READ,
+                articles.TaskStatus.DOWNLOAD,
+                articles.TaskStatus.NA,
+                articles.TaskStatus.DELETE,
         ]:
             with self.subTest(status=status):
                 original = _make_article(task_status=status)
