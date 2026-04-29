@@ -25,11 +25,11 @@ from arxivscraper.utils import article_utils
 _STATUS_LABELS = {
     "u": "unread",
     "r": "2read",
-    "D": "done",
+    "d": "download",
     "-": "skip",
 }
 
-_FILTER_CYCLE = [None, "u", "r", "D", "-"]
+_FILTER_CYCLE = [None, "u", "r", "d", "-",]
 
 ##
 ## === TUI APP
@@ -54,7 +54,8 @@ class BrowseApp(App[None]):
     BINDINGS = [
         Binding("r", "set_status('r')", "2read"),
         Binding("u", "set_status('u')", "unread"),
-        Binding("d", "set_status('D')", "done"),
+        Binding("d", "set_status('d')", "download"),
+        Binding("D", "delete_article", "delete"),
         Binding("i", "set_status('-')", "skip"),
         Binding("o", "open_pdf", "open PDF"),
         Binding("f", "cycle_filter", "filter"),
@@ -183,6 +184,19 @@ class BrowseApp(App[None]):
         if article is None:
             return
         webbrowser.open(article.url_pdf)
+
+    def action_delete_article(
+        self,
+    ) -> None:
+        article = self._get_current_article()
+        if article is None:
+            return
+        table = self.query_one(DataTable)
+        current_row = table.cursor_row
+        file_path = directories.md_files_dir / f"{article.arxiv_id}.md"
+        file_path.unlink(missing_ok=True)
+        self.all_articles.remove(article)
+        self._refresh_table(keep_row=current_row)
 
     def action_cycle_filter(
         self,
