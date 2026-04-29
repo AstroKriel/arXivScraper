@@ -37,7 +37,7 @@ uv run python main.py --browse
 | `x` | mark for deletion |
 | `X` | action deletions |
 | `o` | open PDF in browser |
-| `f` | cycle filter between `p`, `q`, `r`, `d`, `n`, and `x` statuses |
+| `f` | cycle filter between `p`, `q`, `r`, `d`, `n`, and `x` states |
 | `escape` | quit |
 
 ### 3. Score
