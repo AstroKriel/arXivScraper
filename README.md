@@ -25,7 +25,7 @@ uv sync
 
 ## Workflow
 
-### 1. Search
+### Search
 
 Search arXiv for papers matching a search profile:
 
@@ -35,7 +35,7 @@ uv run arxivscraper --search --config_name <profile> --lookback_days <n>
 
 Papers are saved as markdown files in `md_files/`. If `--config_name` or `--lookback_days` are not passed, the script will prompt for them.
 
-### 2. Browse
+### Browse
 
 Open the terminal interface browser to read abstracts and triage saved papers:
 
@@ -57,7 +57,7 @@ uv run arxivscraper --browse
 | `f` | cycle filter between `p`, `q`, `r`, `d`, `n`, and `x` states |
 | `escape` | quit |
 
-### 3. Score
+### Score
 
 Score all unrated papers using an AI provider:
 
@@ -67,7 +67,7 @@ uv run arxivscraper --score
 
 Pass `--model <model>` or `--base-url <url>` to override the values in `configs/ai/ai_provider.toml`.
 
-### 4. Fetch
+### Fetch
 
 Fetch a specific paper by arXiv ID:
 
@@ -77,7 +77,7 @@ uv run arxivscraper --fetch -id <arxiv-id>
 
 The script displays the title, authors, and abstract for confirmation before saving.
 
-### 5. Download
+### Download
 
 From the terminal interface browser, press `d` to mark a paper for download. Use `f` to cycle the filter to `download` to review which papers are queued before pressing `D` to action the download. Downloaded papers return them back to a `pending` (`p`) state.
 
