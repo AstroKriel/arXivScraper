@@ -61,8 +61,7 @@ class BrowseApp(App[None]):
             key=status.key,
             action=f"set_status('{status.value}')",
             description=status.description,
-        )
-        for status in TaskStatus
+        ) for status in TaskStatus
     ] + [
         Binding(
             key="D",

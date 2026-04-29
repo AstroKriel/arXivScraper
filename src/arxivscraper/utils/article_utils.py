@@ -29,28 +29,53 @@ from arxivscraper.utils import datetime_utils, io_utils
 
 @dataclass(frozen=True)
 class StatusConfig:
-    string_value: str
+    value: str
     key: str
     description: str
 
 
 class TaskStatus(Enum):
+
     def __new__(
         cls,
         config: StatusConfig,
     ) -> "TaskStatus":
         obj = object.__new__(cls)
-        obj._value_ = config.string_value
+        obj._value_ = config.value
         obj.key = config.key
         obj.description = config.description
         return obj
 
-    PENDING  = StatusConfig(string_value="pending",  key="p", description="reset")
-    QUEUED   = StatusConfig(string_value="queued",   key="q", description="queue")
-    READ     = StatusConfig(string_value="read",     key="r", description="mark read")
-    DOWNLOAD = StatusConfig(string_value="download", key="d", description="mark download")
-    NA       = StatusConfig(string_value="n/a",      key="n", description="mark n/a")
-    DELETE   = StatusConfig(string_value="delete",   key="x", description="mark delete")
+    PENDING = StatusConfig(
+        value="pending",
+        key="p",
+        description="reset",
+    )
+    QUEUED = StatusConfig(
+        value="queued",
+        key="q",
+        description="queue",
+    )
+    READ = StatusConfig(
+        value="read",
+        key="r",
+        description="mark read",
+    )
+    DOWNLOAD = StatusConfig(
+        value="download",
+        key="d",
+        description="mark download",
+    )
+    NA = StatusConfig(
+        value="n/a",
+        key="n",
+        description="mark n/a",
+    )
+    DELETE = StatusConfig(
+        value="delete",
+        key="x",
+        description="mark delete",
+    )
 
 
 ##
