@@ -64,7 +64,7 @@ uv run arxivscraper --browse
 | `r` | read |
 | `d` | mark for download |
 | `D` | action downloads |
-| `n` | n/a (not relevant for you) |
+| `n` | n/a (article is not relevant for you) |
 | `x` | mark for deletion |
 | `X` | action deletions |
 | `o` | open PDF in browser |
