@@ -55,6 +55,7 @@ uv run arxivscraper --browse
 | `X` | action deletions |
 | `o` | open PDF in browser |
 | `f` | cycle filter between `p`, `q`, `r`, `d`, `n`, and `x` states |
+| `s` | toggle text search |
 | `escape` | quit |
 
 ### Score

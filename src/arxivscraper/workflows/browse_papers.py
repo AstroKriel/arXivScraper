@@ -13,7 +13,7 @@ from typing import ClassVar
 from rich.markup import escape as rich_escape
 from textual.app import App, ComposeResult
 from textual.binding import Binding, BindingType
-from textual.widgets import DataTable, Footer, Header, Static
+from textual.widgets import DataTable, Footer, Header, Input, Static
 
 ## local
 from arxivscraper.config_paths import directories
@@ -36,12 +36,42 @@ _FILTER_CYCLE: list[TaskStatus | None] = [
 ]
 
 
+class SearchInput(Input):
+    """Search box that can hand focus back to the results table."""
+
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding(
+            key="up",
+            action="focus_table",
+            description="table",
+        ),
+        Binding(
+            key="down",
+            action="focus_table",
+            description="table",
+        ),
+        Binding(
+            key="escape",
+            action="focus_table",
+            description="table",
+        ),
+    ]
+
+    def action_focus_table(
+        self,
+    ) -> None:
+        self.app.action_focus_table()
+
+
 class BrowseApp(App[None]):
     """TUI browser for reviewing and triaging saved arXiv articles."""
 
     CSS = """
     DataTable {
         height: 3fr;
+    }
+    #search {
+        margin: 0 0 1 0;
     }
     #abstract {
         height: 2fr;
@@ -82,8 +112,13 @@ class BrowseApp(App[None]):
             description="filter",
         ),
         Binding(
+            key="s",
+            action="toggle_search",
+            description="search",
+        ),
+        Binding(
             key="escape",
-            action="quit",
+            action="escape",
             description="quit",
         ),
     ]
@@ -95,11 +130,16 @@ class BrowseApp(App[None]):
         super().__init__()
         self.all_articles = articles_list
         self.filter_status: TaskStatus | None = None
+        self.search_query = ""
 
     def compose(
         self,
     ) -> ComposeResult:
         yield Header()
+        yield SearchInput(
+            placeholder="search title, abstract, authors, tags, id, category",
+            id="search",
+        )
         yield DataTable()
         yield Static(id="abstract")
         yield Footer()
@@ -108,16 +148,50 @@ class BrowseApp(App[None]):
         self,
     ) -> None:
         table = self.query_one(DataTable)
+        search_input = self.query_one(Input)
+        search_input.display = False
         table.cursor_type = "row"
         table.add_columns("Status", "Tags", "Category", "Date", "ID", "Title")
+        table.focus()
         self._refresh_table()
 
     def _get_visible_articles(
         self,
     ) -> list[articles.Article]:
-        if self.filter_status is None:
-            return self.all_articles
-        return [article for article in self.all_articles if article.task_status == self.filter_status]
+        visible_articles = self.all_articles
+        if self.filter_status is not None:
+            visible_articles = [
+                article for article in visible_articles
+                if article.task_status == self.filter_status
+            ]
+        if self.search_query:
+            visible_articles = [
+                article for article in visible_articles
+                if self._article_matches_query(
+                    article=article,
+                    query=self.search_query,
+                )
+            ]
+        return visible_articles
+
+    def _article_matches_query(
+        self,
+        *,
+        article: articles.Article,
+        query: str,
+    ) -> bool:
+        haystack = " ".join(
+            [
+                article.title,
+                article.abstract,
+                " ".join(article.authors),
+                " ".join(article.config_tags),
+                article.arxiv_id,
+                article.category_primary,
+                " ".join(article.category_others),
+            ],
+        ).lower()
+        return query.lower() in haystack
 
     def _refresh_table(
         self,
@@ -167,7 +241,21 @@ class BrowseApp(App[None]):
     ) -> None:
         visible_articles = self._get_visible_articles()
         filter_label = "all" if self.filter_status is None else self.filter_status.value
-        self.sub_title = f"filter: {filter_label}  ({len(visible_articles)} papers)"
+        search_label = self.search_query if self.search_query else "off"
+        self.sub_title = (
+            f"filter: {filter_label}  "
+            f"search: {search_label}  "
+            f"({len(visible_articles)} papers)"
+        )
+
+    def on_input_changed(
+        self,
+        event: Input.Changed,
+    ) -> None:
+        if event.input.id != "search":
+            return
+        self.search_query = event.value.strip()
+        self._refresh_table()
 
     def on_data_table_row_highlighted(
         self,
@@ -229,6 +317,33 @@ class BrowseApp(App[None]):
         current_index = _FILTER_CYCLE.index(self.filter_status)
         self.filter_status = _FILTER_CYCLE[(current_index + 1) % len(_FILTER_CYCLE)]
         self._refresh_table()
+
+    def action_toggle_search(
+        self,
+    ) -> None:
+        search_input = self.query_one(SearchInput)
+        search_input.display = not search_input.display
+        if search_input.display:
+            self.call_after_refresh(search_input.focus)
+            return
+        self.search_query = ""
+        search_input.value = ""
+        self.query_one(DataTable).focus()
+        self._refresh_table()
+
+    def action_focus_table(
+        self,
+    ) -> None:
+        self.query_one(DataTable).focus()
+
+    def action_escape(
+        self,
+    ) -> None:
+        search_input = self.query_one(SearchInput)
+        if search_input.has_focus:
+            self.action_focus_table()
+            return
+        self.exit()
 
 
 def main() -> None:
