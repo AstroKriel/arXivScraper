@@ -19,8 +19,8 @@ import unidecode
 import yaml
 
 ## local
-from arxivscraper.io_configs import directories
-from arxivscraper.utils import datetime_utils, io_utils
+from arxivscraper.config_paths import directories
+from arxivscraper.support import dates, file_io
 
 ##
 ## === TASK STATUS
@@ -194,7 +194,7 @@ def print_article(
     )
     _print_line(
         category="Date Updated",
-        content=datetime_utils.cast_date_to_string(article.date_updated),
+        content=dates.cast_date_to_string(article.date_updated),
     )
     _print_line(
         category="Author(s)",
@@ -218,8 +218,8 @@ def write_article_to_file(
         "title": article.title,
         "arxiv_id": article.arxiv_id,
         "url_pdf": article.url_pdf,
-        "date_published": datetime_utils.cast_date_to_string(article.date_published),
-        "date_updated": datetime_utils.cast_date_to_string(article.date_updated),
+        "date_published": dates.cast_date_to_string(article.date_published),
+        "date_updated": dates.cast_date_to_string(article.date_updated),
         "category_primary": article.category_primary,
         "category_others": article.category_others or None,
         "config_tags": article.config_tags or None,
@@ -345,7 +345,7 @@ def read_markdown_file(
     file_path: Path,
 ) -> Article:
     """Parse an mdfile at `file_path` and return it as an `Article`."""
-    content = io_utils.read_markdown_file(file_path)
+    content = file_io.read_markdown_file(file_path)
     ## split the file into frontmatter (YAML) and body (markdown)
     match = re.match(
         pattern=r"^---\n(.*?)\n---\n(.*)",
@@ -403,8 +403,8 @@ def read_markdown_file(
         abstract=meta_data.get("abstract"),
         arxiv_id=meta_data.get("arxiv_id"),
         url_pdf=meta_data.get("url_pdf"),
-        date_published=datetime_utils.cast_string_to_date(meta_data.get("date_published")),
-        date_updated=datetime_utils.cast_string_to_date(meta_data.get("date_updated")),
+        date_published=dates.cast_string_to_date(meta_data.get("date_published")),
+        date_updated=dates.cast_string_to_date(meta_data.get("date_updated")),
         category_primary=meta_data.get("category_primary"),
         category_others=meta_data.get("category_others") or [],
         config_tags=meta_data.get("config_tags") or [],

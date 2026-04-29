@@ -14,7 +14,7 @@ import unittest
 from typing import Any
 
 ## local
-from arxivscraper.utils import article_utils
+from arxivscraper.support import articles
 
 ##
 ## === HELPERS
@@ -23,7 +23,7 @@ from arxivscraper.utils import article_utils
 
 def _make_article(
     **kwargs: Any,
-) -> article_utils.Article:
+) -> articles.Article:
     defaults: dict[str, Any] = dict(
         title="sample title",
         arxiv_id="0000.00000",
@@ -35,22 +35,22 @@ def _make_article(
         category_primary="cat.AA",
         category_others=["cat.BB"],
         config_tags=["#tag-a"],
-        task_status="u",
+        task_status=articles.TaskStatus.PENDING,
         ai_rating=None,
         ai_reason=None,
         config_reasons={"tag-a": [True, False, True]},
     )
     defaults.update(kwargs)
-    return article_utils.Article(**defaults)
+    return articles.Article(**defaults)
 
 
 def _roundtrip(
     *,
-    article: article_utils.Article,
-) -> article_utils.Article:
+    article: articles.Article,
+) -> articles.Article:
     """Write an Article to a string buffer and read it back."""
     buffer = io.StringIO()
-    article_utils.write_article_to_file(
+    articles.write_article_to_file(
         buffer,
         article=article,
     )
@@ -63,7 +63,7 @@ def _roundtrip(
         file_pointer.write(md_text)
         tmp_path = pathlib.Path(file_pointer.name)
     try:
-        return article_utils.read_markdown_file(tmp_path)
+        return articles.read_markdown_file(tmp_path)
     finally:
         tmp_path.unlink()
 
@@ -79,7 +79,7 @@ class TestFormatText_Cases(unittest.TestCase):
         self,
     ):
         self.assertEqual(
-            first=article_utils.format_text("word #tag word"),
+            first=articles.format_text("word #tag word"),
             second="word tag word",
         )
 
@@ -87,7 +87,7 @@ class TestFormatText_Cases(unittest.TestCase):
         self,
     ):
         self.assertEqual(
-            first=article_utils.format_text("prefix: suffix"),
+            first=articles.format_text("prefix: suffix"),
             second="prefix... suffix",
         )
 
@@ -95,14 +95,14 @@ class TestFormatText_Cases(unittest.TestCase):
         self,
     ):
         self.assertEqual(
-            first=article_utils.format_text('say "word"'),
+            first=articles.format_text('say "word"'),
             second="say `word`",
         )
 
     def test_adds_spaces_around_latex(
         self,
     ):
-        result = article_utils.format_text("word$x=y^2$word")
+        result = articles.format_text("word$x=y^2$word")
         self.assertIn(
             member=" $x=y^2$ ",
             container=result,
@@ -112,7 +112,7 @@ class TestFormatText_Cases(unittest.TestCase):
         self,
     ):
         self.assertEqual(
-            first=article_utils.format_text("too   many   spaces"),
+            first=articles.format_text("too   many   spaces"),
             second="too many spaces",
         )
 
@@ -120,7 +120,7 @@ class TestFormatText_Cases(unittest.TestCase):
         self,
     ):
         self.assertEqual(
-            first=article_utils.format_text("  padded  "),
+            first=articles.format_text("  padded  "),
             second="padded",
         )
 
@@ -131,7 +131,7 @@ class TestTruncateList_Cases(unittest.TestCase):
         self,
     ):
         self.assertEqual(
-            first=article_utils.truncate_list(
+            first=articles.truncate_list(
                 elems=["a", "b", "c"],
                 max_elems=5,
             ),
@@ -141,7 +141,7 @@ class TestTruncateList_Cases(unittest.TestCase):
     def test_long_list_truncated(
         self,
     ):
-        result = article_utils.truncate_list(
+        result = articles.truncate_list(
             elems=["a", "b", "c", "d", "e", "f"],
             max_elems=5,
         )
@@ -153,7 +153,7 @@ class TestTruncateList_Cases(unittest.TestCase):
     def test_exact_length_not_truncated(
         self,
     ):
-        result = article_utils.truncate_list(
+        result = articles.truncate_list(
             elems=["a", "b", "c"],
             max_elems=3,
         )
@@ -165,7 +165,7 @@ class TestTruncateList_Cases(unittest.TestCase):
     def test_elements_cast_to_string(
         self,
     ):
-        result = article_utils.truncate_list(elems=[1, 2, 3])
+        result = articles.truncate_list(elems=[1, 2, 3])
         self.assertEqual(
             first=result,
             second=["1", "2", "3"],
@@ -216,7 +216,14 @@ class TestArticle_Roundtrip(unittest.TestCase):
     def test_task_status_preserved(
         self,
     ):
-        for status in ["u", "d", "D", "-"]:
+        for status in [
+            articles.TaskStatus.PENDING,
+            articles.TaskStatus.QUEUED,
+            articles.TaskStatus.READ,
+            articles.TaskStatus.DOWNLOAD,
+            articles.TaskStatus.NA,
+            articles.TaskStatus.DELETE,
+        ]:
             with self.subTest(status=status):
                 original = _make_article(task_status=status)
                 restored = _roundtrip(article=original)
@@ -398,13 +405,13 @@ class TestSaveArticle_MergeLogic(unittest.TestCase):
     def test_task_status_retained_from_existing(
         self,
     ):
-        existing = _make_article(task_status="D")
-        incoming = _make_article(task_status="u")
+        existing = _make_article(task_status=articles.TaskStatus.DOWNLOAD)
+        incoming = _make_article(task_status=articles.TaskStatus.PENDING)
         ## simulate the merge logic from save_article
         incoming.task_status = existing.task_status
         self.assertEqual(
             first=incoming.task_status,
-            second="D",
+            second=articles.TaskStatus.DOWNLOAD,
         )
 
 

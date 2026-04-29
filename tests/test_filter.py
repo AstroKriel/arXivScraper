@@ -10,7 +10,7 @@ import unittest
 from typing import Any
 
 ## local
-from arxivscraper.utils import filter_utils
+from arxivscraper.support import search_criteria
 
 ##
 ## === TEST SUITE
@@ -38,7 +38,7 @@ class TestMeetsSearchCriteria_Logic(unittest.TestCase):
         matching_phrases = {
             phrase
             for phrase in self.phrases
-            if filter_utils.meets_search_criteria(
+            if search_criteria.meets_search_criteria(
                 phrase=phrase,
                 search_keywords=search_condition,
             )

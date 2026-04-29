@@ -46,6 +46,7 @@ dependencies = [
     { name = "numpy" },
     { name = "openai" },
     { name = "pyyaml" },
+    { name = "requests" },
     { name = "textual" },
     { name = "unidecode" },
 ]
@@ -62,6 +63,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.2.5" },
     { name = "openai", specifier = ">=1.76.2" },
     { name = "pyyaml", specifier = ">=6.0.2" },
+    { name = "requests", specifier = ">=2.32.0" },
     { name = "textual", specifier = ">=0.50.0" },
     { name = "unidecode", specifier = ">=1.4.0" },
 ]

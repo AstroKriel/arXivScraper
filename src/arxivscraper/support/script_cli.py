@@ -10,7 +10,7 @@ import re
 from typing import Any
 
 ## local
-from arxivscraper.io_configs import directories
+from arxivscraper.config_paths import directories
 
 ##
 ## === USER INPUT HANDLER
@@ -118,7 +118,7 @@ class GetUserInputs:
             type=str,
             required=False,
             metavar="",
-            help="Model name override (e.g. 'gpt-4o-mini', 'llama3.2'). Overrides ai_provider.json.",
+            help="Model name override (e.g. 'gpt-4o-mini', 'llama3.2'). Overrides configs/ai/ai_provider.toml.",
         )
         score_args.add_argument(
             "--base-url",
@@ -126,7 +126,7 @@ class GetUserInputs:
             required=False,
             metavar="",
             dest="base_url",
-            help="API base URL override (e.g. 'http://localhost:11434/v1'). Overrides ai_provider.json.",
+            help="API base URL override (e.g. 'http://localhost:11434/v1'). Overrides configs/ai/ai_provider.toml.",
         )
 
     def get_program_inputs(
@@ -145,7 +145,6 @@ class GetUserInputs:
         self,
     ) -> dict[str, Any]:
         """Returns only the search-specific arguments and prompts for any missing parameters if required."""
-        ## collect relevant search-related arguments
         search_args = {
             key: self.args.get(key)
             for key in [
@@ -153,14 +152,13 @@ class GetUserInputs:
                 "lookback_days",
             ]
         }
-        ## prompt for missing values
         if not search_args["config_name"]:
             search_args["config_name"] = input("Please provide --config_name: ")
         config_name = search_args["config_name"]
-        config_path = directories.configs_dir / f"{config_name}.toml"
+        config_path = directories.search_configs_dir / f"{config_name}.toml"
         if not config_path.exists():
             raise FileNotFoundError(
-                f"config file not found: `{config_name}.toml`; searched in {directories.configs_dir}.",
+                f"config file not found: `{config_name}.toml`; searched in {directories.search_configs_dir}.",
             )
         if search_args["lookback_days"] is None:
             search_args["lookback_days"] = int(input("Please provide --lookback_days: "))
@@ -177,12 +175,10 @@ class GetUserInputs:
     ) -> str:
         """Returns only the fetch-specific arguments, prompting if the arXiv ID is not passed, and validates the ID-format."""
         arxiv_id = self.args.get("id")
-        ## prompt for missing value
         if arxiv_id is None:
             print("Which article do you want to fetch from the arXiv?")
             arxiv_id = input("Enter an arXiv ID (e.g., `2310.17036`): ")
         print(" ")
-        ## check the arXiv ID follows the right format
         re_pattern = r"^\d{4}\.\d{4,5}$"
         if not re.match(
                 pattern=re_pattern,

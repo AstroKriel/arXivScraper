@@ -9,10 +9,15 @@ dependencies = [
     "arxiv>=2.2.0",
     "numpy>=2.2.5",
     "openai>=1.76.2",
+    "requests>=2.32.0",
     "pyyaml>=6.0.2",
     "textual>=0.50.0",
     "unidecode>=1.4.0",
 ]
+
+[project.scripts]
+arxivscraper = "arxivscraper.app:main"
+arxivscraper-score = "arxivscraper.workflows.ai_score:main"
 
 [dependency-groups]
 dev = [

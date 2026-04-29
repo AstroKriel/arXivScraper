@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 ## local
-from arxivscraper.utils import io_utils
+from arxivscraper.support import file_io
 
 ##
 ## === READ SEARCH CRITERIA
@@ -29,7 +29,7 @@ def read_search_criteria(
         "keywords_to_include",
     }
     config_path = directory / f"{config_name}.toml"
-    config_criteria = io_utils.read_file(
+    config_criteria = file_io.read_file(
         config_path,
         expected_extension=".toml",
     )
@@ -39,11 +39,6 @@ def read_search_criteria(
             f"config file `{config_name}.toml` is missing required keys: {', '.join(sorted(missing_keys))}.",
         )
     return config_criteria
-
-
-##
-## === APPLY SEARCH CRITERIA
-##
 
 
 def does_text_contain_all_keywords(
@@ -101,11 +96,6 @@ def meets_search_criteria(
         phrase=phrase,
         search_keywords=search_keywords,
     )
-
-
-##
-## === PRINT SEARCH CRITERIA
-##
 
 
 def search_keywords_to_set_notation(

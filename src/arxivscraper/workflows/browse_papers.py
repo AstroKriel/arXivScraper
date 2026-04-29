@@ -16,17 +16,17 @@ from textual.binding import Binding, BindingType
 from textual.widgets import DataTable, Footer, Header, Static
 
 ## local
-from arxivscraper.io_configs import directories
-from arxivscraper.routines import download_articles
-from arxivscraper.utils import article_utils, io_utils
-from arxivscraper.utils.article_utils import TaskStatus
+from arxivscraper.config_paths import directories
+from arxivscraper.support import articles, file_io
+from arxivscraper.support.articles import TaskStatus
+from arxivscraper.workflows import download_pdfs
 
 ##
 ## === CONSTANTS
 ##
 
 _FILTER_CYCLE: list[TaskStatus | None] = [
-    None,  # no filter; show all articles
+    None,
     TaskStatus.PENDING,
     TaskStatus.QUEUED,
     TaskStatus.READ,
@@ -34,10 +34,6 @@ _FILTER_CYCLE: list[TaskStatus | None] = [
     TaskStatus.NA,
     TaskStatus.DELETE,
 ]
-
-##
-## === TUI APP
-##
 
 
 class BrowseApp(App[None]):
@@ -66,39 +62,19 @@ class BrowseApp(App[None]):
             )
             for status in TaskStatus
         ),
-        Binding(
-            key="D",
-            action="apply_downloads",
-            description="apply download",
-        ),
-        Binding(
-            key="X",
-            action="apply_deletions",
-            description="apply delete",
-        ),
-        Binding(
-            key="o",
-            action="open_pdf",
-            description="open PDF",
-        ),
-        Binding(
-            key="f",
-            action="cycle_filter",
-            description="filter",
-        ),
-        Binding(
-            key="escape",
-            action="quit",
-            description="quit",
-        ),
+        Binding(key="D", action="apply_downloads", description="apply download"),
+        Binding(key="X", action="apply_deletions", description="apply delete"),
+        Binding(key="o", action="open_pdf", description="open PDF"),
+        Binding(key="f", action="cycle_filter", description="filter"),
+        Binding(key="escape", action="quit", description="quit"),
     ]
 
     def __init__(
         self,
-        articles: list[article_utils.Article],
+        articles_list: list[articles.Article],
     ) -> None:
         super().__init__()
-        self.all_articles = articles
+        self.all_articles = articles_list
         self.filter_status: TaskStatus | None = None
 
     def compose(
@@ -114,19 +90,12 @@ class BrowseApp(App[None]):
     ) -> None:
         table = self.query_one(DataTable)
         table.cursor_type = "row"
-        table.add_columns(
-            "Status",
-            "Tags",
-            "Category",
-            "Date",
-            "ID",
-            "Title",
-        )
+        table.add_columns("Status", "Tags", "Category", "Date", "ID", "Title")
         self._refresh_table()
 
     def _get_visible_articles(
         self,
-    ) -> list[article_utils.Article]:
+    ) -> list[articles.Article]:
         if self.filter_status is None:
             return self.all_articles
         return [article for article in self.all_articles if article.task_status == self.filter_status]
@@ -138,8 +107,8 @@ class BrowseApp(App[None]):
     ) -> None:
         table = self.query_one(DataTable)
         table.clear()
-        articles = self._get_visible_articles()
-        for article in articles:
+        visible_articles = self._get_visible_articles()
+        for article in visible_articles:
             table.add_row(
                 article.task_status.value,
                 " ".join(article.config_tags),
@@ -148,12 +117,9 @@ class BrowseApp(App[None]):
                 article.arxiv_id,
                 article.title,
             )
-        if articles:
-            row = min(keep_row, len(articles) - 1)
-            table.move_cursor(
-                row=row,
-                scroll=True,
-            )
+        if visible_articles:
+            row = min(keep_row, len(visible_articles) - 1)
+            table.move_cursor(row=row, scroll=True)
             self._update_abstract(row_index=row)
         else:
             self.query_one("#abstract", Static).update("[dim]No papers match this filter.[/dim]")
@@ -164,10 +130,10 @@ class BrowseApp(App[None]):
         *,
         row_index: int,
     ) -> None:
-        articles = self._get_visible_articles()
-        if not articles:
+        visible_articles = self._get_visible_articles()
+        if not visible_articles:
             return
-        article = articles[row_index]
+        article = visible_articles[row_index]
         self.query_one("#abstract", Static).update(
             f"[bold]{rich_escape(article.title)}[/bold]\n"
             f"[dim]{rich_escape(', '.join(article.authors))}[/dim]\n\n"
@@ -177,9 +143,9 @@ class BrowseApp(App[None]):
     def _update_subtitle(
         self,
     ) -> None:
-        articles = self._get_visible_articles()
+        visible_articles = self._get_visible_articles()
         filter_label = "all" if self.filter_status is None else self.filter_status.value
-        self.sub_title = f"filter: {filter_label}  ({len(articles)} papers)"
+        self.sub_title = f"filter: {filter_label}  ({len(visible_articles)} papers)"
 
     def on_data_table_row_highlighted(
         self,
@@ -189,12 +155,12 @@ class BrowseApp(App[None]):
 
     def _get_current_article(
         self,
-    ) -> article_utils.Article | None:
+    ) -> articles.Article | None:
         table = self.query_one(DataTable)
-        articles = self._get_visible_articles()
-        if not articles:
+        visible_articles = self._get_visible_articles()
+        if not visible_articles:
             return None
-        return articles[table.cursor_row]
+        return visible_articles[table.cursor_row]
 
     def action_set_status(
         self,
@@ -208,7 +174,7 @@ class BrowseApp(App[None]):
         article.task_status = TaskStatus(status)
         file_path = directories.md_files_dir / f"{article.arxiv_id}.md"
         with open(file_path, "w") as file_pointer:
-            article_utils.write_article_to_file(file_pointer, article=article)
+            articles.write_article_to_file(file_pointer, article=article)
         self._refresh_table(keep_row=current_row)
 
     def action_open_pdf(
@@ -222,8 +188,8 @@ class BrowseApp(App[None]):
     def action_apply_downloads(
         self,
     ) -> None:
-        io_utils.create_directory(directories.pdfs_dir)
-        download_articles.download_pdfs(self.all_articles)
+        file_io.create_directory(directories.pdfs_dir)
+        download_pdfs.download_pdfs(self.all_articles)
         self._refresh_table()
 
     def action_apply_deletions(
@@ -243,24 +209,15 @@ class BrowseApp(App[None]):
         self._refresh_table()
 
 
-##
-## === MAIN
-##
-
-
 def main() -> None:
-    articles = article_utils.read_all_markdown_files()
-    articles = sorted(
-        articles,
+    articles_list = articles.read_all_markdown_files()
+    articles_list = sorted(
+        articles_list,
         key=lambda article: article.date_updated,
         reverse=True,
     )
-    BrowseApp(articles).run()
+    BrowseApp(articles_list).run()
 
-
-##
-## === ENTRY POINT
-##
 
 if __name__ == "__main__":
     main()

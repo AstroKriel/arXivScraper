@@ -15,12 +15,8 @@ from typing import Any
 from openai import OpenAI
 
 ## local
-from arxivscraper.io_configs import directories, file_names
-from arxivscraper.utils import argparse_utils, article_utils, io_utils
-
-##
-## === PROVIDER CONFIG
-##
+from arxivscraper.config_paths import directories, files as config_files
+from arxivscraper.support import articles, file_io, script_cli
 
 _DEFAULT_MODEL = "gpt-4o-mini"
 
@@ -30,11 +26,11 @@ def load_provider_config(
     cli_model: str | None = None,
     cli_base_url: str | None = None,
 ) -> dict[str, Any] | None:
-    """Load AI provider config from `ai_provider.toml`, falling back to the legacy `api_key.txt`.
+    """Load AI provider config from `configs/ai/ai_provider.toml`, falling back to the legacy `api_key.txt`.
 
     CLI arguments override any config file values.
     """
-    provider_path = directories.configs_dir / file_names.ai_provider
+    provider_path = directories.ai_configs_dir / config_files.ai_provider
     if provider_path.is_file():
         try:
             with provider_path.open("rb") as file_pointer:
@@ -43,14 +39,13 @@ def load_provider_config(
             print(f"Error reading {provider_path.name}: {error}")
             return None
     else:
-        ## fall back to legacy api_key.txt
-        key_path = directories.configs_dir / file_names.ai_api_key
+        key_path = directories.ai_configs_dir / config_files.ai_api_key
         if not key_path.is_file():
             print(
                 f"Error: no AI config found.\n"
-                f"Create configs/{file_names.ai_provider} "
-                f"(see configs/{file_names.ai_provider_example}) "
-                f"or the legacy configs/{file_names.ai_api_key}.",
+                f"Create ai config at {provider_path} "
+                f"(see {directories.ai_configs_dir / config_files.ai_provider_example}) "
+                f"or the legacy {key_path}.",
             )
             return None
         api_key = None
@@ -60,11 +55,10 @@ def load_provider_config(
                 api_key = stripped
                 break
         if not api_key:
-            print(f"Error: {file_names.ai_api_key} is empty.")
+            print(f"Error: {config_files.ai_api_key} is empty.")
             return None
         config = {"api_key": api_key, "base_url": None, "model": _DEFAULT_MODEL}
 
-    ## CLI overrides
     if cli_model:
         config["model"] = cli_model
     if cli_base_url:
@@ -83,11 +77,6 @@ def load_provider_config(
     return config
 
 
-##
-## === AI CLIENT SETUP
-##
-
-
 def build_ai_client(
     api_key: str,
     *,
@@ -97,11 +86,6 @@ def build_ai_client(
     if base_url:
         client_kwargs["base_url"] = base_url
     return OpenAI(**client_kwargs)
-
-
-##
-## === AI RESPONSE
-##
 
 
 def get_ai_response(
@@ -114,75 +98,35 @@ def get_ai_response(
     ai_model: str,
 ) -> dict[str, Any]:
     if not article_title:
-        return {
-            "status": "error",
-            "error": "Missing article title.",
-            "ai_rating": None,
-            "ai_reason": None,
-            "ai_response": None,
-        }
+        return {"status": "error", "error": "Missing article title.", "ai_rating": None, "ai_reason": None, "ai_response": None}
     if not article_abstract:
-        return {
-            "status": "error",
-            "error": "Missing article abstract.",
-            "ai_rating": None,
-            "ai_reason": None,
-            "ai_response": None,
-        }
+        return {"status": "error", "error": "Missing article abstract.", "ai_rating": None, "ai_reason": None, "ai_response": None}
     prompt_input = f"{prompt_criteria}\n\nTITLE: {article_title}\n\nABSTRACT: {article_abstract}"
     try:
         ai_response = ai_client.chat.completions.create(
             model=ai_model,
             messages=[
-                {
-                    "role": "system",
-                    "content": prompt_rules,
-                },
-                {
-                    "role": "user",
-                    "content": prompt_input,
-                },
+                {"role": "system", "content": prompt_rules},
+                {"role": "user", "content": prompt_input},
             ],
             temperature=0.0,
         )
     except Exception as error:
-        return {
-            "status": "error",
-            "error": f"API call failed: {error}",
-            "ai_rating": None,
-            "ai_reason": None,
-            "ai_response": None,
-        }
+        return {"status": "error", "error": f"API call failed: {error}", "ai_rating": None, "ai_reason": None, "ai_response": None}
     response_text = ""
     try:
         response_text = (ai_response.choices[0].message.content or "").strip()
         response_dict = json.loads(response_text)
         ai_rating = float(response_dict["rating"])
         ai_reason = response_dict["reason"]
-        return {
-            "status": "success",
-            "ai_rating": ai_rating,
-            "ai_reason": ai_reason,
-            "ai_response": response_text,
-        }
+        return {"status": "success", "ai_rating": ai_rating, "ai_reason": ai_reason, "ai_response": response_text}
     except Exception as error:
-        return {
-            "status": "error",
-            "error": f"JSON parsing failed: {error}",
-            "ai_rating": None,
-            "ai_reason": None,
-            "ai_response": response_text,
-        }
-
-
-##
-## === SCORE ARTICLE
-##
+        return {"status": "error", "error": f"JSON parsing failed: {error}", "ai_rating": None, "ai_reason": None, "ai_response": response_text}
 
 
 def get_ai_score(
     *,
-    article: article_utils.Article,
+    article: articles.Article,
     ai_client: OpenAI,
     prompt_rules: str,
     prompt_criteria: str,
@@ -213,13 +157,8 @@ def get_ai_score(
     return True
 
 
-##
-## === MAIN
-##
-
-
 def main() -> None:
-    user_inputs = argparse_utils.GetUserInputs(include_score=True)
+    user_inputs = script_cli.GetUserInputs(include_score=True)
     score_inputs = user_inputs.get_score_inputs()
 
     config = load_provider_config(
@@ -238,13 +177,13 @@ def main() -> None:
         print(f"Base URL: {config['base_url']}")
 
     print("Reading in all articles...")
-    articles = article_utils.read_all_markdown_files()
-    articles = [article for article in articles if article.ai_rating is None]
-    num_articles = len(articles)
+    articles_list = articles.read_all_markdown_files()
+    articles_list = [article for article in articles_list if article.ai_rating is None]
+    num_articles = len(articles_list)
     print(f"Preparing to score {num_articles} articles.")
-    prompt_rules = io_utils.read_text_file(directories.configs_dir / file_names.ai_rules)
-    prompt_criteria = io_utils.read_text_file(directories.configs_dir / file_names.ai_criteria)
-    for article_index, article in enumerate(articles):
+    prompt_rules = file_io.read_text_file(directories.ai_configs_dir / config_files.ai_rules)
+    prompt_criteria = file_io.read_text_file(directories.ai_configs_dir / config_files.ai_criteria)
+    for article_index, article in enumerate(articles_list):
         print(f"({article_index+1}/{num_articles})")
         is_scored = get_ai_score(
             article=article,
@@ -254,16 +193,8 @@ def main() -> None:
             ai_model=config["model"],
         )
         if is_scored:
-            article_utils.save_article(
-                article,
-                force=True,
-            )
-        print(" ")
+            articles.save_article(article, force=True)
 
-
-##
-## === ENTRY POINT
-##
 
 if __name__ == "__main__":
     main()
