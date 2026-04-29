@@ -23,7 +23,7 @@ Papers are saved as markdown files in `md_files/`. If `--config_name` or `--look
 Open the TUI browser to read abstracts and triage saved papers:
 
 ```bash
-uv run python main.py --print
+uv run python main.py --browse
 ```
 
 | Key | Action |

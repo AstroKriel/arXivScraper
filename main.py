@@ -41,7 +41,7 @@ def main():
     elif program_flags["score"]: ScoreArticle.main()
     elif program_flags["fetch"]: FetchFromArxiv.main()
     elif program_flags["download"]: DownloadArticles.main()
-    elif program_flags["print"]: BrowseArticles.main()
+    elif program_flags["browse"]: BrowseArticles.main()
     time_elapsed = time.time() - time_start
     print(f"Elapsed time: {time_elapsed:.2f} seconds.")
 

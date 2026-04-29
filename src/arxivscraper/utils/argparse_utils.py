@@ -55,7 +55,7 @@ class GetUserInputs:
             ("-s", "--search"),
             ("-f", "--fetch"),
             ("-r", "--score"),
-            ("-p", "--print"),
+            ("-b", "--browse"),
             ("-d", "--download"),
         ]:
             parse_flags.add_argument(
@@ -133,13 +133,13 @@ class GetUserInputs:
         self,
     ) -> dict[str, Any]:
         """Returns main program flags, and ensures at least one is set."""
-        main_flags = ["search", "fetch", "score", "download"]
+        main_flags = ["search", "fetch", "score", "browse", "download"]
         if not any(self.args.get(flag) for flag in main_flags):
             print(
                 "Error: At least one of the following flags must be provided: --search, --fetch, --score, --download\n",
             )
             self.parser.print_help()
-        return {key: self.args.get(key) for key in ["search", "fetch", "score", "print", "download"]}
+        return {key: self.args.get(key) for key in ["search", "fetch", "score", "browse", "download"]}
 
     def get_search_inputs(
         self,
