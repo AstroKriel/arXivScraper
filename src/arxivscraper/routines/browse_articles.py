@@ -25,7 +25,7 @@ from arxivscraper.utils.article_utils import TaskStatus
 ##
 
 _FILTER_CYCLE: list[TaskStatus | None] = [
-    None,
+    None,  # no filter; show all articles
     TaskStatus.PENDING,
     TaskStatus.QUEUED,
     TaskStatus.READ,
@@ -54,21 +54,65 @@ class BrowseApp(App[None]):
     }
     """
 
-    BINDINGS = [
-        Binding("p", f"set_status('{TaskStatus.PENDING}')", "pending"),
-        Binding("q", f"set_status('{TaskStatus.QUEUED}')", "queued"),
-        Binding("r", f"set_status('{TaskStatus.READ}')", "read"),
-        Binding("d", f"set_status('{TaskStatus.DOWNLOAD}')", "mark download"),
-        Binding("D", "apply_downloads", "apply download"),
-        Binding("n", f"set_status('{TaskStatus.NA}')", "n/a"),
-        Binding("x", f"set_status('{TaskStatus.DELETE}')", "mark delete"),
-        Binding("X", "apply_deletions", "apply delete"),
-        Binding("o", "open_pdf", "open PDF"),
-        Binding("f", "cycle_filter", "filter"),
-        Binding("escape", "quit", "quit"),
-    ]
-
     TITLE = "arXiv Browser"
+
+    BINDINGS = [
+        Binding(
+            key="p",
+            action=f"set_status('{TaskStatus.PENDING}')",
+            description="pending",
+        ),
+        Binding(
+            key="q",
+            action=f"set_status('{TaskStatus.QUEUED}')",
+            description="queued",
+        ),
+        Binding(
+            key="r",
+            action=f"set_status('{TaskStatus.READ}')",
+            description="read",
+        ),
+        Binding(
+            key="d",
+            action=f"set_status('{TaskStatus.DOWNLOAD}')",
+            description="mark download",
+        ),
+        Binding(
+            key="D",
+            action="apply_downloads",
+            description="apply download",
+        ),
+        Binding(
+            key="n",
+            action=f"set_status('{TaskStatus.NA}')",
+            description="n/a",
+        ),
+        Binding(
+            key="x",
+            action=f"set_status('{TaskStatus.DELETE}')",
+            description="mark delete",
+        ),
+        Binding(
+            key="X",
+            action="apply_deletions",
+            description="apply delete",
+        ),
+        Binding(
+            key="o",
+            action="open_pdf",
+            description="open PDF",
+        ),
+        Binding(
+            key="f",
+            action="cycle_filter",
+            description="filter",
+        ),
+        Binding(
+            key="escape",
+            action="quit",
+            description="quit",
+        ),
+    ]
 
     def __init__(
         self,

@@ -28,12 +28,12 @@ from arxivscraper.utils import datetime_utils, io_utils
 
 
 class TaskStatus(str, Enum):
-    PENDING  = "pending"
-    QUEUED   = "queued"
-    READ     = "read"
+    PENDING = "pending"
+    QUEUED = "queued"
+    READ = "read"
     DOWNLOAD = "download"
-    NA       = "n/a"
-    DELETE   = "delete"
+    NA = "n/a"
+    DELETE = "delete"
 
 
 ##
@@ -73,7 +73,7 @@ def truncate_list(
 ) -> list[str]:
     """Return `elems` as strings, truncated to `max_elems` with `"..."` appended if longer."""
     truncated_elems = []
-    for elem_index, elem in enumerate(elements):
+    for elem_index, elem in enumerate(elems):
         if elem_index < max_elems:
             truncated_elems.append(str(elem))
         else:
