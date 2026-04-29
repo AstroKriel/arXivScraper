@@ -1,72 +1,117 @@
 # arXivScraper
 
-**arxivscraper** is a lightweight paper management tool designed to help you find, filter, and rank new arXiv papers based on your research interests. It offers flexible search and ranking criteria, as well as seamless integration with Obsidian.
+**arxivscraper** is a lightweight paper management tool for finding, filtering, and triaging arXiv papers.
 
 ![Logo](./logo.jpg)
 
 ---
 
-## Features
+## Workflow
 
-### 1. Find Papers
+### 1. Search
 
-`arxivscraper` allows you to create different topics or research categories, where you can calibrate each category's filtering criteria to find you exactly the papers you want to read. The API allows you to define:
-- Relevant arXiv categories to search
-- Keywords or phrases to filter by, as well as logical relationships between these words/phrases
-See `./docs/search-profiles.md` for examples.
+Search arXiv for papers matching a search profile:
 
-To start a search, use:
+```bash
+uv run python main.py --search --config_name <profile> --lookback_days <n>
+```
 
-```python main.py --search```
+Papers are saved as markdown files in `md_files/`. If `--config_name` or `--lookback_days` are not passed, the script will prompt for them.
 
-You will be promted to pass the config-name of the research category (the `.json` file storing your filter criateria) you want to search.
+### 2. Browse
 
-### 2. Fetch a Paper
-Fetch a specific paper by passing its arXiv ID:
+Open the TUI browser to read abstracts and triage saved papers:
 
-```python main.py --fetch --download```
+```bash
+uv run python main.py --print
+```
 
-You’ll be prompted to enter the paper’s arXiv ID. The script will display the paper’s title, author list, and abstract for confirmation. Use `--download` (or `-d`) as an optional flag to download the PDF.
+| Key | Action |
+|---|---|
+| `r` | mark as 2read |
+| `u` | mark as unread |
+| `d` | queue for download |
+| `D` | delete paper |
+| `i` | skip |
+| `o` | open PDF in browser |
+| `f` | cycle status filter |
+| `q` | quit |
 
-### 3. Rank Papers
-Customise paper ranking with a personal profile (defined in `./configs/user_profile.txt`) and get a tailored ranking that suits your interests. This feature uses OpenAI’s GPT API, which requires you to purchace access tokens. See `./docs/ai-ranking.md` for details on how to set this up. Once you've done so, initiate the ranking process via:
+### 3. Score
 
-```python main.py --rank```
+Score all unrated papers using an AI provider:
 
-### 4. Read, Download, Remove
-You can use Obsidian to manage your papers, and interface with `arxivscraper`. Create a vault in the project folder (I have provided default settings under `.Obsidian`).
+```bash
+uv run python -m arxivscraper.routines.score_articles
+```
 
-With Obsidian, you can:
-- View, manage, and filter papers based on your research categories, or their published/updated dates
-- Add papers to your "to-read" or "to-download" lists
+Pass `--model <model>` or `--base-url <url>` to override the values in `configs/ai_provider.toml`.
+
+### 4. Fetch
+
+Fetch a specific paper by arXiv ID:
+
+```bash
+uv run python main.py --fetch -id <arxiv-id>
+```
+
+The script displays the title, authors, and abstract for confirmation before saving.
+
+### 5. Download
+
+Download PDFs for all papers with status `d` (to-download):
+
+```bash
+uv run python main.py --download
+```
+
+---
 
 ## Installation
 
-To get started, clone the repository and install the dependencies.
+1. Clone the repository:
 
+```bash
+git clone https://github.com/<username>/arXivScraper.git
+cd arXivScraper
 ```
-git clone https://github.com/yourusername/git
-cd arxivscraper
-pip install -r requirements.txt
+
+2. Install dependencies:
+
+```bash
+uv sync
 ```
 
-## Usage Summary
+---
 
-1. Search for new papers: ```python main.py --search```
-2. Fetch a specific paper: ```python main.py --fetch```
-3. Rank papers: ```python main.py --rank```
-4. Download papers with "to-download" status: ```python main.py --download```
+## Configuration
 
-You can also string together `--search` (or `-s`) along with other commands (e.g., `-r` or `-p`). You can also download (`-d`) the paper you have fetched (`-f`).
+| File | Purpose |
+|---|---|
+| `configs/<profile>.json` | search criteria for one topic |
+| `configs/ai_provider.toml` | AI provider settings (model, API key, base URL) |
+| `configs/user_profile.txt` | scoring criteria sent to the AI |
+| `configs/ai_guidelines.txt` | system prompt rules for AI scoring |
 
-## Configuration files
+### Search profiles
 
-- Runtime settings: Customise runtime settings in `./configs/settings.yaml`
+Each `.json` file in `configs/` defines one search profile. Pass the filename without extension as `--config_name`.
 
-- JSON Profile Configurations: Define search criteria in JSON files located in `./configs/*.json`
+```json
+{
+  "categories": ["<arxiv-category>"],
+  "keywords_to_include": ["<keyword>"],
+  "keywords_to_exclude": [],
+  "authors": []
+}
+```
 
-- User Profile (for AI-ranking): Define a ranking profile in `./configs/user_profile.txt`
+### AI provider
+
+Copy `configs/ai_provider.example.toml` to `configs/ai_provider.toml` and fill in your values. Supports OpenAI, Anthropic, Ollama, and any OpenAI-compatible API.
+
+---
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the MIT License; see [LICENSE](./LICENSE.md) for details.
