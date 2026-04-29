@@ -58,9 +58,9 @@ class BrowseApp(App[None]):
         Binding("u", f"set_status('{TaskStatus.UNSEEN}')", "unseen"),
         Binding("2", f"set_status('{TaskStatus.TO_READ}')", "2read"),
         Binding("r", f"set_status('{TaskStatus.READ}')", "read"),
-        Binding("d", f"set_status('{TaskStatus.DOWNLOAD}')", "download"),
+        Binding("d", f"set_status('{TaskStatus.DOWNLOAD}')", "mark download"),
         Binding("D", "apply_downloads", "apply download"),
-        Binding("n", f"set_status('{TaskStatus.NO}')", "no"),
+        Binding("n", f"set_status('{TaskStatus.NO}')", "N/A"),
         Binding("x", f"set_status('{TaskStatus.DELETE}')", "mark delete"),
         Binding("X", "apply_deletions", "apply delete"),
         Binding("o", "open_pdf", "open PDF"),
@@ -198,7 +198,7 @@ class BrowseApp(App[None]):
     def action_apply_deletions(
         self,
     ) -> None:
-        to_delete = [a for a in self.all_articles if a.task_status == TaskStatus.DELETE]
+        to_delete = [article for article in self.all_articles if article.task_status == TaskStatus.DELETE]
         for article in to_delete:
             (directories.md_files_dir / f"{article.arxiv_id}.md").unlink(missing_ok=True)
             self.all_articles.remove(article)

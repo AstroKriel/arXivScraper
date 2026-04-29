@@ -9,7 +9,7 @@ import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date
-from enum import StrEnum
+from enum import Enum
 from pathlib import Path
 from typing import Any, TextIO
 
@@ -27,7 +27,7 @@ from arxivscraper.utils import datetime_utils, io_utils
 ##
 
 
-class TaskStatus(StrEnum):
+class TaskStatus(str, Enum):
     UNSEEN   = "unseen"
     TO_READ  = "2read"
     READ     = "read"
@@ -73,7 +73,7 @@ def truncate_list(
 ) -> list[str]:
     """Return `elems` as strings, truncated to `max_elems` with `"..."` appended if longer."""
     truncated_elems = []
-    for elem_index, elem in enumerate(elems):
+    for elem_index, elem in enumerate(elements):
         if elem_index < max_elems:
             truncated_elems.append(str(elem))
         else:
@@ -255,9 +255,9 @@ def get_article_summary(
         ai_results = {}
     authors = [unidecode.unidecode(str(author)) for author in truncate_list(arxiv_article.authors)]
     other_categories = [
-        format_text(elem)
-        for elem in truncate_list(arxiv_article.categories)
-        if (elem != arxiv_article.primary_category)
+        format_text(category)
+        for category in truncate_list(arxiv_article.categories)
+        if (category != arxiv_article.primary_category)
     ]
     config_tags = [f"#{key}" if ("#" not in key) else key for key in config_results.keys()]
     config_reasons = {key: reasons for key, reasons in config_results.items()}

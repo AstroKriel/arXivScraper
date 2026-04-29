@@ -160,7 +160,7 @@ class GetUserInputs:
         config_path = directories.configs_dir / f"{config_name}.toml"
         if not config_path.exists():
             raise FileNotFoundError(
-                f"config file not found: `{config_name}.json`; searched in {directories.configs_dir}.",
+                f"config file not found: `{config_name}.toml`; searched in {directories.configs_dir}.",
             )
         if search_args["lookback_days"] is None:
             search_args["lookback_days"] = int(input("Please provide --lookback_days: "))

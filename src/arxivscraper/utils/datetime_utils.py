@@ -20,10 +20,10 @@ def cast_date_to_string(
 
 
 def cast_string_to_date(
-    str_date: str,
+    date_string: str,
 ) -> datetime.date:
     """Parse an ISO-8601 date string (`YYYY-MM-DD`) and return a `datetime.date`."""
-    return datetime.datetime.strptime(str_date, "%Y-%m-%d").date()
+    return datetime.datetime.strptime(date_string, "%Y-%m-%d").date()
 
 
 def get_date_today() -> datetime.datetime:
@@ -32,11 +32,11 @@ def get_date_today() -> datetime.datetime:
 
 
 def get_date_n_days_ago(
-    num_days: int,
+    day_count: int,
 ) -> datetime.datetime:
-    """Return the date and time `num_days` before now."""
+    """Return the date and time `day_count` days before now."""
     date_today = datetime.datetime.now()
-    date_delta = datetime.timedelta(days=int(num_days))
+    date_delta = datetime.timedelta(days=int(day_count))
     return date_today - date_delta
 
 
