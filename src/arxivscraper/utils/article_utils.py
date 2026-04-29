@@ -27,13 +27,30 @@ from arxivscraper.utils import datetime_utils, io_utils
 ##
 
 
-class TaskStatus(str, Enum):
-    PENDING = "pending"
-    QUEUED = "queued"
-    READ = "read"
-    DOWNLOAD = "download"
-    NA = "n/a"
-    DELETE = "delete"
+@dataclass(frozen=True)
+class StatusConfig:
+    string_value: str
+    key: str
+    description: str
+
+
+class TaskStatus(Enum):
+    def __new__(
+        cls,
+        config: StatusConfig,
+    ) -> "TaskStatus":
+        obj = object.__new__(cls)
+        obj._value_ = config.string_value
+        obj.key = config.key
+        obj.description = config.description
+        return obj
+
+    PENDING  = StatusConfig(string_value="pending",  key="p", description="reset")
+    QUEUED   = StatusConfig(string_value="queued",   key="q", description="queue")
+    READ     = StatusConfig(string_value="read",     key="r", description="mark read")
+    DOWNLOAD = StatusConfig(string_value="download", key="d", description="mark download")
+    NA       = StatusConfig(string_value="n/a",      key="n", description="mark n/a")
+    DELETE   = StatusConfig(string_value="delete",   key="x", description="mark delete")
 
 
 ##
@@ -191,7 +208,7 @@ def write_article_to_file(
     )
     file_pointer.write("---\n")
     ## write the task status
-    file_pointer.write(f" - [{article.task_status}] #task status\n")
+    file_pointer.write(f" - [{article.task_status.value}] #task status\n")
 
 
 def save_article(

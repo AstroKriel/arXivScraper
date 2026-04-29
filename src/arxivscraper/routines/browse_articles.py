@@ -58,39 +58,16 @@ class BrowseApp(App[None]):
 
     BINDINGS = [
         Binding(
-            key="p",
-            action=f"set_status('{TaskStatus.PENDING}')",
-            description="pending",
-        ),
-        Binding(
-            key="q",
-            action=f"set_status('{TaskStatus.QUEUED}')",
-            description="queued",
-        ),
-        Binding(
-            key="r",
-            action=f"set_status('{TaskStatus.READ}')",
-            description="read",
-        ),
-        Binding(
-            key="d",
-            action=f"set_status('{TaskStatus.DOWNLOAD}')",
-            description="mark download",
-        ),
+            key=status.key,
+            action=f"set_status('{status.value}')",
+            description=status.description,
+        )
+        for status in TaskStatus
+    ] + [
         Binding(
             key="D",
             action="apply_downloads",
             description="apply download",
-        ),
-        Binding(
-            key="n",
-            action=f"set_status('{TaskStatus.NA}')",
-            description="n/a",
-        ),
-        Binding(
-            key="x",
-            action=f"set_status('{TaskStatus.DELETE}')",
-            description="mark delete",
         ),
         Binding(
             key="X",
@@ -135,7 +112,14 @@ class BrowseApp(App[None]):
     ) -> None:
         table = self.query_one(DataTable)
         table.cursor_type = "row"
-        table.add_columns("St", "Date", "Category", "Tags", "Title")
+        table.add_columns(
+            "Status",
+            "Tags",
+            "Category",
+            "Date",
+            "ID",
+            "Title",
+        )
         self._refresh_table()
 
     def _get_visible_articles(
@@ -155,10 +139,11 @@ class BrowseApp(App[None]):
         articles = self._get_visible_articles()
         for article in articles:
             table.add_row(
-                article.task_status,
-                str(article.date_updated),
-                article.category_primary,
+                article.task_status.value,
                 " ".join(article.config_tags),
+                article.category_primary,
+                str(article.date_updated),
+                article.arxiv_id,
                 article.title,
             )
         if articles:
@@ -191,7 +176,7 @@ class BrowseApp(App[None]):
         self,
     ) -> None:
         articles = self._get_visible_articles()
-        filter_label = "all" if self.filter_status is None else self.filter_status
+        filter_label = "all" if self.filter_status is None else self.filter_status.value
         self.sub_title = f"filter: {filter_label}  ({len(articles)} papers)"
 
     def on_data_table_row_highlighted(
