@@ -1,8 +1,8 @@
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-search_configs = PROJECT_ROOT / "configs"
-output_mdfiles = PROJECT_ROOT / "mdfiles"
-output_pdfs = PROJECT_ROOT / "pdfs"
+configs_dir  = PROJECT_ROOT / "configs"
+md_files_dir = PROJECT_ROOT / "md_files"
+pdfs_dir     = PROJECT_ROOT / "pdfs"
 
 ## .

@@ -34,7 +34,7 @@ def load_provider_config(
 
     CLI arguments override any config file values.
     """
-    provider_path = directories.search_configs / file_names.ai_provider
+    provider_path = directories.configs_dir / file_names.ai_provider
     if provider_path.is_file():
         try:
             with provider_path.open("rb") as file_pointer:
@@ -44,7 +44,7 @@ def load_provider_config(
             return None
     else:
         ## fall back to legacy api_key.txt
-        key_path = directories.search_configs / file_names.ai_api_key
+        key_path = directories.configs_dir / file_names.ai_api_key
         if not key_path.is_file():
             print(
                 f"Error: no AI config found.\n"
@@ -72,7 +72,8 @@ def load_provider_config(
 
     if not config.get("api_key"):
         print(
-            "Error: no api_key in provider config. Local servers (Ollama, LM Studio) use a placeholder like 'local'."
+            "Error: no api_key in provider config."
+            "Local servers (Ollama, LM Studio) use a placeholder like 'local'.",
         )
         return None
     if not config.get("model"):
@@ -241,8 +242,8 @@ def main():
     articles = [article for article in articles if article.ai_rating is None]
     num_articles = len(articles)
     print(f"Preparing to score {num_articles} articles.")
-    prompt_rules = io_utils.read_text_file(directories.search_configs / file_names.ai_rules)
-    prompt_criteria = io_utils.read_text_file(directories.search_configs / file_names.ai_criteria)
+    prompt_rules = io_utils.read_text_file(directories.configs_dir / file_names.ai_rules)
+    prompt_criteria = io_utils.read_text_file(directories.configs_dir / file_names.ai_criteria)
     for article_index, article in enumerate(articles):
         print(f"({article_index+1}/{num_articles})")
         is_scored = get_ai_score(

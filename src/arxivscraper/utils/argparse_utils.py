@@ -51,7 +51,8 @@ class GetUserInputs:
     ):
         """Sets up main program flag arguments."""
         parse_flags = self.parser.add_argument_group(description="Main program flags:")
-        for short_flag, long_flag in [("-s", "--search"), ("-f", "--fetch"), ("-r", "--score"), ("-p", "--print"), ("-d", "--download")]:
+        for short_flag, long_flag in [("-s", "--search"), ("-f", "--fetch"), ("-r", "--score"),
+                                      ("-p", "--print"), ("-d", "--download")]:
             parse_flags.add_argument(
                 short_flag,
                 long_flag,
@@ -151,10 +152,10 @@ class GetUserInputs:
         if not search_args["config_name"]:
             search_args["config_name"] = input("Please provide --config_name: ")
         config_name = search_args["config_name"]
-        config_path = directories.search_configs / f"{config_name}.json"
+        config_path = directories.configs_dir / f"{config_name}.json"
         if not config_path.exists():
             raise FileNotFoundError(
-                f"config file not found: `{config_name}.json`; searched in {directories.search_configs}.",
+                f"config file not found: `{config_name}.json`; searched in {directories.configs_dir}.",
             )
         if search_args["lookback_days"] is None:
             search_args["lookback_days"] = int(input("Please provide --lookback_days: "))

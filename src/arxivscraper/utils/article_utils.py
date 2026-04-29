@@ -79,7 +79,7 @@ def format_text(
     ## add spaces before and after text between two dollar signs (LaTeX math)
     text = re.sub(
         pattern=r"(\$.*?\$)",
-        repl=lambda m: f" {m.group(1)} ",
+        repl=lambda latex_match: f" {latex_match.group(1)} ",
         string=text,
     )
     ## remove any extra (eg, double) spaces that might have been added inadvertently
@@ -186,7 +186,7 @@ def save_article(
 ) -> None:
     """Write `article` to its mdfile, merging state from any existing file at that path."""
     file_name = article.arxiv_id + ".md"
-    file_path = directories.output_mdfiles / file_name
+    file_path = directories.md_files_dir / file_name
     if file_path.exists():
         existing_article = read_markdown_file(file_path)
         ## if the article has already been assessed, do not overwrite it
@@ -342,7 +342,7 @@ def read_markdown_file(
 
 def read_all_markdown_files() -> list[Article]:
     """Load and return all mdfiles in the output directory as `Article` objects."""
-    return [read_markdown_file(file_path) for file_path in sorted(directories.output_mdfiles.glob("*.md"))]
+    return [read_markdown_file(file_path) for file_path in sorted(directories.md_files_dir.glob("*.md"))]
 
 
 ## } MODULE

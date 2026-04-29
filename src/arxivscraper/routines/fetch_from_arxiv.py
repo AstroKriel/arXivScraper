@@ -36,7 +36,7 @@ def fetch_from_arxiv(
     print(" ")
     if not user_confirmation.startswith("y"):
         return None
-    file_path_file = directories.output_mdfiles / f"{arxiv_id}.md"
+    file_path_file = directories.md_files_dir / f"{arxiv_id}.md"
     if file_path_file.exists():
         print(f"Note: this arXiv article has already been saved: {file_path_file}")
         user_save_mdfile = input("Would you like to save it again? (y/N): ").strip().lower()
@@ -66,7 +66,7 @@ def fetch_from_arxiv(
 def main():
     user_inputs = argparse_utils.GetUserInputs(include_fetch=True)
     arxiv_id = user_inputs.get_fetch_inputs()
-    io_utils.create_directory(directories.output_mdfiles)
+    io_utils.create_directory(directories.md_files_dir)
     fetch_from_arxiv(arxiv_id)
 
 

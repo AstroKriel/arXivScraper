@@ -48,12 +48,12 @@ def _roundtrip(
     article: article_utils.Article,
 ) -> article_utils.Article:
     """Write an Article to a string buffer and read it back."""
-    buf = io.StringIO()
+    buffer = io.StringIO()
     article_utils.write_article_to_file(
-        buf,
+        buffer,
         article=article,
     )
-    md_text = buf.getvalue()
+    md_text = buffer.getvalue()
     with tempfile.NamedTemporaryFile(
             mode="w",
             suffix=".md",
@@ -250,7 +250,7 @@ class TestRoundtrip(unittest.TestCase):
         original = _make_article(
             config_reasons={
                 "mhd": [True, False, True],
-                "hydro": [False, True, False]
+                "hydro": [False, True, False],
             },
         )
         restored = _roundtrip(original)
@@ -258,7 +258,7 @@ class TestRoundtrip(unittest.TestCase):
             first=restored.config_reasons,
             second={
                 "mhd": [True, False, True],
-                "hydro": [False, True, False]
+                "hydro": [False, True, False],
             },
         )
 
@@ -376,7 +376,7 @@ class TestMergeLogic(unittest.TestCase):
         existing = _make_article(
             config_reasons={
                 "mhd": [True, False, True],
-                "hydro": [False, True, False]
+                "hydro": [False, True, False],
             },
         )
         incoming = _make_article(config_reasons={"mhd": [False, True, False]})

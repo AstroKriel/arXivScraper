@@ -91,7 +91,7 @@ class BrowseApp(App[None]):
     ) -> list[article_utils.Article]:
         if self.filter_status is None:
             return self.all_articles
-        return [a for a in self.all_articles if a.task_status == self.filter_status]
+        return [article for article in self.all_articles if article.task_status == self.filter_status]
 
     def _refresh_table(
         self,
@@ -138,7 +138,8 @@ class BrowseApp(App[None]):
     ) -> None:
         articles = self._get_visible_articles()
         filter_label = "all" if self.filter_status is None else _STATUS_LABELS.get(
-            self.filter_status, self.filter_status
+            self.filter_status,
+            self.filter_status,
         )
         self.sub_title = f"filter: {filter_label}  ({len(articles)} papers)"
 
@@ -167,7 +168,7 @@ class BrowseApp(App[None]):
         if article is None:
             return
         article.task_status = status
-        file_path = directories.output_mdfiles / f"{article.arxiv_id}.md"
+        file_path = directories.md_files_dir / f"{article.arxiv_id}.md"
         with open(file_path, "w") as file_pointer:
             article_utils.write_article_to_file(file_pointer, article=article)
         self._refresh_table(keep_row=current_row)
@@ -197,7 +198,7 @@ def main() -> None:
     articles = article_utils.read_all_markdown_files()
     articles = sorted(
         articles,
-        key=lambda a: a.date_updated,
+        key=lambda article: article.date_updated,
         reverse=True,
     )
     BrowseApp(articles).run()

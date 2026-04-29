@@ -22,8 +22,8 @@ from arxivscraper.utils import article_utils, io_utils
 def download_pdf(
     article: article_utils.Article,
 ) -> None:
-    file_path_pdf = directories.output_pdfs / f"{article.arxiv_id}.pdf"
-    file_path_md = directories.output_mdfiles / f"{article.arxiv_id}.md"
+    pdf_path = directories.pdfs_dir / f"{article.arxiv_id}.pdf"
+    md_path = directories.md_files_dir / f"{article.arxiv_id}.md"
     try:
         print("Title:", article.title)
         response = requests.get(
@@ -31,15 +31,15 @@ def download_pdf(
             stream=True,
         )
         response.raise_for_status()
-        with open(file_path_pdf, "wb") as file_pointer:
+        with open(pdf_path, "wb") as file_pointer:
             for chunk in response.iter_content(chunk_size=8192):
                 file_pointer.write(chunk)
-        print(f"Downloaded: {file_path_pdf}\n")
+        print(f"Downloaded: {pdf_path}\n")
     except requests.RequestException as error:
         print(f"Error downloading file: {error}")
     ## update task status stored in the markdown file
     article.task_status = "D"
-    with open(file_path_md, "w") as file_pointer:
+    with open(md_path, "w") as file_pointer:
         article_utils.write_article_to_file(file_pointer, article=article)
 
 
@@ -64,7 +64,7 @@ def download_pdfs(
 
 
 def main():
-    io_utils.create_directory(directories.output_pdfs)
+    io_utils.create_directory(directories.pdfs_dir)
     articles = article_utils.read_all_markdown_files()
     download_pdfs(
         articles,

@@ -90,7 +90,7 @@ class SearchArxiv():
         self,
     ) -> None:
         self.search_criteria = filter_utils.read_search_criteria(
-            directory=directories.search_configs,
+            directory=directories.configs_dir,
             config_name=self.config_name,
         )
         print("Searching for articles:")
@@ -174,15 +174,15 @@ class SearchArxiv():
 
 def main():
     user_inputs = argparse_utils.GetUserInputs(include_search=True)
-    search_params = user_inputs.get_search_inputs()
+    search_inputs = user_inputs.get_search_inputs()
     arxiv_searcher = SearchArxiv(
         current_date=datetime_utils.get_date_today(),
-        lookback_date=datetime_utils.get_date_n_days_ago(search_params["lookback_days"]),
-        config_name=search_params["config_name"],
+        lookback_date=datetime_utils.get_date_n_days_ago(search_inputs["lookback_days"]),
+        config_name=search_inputs["config_name"],
     )
     arxiv_searcher.search()
     articles = arxiv_searcher.get_sorted_articles()
-    io_utils.create_directory(directories.output_mdfiles)
+    io_utils.create_directory(directories.md_files_dir)
     for article in articles:
         article_utils.save_article(
             article=article,
