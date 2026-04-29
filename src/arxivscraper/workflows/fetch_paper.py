@@ -11,17 +11,13 @@ import sys
 import arxiv
 
 ## local
-from arxivscraper.io_configs import directories
-from arxivscraper.utils import argparse_utils, article_utils, io_utils
-
-##
-## === FETCH ARTICLE
-##
+from arxivscraper.config_paths import directories
+from arxivscraper.support import articles, file_io, script_cli
 
 
 def fetch_from_arxiv(
     arxiv_id: str,
-) -> article_utils.Article | None:
+) -> articles.Article | None:
     """Fetch a single article by arXiv ID, confirm with the user, and save it on acceptance."""
     client = arxiv.Client()
     search = arxiv.Search(id_list=[arxiv_id])
@@ -29,9 +25,9 @@ def fetch_from_arxiv(
     if arxiv_article is None:
         print(f"Error: the arXiv article `{arxiv_id}` does not exist.")
         return None
-    _article = article_utils.get_article_summary(arxiv_article)
+    _article = articles.get_article_summary(arxiv_article)
     print("The article you have requested:")
-    article_utils.print_article(_article)
+    articles.print_article(_article)
     print(" ")
     user_confirmation = input("Was this the article you intended to fetch? (y/N): ").strip().lower()
     print(" ")
@@ -51,29 +47,20 @@ def fetch_from_arxiv(
     if " " in user_tag:
         raise ValueError("config tag cannot contain spaces.")
     config_results = {user_tag: [1, 0, 0]}
-    article = article_utils.get_article_summary(
+    article = articles.get_article_summary(
         arxiv_article=arxiv_article,
         config_results=config_results,
     )
-    article_utils.save_article(article)
+    articles.save_article(article)
     return article
 
 
-##
-## === MAIN
-##
-
-
 def main() -> None:
-    user_inputs = argparse_utils.GetUserInputs(include_fetch=True)
+    user_inputs = script_cli.GetUserInputs(include_fetch=True)
     arxiv_id = user_inputs.get_fetch_inputs()
-    io_utils.create_directory(directories.md_files_dir)
+    file_io.create_directory(directories.md_files_dir)
     fetch_from_arxiv(arxiv_id)
 
-
-##
-## === ENTRY POINT
-##
 
 if __name__ == "__main__":
     main()

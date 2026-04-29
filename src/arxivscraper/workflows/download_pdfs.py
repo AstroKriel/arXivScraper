@@ -11,17 +11,13 @@ import sys
 import requests
 
 ## local
-from arxivscraper.io_configs import directories
-from arxivscraper.utils import article_utils, io_utils
-from arxivscraper.utils.article_utils import TaskStatus
-
-##
-## === DOWNLOAD PDF
-##
+from arxivscraper.config_paths import directories
+from arxivscraper.support import articles, file_io
+from arxivscraper.support.articles import TaskStatus
 
 
 def download_pdf(
-    article: article_utils.Article,
+    article: articles.Article,
 ) -> None:
     """Download the PDF for `article` and update its task status to `D` in the mdfile."""
     pdf_path = directories.pdfs_dir / f"{article.arxiv_id}.pdf"
@@ -39,20 +35,19 @@ def download_pdf(
         print(f"Downloaded: {pdf_path}\n")
     except requests.RequestException as error:
         print(f"Error downloading file: {error}")
-    ## update task status stored in the markdown file
     article.task_status = TaskStatus.PENDING
     with open(md_path, "w") as file_pointer:
-        article_utils.write_article_to_file(file_pointer, article=article)
+        articles.write_article_to_file(file_pointer, article=article)
 
 
 def download_pdfs(
-    articles: list[article_utils.Article],
+    articles_list: list[articles.Article],
     *,
     verbose: bool = False,
 ) -> None:
     """Download PDFs for all articles whose task status is `d`."""
-    num_articles = len(articles)
-    for article_index, article in enumerate(articles):
+    num_articles = len(articles_list)
+    for article_index, article in enumerate(articles_list):
         if verbose:
             print(f"({article_index+1}/{num_articles})")
         if article.task_status == TaskStatus.DOWNLOAD:
@@ -61,23 +56,14 @@ def download_pdfs(
             print("Article does not need to be downloaded.\n")
 
 
-##
-## === MAIN
-##
-
-
 def main() -> None:
-    io_utils.create_directory(directories.pdfs_dir)
-    articles = article_utils.read_all_markdown_files()
+    file_io.create_directory(directories.pdfs_dir)
+    articles_list = articles.read_all_markdown_files()
     download_pdfs(
-        articles,
+        articles_list,
         verbose=False,
     )
 
-
-##
-## === ENTRY POINT
-##
 
 if __name__ == "__main__":
     main()

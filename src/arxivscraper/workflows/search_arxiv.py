@@ -14,12 +14,8 @@ import arxiv
 import unidecode
 
 ## local
-from arxivscraper.io_configs import directories
-from arxivscraper.utils import argparse_utils, article_utils, datetime_utils, filter_utils, io_utils
-
-##
-## === OPERATOR CLASS
-##
+from arxivscraper.config_paths import directories
+from arxivscraper.support import articles, dates, file_io, script_cli, search_criteria
 
 
 class SearchArxiv():
@@ -35,25 +31,20 @@ class SearchArxiv():
         self.lookback_date = lookback_date
         self.current_date = current_date
         self.config_name = config_name
-        self.articles: list[article_utils.Article] = []
+        self.articles: list[articles.Article] = []
         self.client: arxiv.Client | None = None
-        self.search_criteria: dict[str, Any] = {}
+        self.search_criteria_config: dict[str, Any] = {}
 
     def search(
         self,
     ) -> None:
-        """Fetch and filter articles from arXiv for all categories in the config."""
         self._read_search_criteria()
-        for search_category in self.search_criteria["categories"]:
+        for search_category in self.search_criteria_config["categories"]:
             print(f"Searching: {search_category}")
             print(
-                f"Date range: {datetime_utils.cast_date_to_string(self.lookback_date)} to {datetime_utils.cast_date_to_string(self.current_date)}",
+                f"Date range: {dates.cast_date_to_string(self.lookback_date)} to {dates.cast_date_to_string(self.current_date)}",
             )
-            self.client = arxiv.Client(
-                page_size=200,
-                delay_seconds=1,
-                num_retries=100,
-            )
+            self.client = arxiv.Client(page_size=200, delay_seconds=1, num_retries=100)
             num_articles_looked_at_in_category = 0
             num_new_articles_saved_in_category = 0
             for arxiv_article in self.client.results(self._create_search_query(category=search_category)):
@@ -67,7 +58,7 @@ class SearchArxiv():
                 is_relevant, reasons = self._check_config_conditions(arxiv_article=arxiv_article)
                 if is_relevant:
                     config_results = {self.config_name: reasons}
-                    article = article_utils.get_article_summary(
+                    article = articles.get_article_summary(
                         arxiv_article=arxiv_article,
                         config_results=config_results,
                     )
@@ -79,8 +70,7 @@ class SearchArxiv():
 
     def get_sorted_articles(
         self,
-    ) -> list[article_utils.Article]:
-        """Return all found articles sorted by update date, newest first."""
+    ) -> list[articles.Article]:
         return sorted(
             self.articles,
             key=lambda article: article.date_updated,
@@ -90,17 +80,17 @@ class SearchArxiv():
     def _read_search_criteria(
         self,
     ) -> None:
-        self.search_criteria = filter_utils.read_search_criteria(
-            directory=directories.configs_dir,
+        self.search_criteria_config = search_criteria.read_search_criteria(
+            directory=directories.search_configs_dir,
             config_name=self.config_name,
         )
         print("Searching for articles:")
-        print("> from: {}".format(datetime_utils.cast_date_to_string(self.lookback_date)))
-        print("> to:   {}".format(datetime_utils.cast_date_to_string(self.current_date)))
+        print("> from: {}".format(dates.cast_date_to_string(self.lookback_date)))
+        print("> to:   {}".format(dates.cast_date_to_string(self.current_date)))
         print(" ")
         print(f"> using the `#{self.config_name}` config file")
         print(" ")
-        filter_utils.print_search_criteria(self.search_criteria)
+        search_criteria.print_search_criteria(self.search_criteria_config)
 
     def _create_search_query(
         self,
@@ -133,29 +123,29 @@ class SearchArxiv():
         *,
         arxiv_article: arxiv.Result,
     ) -> tuple[bool, list[bool]]:
-        if filter_utils.meets_search_criteria(
+        if search_criteria.meets_search_criteria(
                 phrase=arxiv_article.title.lower(),
-                search_keywords=self.search_criteria["keywords_to_exclude"],
+                search_keywords=self.search_criteria_config["keywords_to_exclude"],
         ):
             return False, []
-        is_title_matching = filter_utils.meets_search_criteria(
+        is_title_matching = search_criteria.meets_search_criteria(
             phrase=arxiv_article.title.lower(),
-            search_keywords=self.search_criteria["keywords_to_include"],
+            search_keywords=self.search_criteria_config["keywords_to_include"],
         )
-        if filter_utils.meets_search_criteria(
+        if search_criteria.meets_search_criteria(
                 phrase=arxiv_article.summary.lower(),
-                search_keywords=self.search_criteria["keywords_to_exclude"],
+                search_keywords=self.search_criteria_config["keywords_to_exclude"],
         ):
             return False, []
-        is_abstract_matching = filter_utils.meets_search_criteria(
+        is_abstract_matching = search_criteria.meets_search_criteria(
             phrase=arxiv_article.summary.lower(),
-            search_keywords=self.search_criteria["keywords_to_include"],
+            search_keywords=self.search_criteria_config["keywords_to_include"],
         )
         author_last_names = [
             unidecode.unidecode(str(author).lower().split(" ")[-1]) for author in arxiv_article.authors
         ]
         is_authors_matching = any(
-            author.lower() in author_last_names for author in self.search_criteria["authors"]
+            author.lower() in author_last_names for author in self.search_criteria_config["authors"]
         )
         reasons = [is_title_matching, is_abstract_matching, is_authors_matching]
         return any(reasons), reasons
@@ -173,35 +163,26 @@ class SearchArxiv():
             print(" ", end="")
 
 
-##
-## === MAIN
-##
-
-
 def main() -> None:
-    user_inputs = argparse_utils.GetUserInputs(include_search=True)
+    user_inputs = script_cli.GetUserInputs(include_search=True)
     search_inputs = user_inputs.get_search_inputs()
     arxiv_searcher = SearchArxiv(
-        current_date=datetime_utils.get_date_today(),
-        lookback_date=datetime_utils.get_date_n_days_ago(search_inputs["lookback_days"]),
+        current_date=dates.get_date_today(),
+        lookback_date=dates.get_date_n_days_ago(search_inputs["lookback_days"]),
         config_name=search_inputs["config_name"],
     )
     arxiv_searcher.search()
-    articles = arxiv_searcher.get_sorted_articles()
-    io_utils.create_directory(directories.md_files_dir)
-    for article in articles:
-        article_utils.save_article(
+    articles_list = arxiv_searcher.get_sorted_articles()
+    file_io.create_directory(directories.md_files_dir)
+    for article in articles_list:
+        articles.save_article(
             article=article,
             verbose=False,
             force=True,
         )
-    print(f"Saved {len(articles)} articles.")
+    print(f"Saved {len(articles_list)} articles.")
     print(" ")
 
-
-##
-## === ENTRY POINT
-##
 
 if __name__ == "__main__":
     main()

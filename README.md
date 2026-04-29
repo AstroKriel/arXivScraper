@@ -6,6 +6,23 @@
 
 ---
 
+## Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/<username>/arXivScraper.git
+cd arXivScraper
+```
+
+2. Install dependencies:
+
+```bash
+uv sync
+```
+
+---
+
 ## Workflow
 
 ### 1. Search
@@ -13,7 +30,7 @@
 Search arXiv for papers matching a search profile:
 
 ```bash
-uv run python main.py --search --config_name <profile> --lookback_days <n>
+uv run arxivscraper --search --config_name <profile> --lookback_days <n>
 ```
 
 Papers are saved as markdown files in `md_files/`. If `--config_name` or `--lookback_days` are not passed, the script will prompt for them.
@@ -23,7 +40,7 @@ Papers are saved as markdown files in `md_files/`. If `--config_name` or `--look
 Open the terminal interface browser to read abstracts and triage saved papers:
 
 ```bash
-uv run python main.py --browse
+uv run arxivscraper --browse
 ```
 
 | Key | State |
@@ -45,17 +62,17 @@ uv run python main.py --browse
 Score all unrated papers using an AI provider:
 
 ```bash
-uv run python -m arxivscraper.routines.score_articles
+uv run arxivscraper --score
 ```
 
-Pass `--model <model>` or `--base-url <url>` to override the values in `configs/ai_provider.toml`.
+Pass `--model <model>` or `--base-url <url>` to override the values in `configs/ai/ai_provider.toml`.
 
 ### 4. Fetch
 
 Fetch a specific paper by arXiv ID:
 
 ```bash
-uv run python main.py --fetch -id <arxiv-id>
+uv run arxivscraper --fetch -id <arxiv-id>
 ```
 
 The script displays the title, authors, and abstract for confirmation before saving.
@@ -67,24 +84,7 @@ From the terminal interface browser, press `d` to mark a paper for download. Use
 Alternatively, you can also run the download step directly from the terminal:
 
 ```bash
-uv run python main.py --download
-```
-
----
-
-## Installation
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/<username>/arXivScraper.git
-cd arXivScraper
-```
-
-2. Install dependencies:
-
-```bash
-uv sync
+uv run arxivscraper --download
 ```
 
 ---
@@ -93,20 +93,20 @@ uv sync
 
 | File | Purpose |
 |---|---|
-| `configs/<profile>.toml` | search criteria for one topic |
-| `configs/ai_provider.toml` | AI provider settings (model, API key, base URL) |
-| `configs/user_profile.txt` | scoring criteria sent to the AI |
-| `configs/ai_guidelines.txt` | system prompt rules for AI scoring |
+| `configs/search/<profile>.toml` | search criteria for one topic |
+| `configs/ai/ai_provider.toml` | optional AI provider settings (model, API key, base URL) |
+| `configs/ai/user_profile.txt` | scoring criteria sent to the AI |
+| `configs/ai/ai_guidelines.txt` | system prompt rules for AI scoring |
 
 ### Search profiles
 
-Each `.toml` file in `configs/` defines one search profile. Pass the filename without extension as `--config_name`.
+Each `.toml` file in `configs/search/` defines one search profile. Pass the filename without extension as `--config_name`.
 
 ```toml
 authors = []
 categories = ["<arxiv-category>"]
-keywords_to_exclude = []
-keywords_to_include = ["<keyword>", ...]
+keywords_to_exclude = ["<keyword-a>"]
+keywords_to_include = ["<keyword-b>", ["<keyword-c>", "<keyword-d>"]]
 ```
 
 Keywords use a nested list notation where the operator alternates every level: OR at even depth, AND at odd depth.
@@ -119,7 +119,7 @@ Keywords use a nested list notation where the operator alternates every level: O
 | ... | ... |
 
 ```toml
-keywords_to_include = [
+keywords = [
     "<keyword-a>",
     ["<keyword-b>", ["<keyword-c>", "<keyword-d>"]],
 ]
@@ -131,7 +131,7 @@ See `tests/test_filter.py` for examples in action.
 
 ### AI provider
 
-Copy `configs/ai_provider.example.toml` to `configs/ai_provider.toml` and fill in your values. Supports OpenAI, Anthropic, Ollama, and any OpenAI-compatible API.
+Copy `configs/ai/ai_provider.example.toml` to `configs/ai/ai_provider.toml` and fill in your values. Supports OpenAI, Anthropic, Ollama, and any OpenAI-compatible API.
 
 ---
 
