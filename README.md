@@ -28,11 +28,13 @@ uv run python main.py --browse
 
 | Key | Action |
 |---|---|
-| `r` | mark as 2read |
-| `u` | mark as unread |
-| `d` | queue for download |
-| `D` | delete paper |
-| `i` | skip |
+| `u` | unseen |
+| `2` | 2read |
+| `r` | read |
+| `d` | download |
+| `n` | no |
+| `x` | mark for deletion |
+| `X` | apply deletions |
 | `o` | open PDF in browser |
 | `f` | cycle status filter |
 | `q` | quit |

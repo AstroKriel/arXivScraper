@@ -25,12 +25,12 @@ from arxivscraper.utils.article_utils import TaskStatus
 
 _FILTER_CYCLE: list[TaskStatus | None] = [
     None,
-    TaskStatus.UNREAD,
+    TaskStatus.UNSEEN,
     TaskStatus.TO_READ,
     TaskStatus.READ,
     TaskStatus.DOWNLOAD,
+    TaskStatus.NO,
     TaskStatus.DELETE,
-    TaskStatus.SKIP,
 ]
 
 ##
@@ -54,13 +54,13 @@ class BrowseApp(App[None]):
     """
 
     BINDINGS = [
-        Binding("u", f"set_status('{TaskStatus.UNREAD}')", "unread"),
+        Binding("u", f"set_status('{TaskStatus.UNSEEN}')", "unseen"),
         Binding("2", f"set_status('{TaskStatus.TO_READ}')", "2read"),
         Binding("r", f"set_status('{TaskStatus.READ}')", "read"),
         Binding("d", f"set_status('{TaskStatus.DOWNLOAD}')", "download"),
-        Binding("D", f"set_status('{TaskStatus.DELETE}')", "mark delete"),
+        Binding("n", f"set_status('{TaskStatus.NO}')", "no"),
+        Binding("x", f"set_status('{TaskStatus.DELETE}')", "mark delete"),
         Binding("X", "apply_deletions", "apply delete"),
-        Binding("i", f"set_status('{TaskStatus.SKIP}')", "skip"),
         Binding("o", "open_pdf", "open PDF"),
         Binding("f", "cycle_filter", "filter"),
         Binding("q", "quit", "quit"),

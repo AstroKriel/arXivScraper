@@ -28,12 +28,12 @@ from arxivscraper.utils import datetime_utils, io_utils
 
 
 class TaskStatus(StrEnum):
-    UNREAD   = "unread"
+    UNSEEN   = "unseen"
     TO_READ  = "2read"
     READ     = "read"
     DOWNLOAD = "download"
+    NO       = "no"
     DELETE   = "delete"
-    SKIP     = "skip"
 
 
 ##
@@ -55,7 +55,7 @@ class Article:
     category_primary: str
     category_others: list[str]
     config_tags: list[str] = field(default_factory=list)
-    task_status: TaskStatus = TaskStatus.UNREAD
+    task_status: TaskStatus = TaskStatus.UNSEEN
     ai_rating: float | None = None
     ai_reason: str | None = None
     ## keyed by config name (without the "config_reason_" prefix)
@@ -206,11 +206,11 @@ def save_article(
     if file_path.exists():
         existing_article = read_markdown_file(file_path)
         ## if the article has already been assessed, do not overwrite it
-        if not (force) and existing_article.task_status in [TaskStatus.READ, TaskStatus.SKIP]:
+        if not (force) and existing_article.task_status in [TaskStatus.READ, TaskStatus.NO]:
             if existing_article.task_status == TaskStatus.READ:
                 print("The following article has already been read:")
-            if existing_article.task_status == TaskStatus.SKIP:
-                print("The following article has already been skipped:")
+            if existing_article.task_status == TaskStatus.NO:
+                print("The following article has already been marked as not interested:")
             print_article(article)
             user_input = input("Do you want to save it again? (y/N): ").strip().lower()
             print(" ")
@@ -246,7 +246,7 @@ def get_article_summary(
     *,
     config_results: Mapping[str, list[Any]] | None = None,
     ai_results: dict[str, Any] | None = None,
-    task_status: TaskStatus = TaskStatus.UNREAD,
+    task_status: TaskStatus = TaskStatus.UNSEEN,
 ) -> Article:
     """Build an `Article` from a raw arXiv result, optionally attaching config and AI results."""
     if config_results is None:
@@ -330,7 +330,7 @@ def read_markdown_file(
         if key.startswith("config_reason_")
     }
     ## find the character inside the brackets [] on the same line as `#task`
-    task_status = TaskStatus.UNREAD
+    task_status = TaskStatus.UNSEEN
     task_match = re.search(
         pattern=r"^\s*-\s+\[([^\]]+)\].*#task",
         string=body,
@@ -340,7 +340,7 @@ def read_markdown_file(
         try:
             task_status = TaskStatus(task_match.group(1))
         except ValueError:
-            task_status = TaskStatus.UNREAD
+            task_status = TaskStatus.UNSEEN
     return Article(
         title=meta_data.get("title"),
         authors=meta_data.get("authors"),
