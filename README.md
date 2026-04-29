@@ -32,6 +32,7 @@ uv run python main.py --browse
 | `2` | 2read |
 | `r` | read |
 | `d` | download |
+| `D` | apply downloads |
 | `n` | no |
 | `x` | mark for deletion |
 | `X` | apply deletions |

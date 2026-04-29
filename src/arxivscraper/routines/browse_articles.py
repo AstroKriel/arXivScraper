@@ -16,7 +16,8 @@ from textual.widgets import DataTable, Footer, Header, Static
 
 ## local
 from arxivscraper.io_configs import directories
-from arxivscraper.utils import article_utils
+from arxivscraper.routines import download_articles
+from arxivscraper.utils import article_utils, io_utils
 from arxivscraper.utils.article_utils import TaskStatus
 
 ##
@@ -58,6 +59,7 @@ class BrowseApp(App[None]):
         Binding("2", f"set_status('{TaskStatus.TO_READ}')", "2read"),
         Binding("r", f"set_status('{TaskStatus.READ}')", "read"),
         Binding("d", f"set_status('{TaskStatus.DOWNLOAD}')", "download"),
+        Binding("D", "apply_downloads", "apply download"),
         Binding("n", f"set_status('{TaskStatus.NO}')", "no"),
         Binding("x", f"set_status('{TaskStatus.DELETE}')", "mark delete"),
         Binding("X", "apply_deletions", "apply delete"),
@@ -185,6 +187,13 @@ class BrowseApp(App[None]):
         if article is None:
             return
         webbrowser.open(article.url_pdf)
+
+    def action_apply_downloads(
+        self,
+    ) -> None:
+        io_utils.create_directory(directories.pdfs_dir)
+        download_articles.download_pdfs(self.all_articles)
+        self._refresh_table()
 
     def action_apply_deletions(
         self,
