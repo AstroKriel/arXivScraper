@@ -40,7 +40,7 @@ def download_pdf(
     except requests.RequestException as error:
         print(f"Error downloading file: {error}")
     ## update task status stored in the markdown file
-    article.task_status = TaskStatus.UNREAD
+    article.task_status = TaskStatus.PENDING
     with open(md_path, "w") as file_pointer:
         article_utils.write_article_to_file(file_pointer, article=article)
 

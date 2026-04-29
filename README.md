@@ -28,17 +28,17 @@ uv run python main.py --browse
 
 | Key | Action |
 |---|---|
-| `u` | unseen |
-| `2` | 2read |
+| `p` | pending |
+| `q` | queued |
 | `r` | read |
 | `d` | download |
 | `D` | apply downloads |
-| `n` | no |
+| `n` | n/a |
 | `x` | mark for deletion |
 | `X` | apply deletions |
 | `o` | open PDF in browser |
 | `f` | cycle status filter |
-| `q` | quit |
+| `escape` | quit |
 
 ### 3. Score
 

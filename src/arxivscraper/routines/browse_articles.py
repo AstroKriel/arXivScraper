@@ -26,11 +26,11 @@ from arxivscraper.utils.article_utils import TaskStatus
 
 _FILTER_CYCLE: list[TaskStatus | None] = [
     None,
-    TaskStatus.UNSEEN,
-    TaskStatus.TO_READ,
+    TaskStatus.PENDING,
+    TaskStatus.QUEUED,
     TaskStatus.READ,
     TaskStatus.DOWNLOAD,
-    TaskStatus.NO,
+    TaskStatus.NA,
     TaskStatus.DELETE,
 ]
 
@@ -55,17 +55,17 @@ class BrowseApp(App[None]):
     """
 
     BINDINGS = [
-        Binding("u", f"set_status('{TaskStatus.UNSEEN}')", "unseen"),
-        Binding("2", f"set_status('{TaskStatus.TO_READ}')", "2read"),
+        Binding("p", f"set_status('{TaskStatus.PENDING}')", "pending"),
+        Binding("q", f"set_status('{TaskStatus.QUEUED}')", "queued"),
         Binding("r", f"set_status('{TaskStatus.READ}')", "read"),
         Binding("d", f"set_status('{TaskStatus.DOWNLOAD}')", "mark download"),
         Binding("D", "apply_downloads", "apply download"),
-        Binding("n", f"set_status('{TaskStatus.NO}')", "N/A"),
+        Binding("n", f"set_status('{TaskStatus.NA}')", "n/a"),
         Binding("x", f"set_status('{TaskStatus.DELETE}')", "mark delete"),
         Binding("X", "apply_deletions", "apply delete"),
         Binding("o", "open_pdf", "open PDF"),
         Binding("f", "cycle_filter", "filter"),
-        Binding("q", "quit", "quit"),
+        Binding("escape", "quit", "quit"),
     ]
 
     TITLE = "arXiv Browser"
