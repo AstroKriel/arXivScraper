@@ -17,19 +17,21 @@ from textual.widgets import DataTable, Footer, Header, Static
 ## local
 from arxivscraper.io_configs import directories
 from arxivscraper.utils import article_utils
+from arxivscraper.utils.article_utils import TaskStatus
 
 ##
 ## === CONSTANTS
 ##
 
-_STATUS_LABELS = {
-    "u": "unread",
-    "r": "2read",
-    "d": "download",
-    "-": "skip",
-}
-
-_FILTER_CYCLE = [None, "u", "r", "d", "-",]
+_FILTER_CYCLE: list[TaskStatus | None] = [
+    None,
+    TaskStatus.UNREAD,
+    TaskStatus.TO_READ,
+    TaskStatus.READ,
+    TaskStatus.DOWNLOAD,
+    TaskStatus.DELETE,
+    TaskStatus.SKIP,
+]
 
 ##
 ## === TUI APP
@@ -52,11 +54,13 @@ class BrowseApp(App[None]):
     """
 
     BINDINGS = [
-        Binding("r", "set_status('r')", "2read"),
-        Binding("u", "set_status('u')", "unread"),
-        Binding("d", "set_status('d')", "download"),
-        Binding("D", "delete_article", "delete"),
-        Binding("i", "set_status('-')", "skip"),
+        Binding("u", f"set_status('{TaskStatus.UNREAD}')", "unread"),
+        Binding("2", f"set_status('{TaskStatus.TO_READ}')", "2read"),
+        Binding("r", f"set_status('{TaskStatus.READ}')", "read"),
+        Binding("d", f"set_status('{TaskStatus.DOWNLOAD}')", "download"),
+        Binding("D", f"set_status('{TaskStatus.DELETE}')", "mark delete"),
+        Binding("X", "apply_deletions", "apply delete"),
+        Binding("i", f"set_status('{TaskStatus.SKIP}')", "skip"),
         Binding("o", "open_pdf", "open PDF"),
         Binding("f", "cycle_filter", "filter"),
         Binding("q", "quit", "quit"),
@@ -70,7 +74,7 @@ class BrowseApp(App[None]):
     ) -> None:
         super().__init__()
         self.all_articles = articles
-        self.filter_status: str | None = None
+        self.filter_status: TaskStatus | None = None
 
     def compose(
         self,
@@ -141,10 +145,7 @@ class BrowseApp(App[None]):
         self,
     ) -> None:
         articles = self._get_visible_articles()
-        filter_label = "all" if self.filter_status is None else _STATUS_LABELS.get(
-            self.filter_status,
-            self.filter_status,
-        )
+        filter_label = "all" if self.filter_status is None else self.filter_status
         self.sub_title = f"filter: {filter_label}  ({len(articles)} papers)"
 
     def on_data_table_row_highlighted(
@@ -171,7 +172,7 @@ class BrowseApp(App[None]):
         article = self._get_current_article()
         if article is None:
             return
-        article.task_status = status
+        article.task_status = TaskStatus(status)
         file_path = directories.md_files_dir / f"{article.arxiv_id}.md"
         with open(file_path, "w") as file_pointer:
             article_utils.write_article_to_file(file_pointer, article=article)
@@ -185,18 +186,14 @@ class BrowseApp(App[None]):
             return
         webbrowser.open(article.url_pdf)
 
-    def action_delete_article(
+    def action_apply_deletions(
         self,
     ) -> None:
-        article = self._get_current_article()
-        if article is None:
-            return
-        table = self.query_one(DataTable)
-        current_row = table.cursor_row
-        file_path = directories.md_files_dir / f"{article.arxiv_id}.md"
-        file_path.unlink(missing_ok=True)
-        self.all_articles.remove(article)
-        self._refresh_table(keep_row=current_row)
+        to_delete = [a for a in self.all_articles if a.task_status == TaskStatus.DELETE]
+        for article in to_delete:
+            (directories.md_files_dir / f"{article.arxiv_id}.md").unlink(missing_ok=True)
+            self.all_articles.remove(article)
+        self._refresh_table()
 
     def action_cycle_filter(
         self,

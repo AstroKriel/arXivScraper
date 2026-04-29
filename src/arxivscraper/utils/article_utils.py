@@ -6,10 +6,11 @@
 
 ## stdlib
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date
+from enum import StrEnum
 from pathlib import Path
-from collections.abc import Mapping
 from typing import Any, TextIO
 
 ## third-party
@@ -20,6 +21,20 @@ import yaml
 ## local
 from arxivscraper.io_configs import directories
 from arxivscraper.utils import datetime_utils, io_utils
+
+##
+## === TASK STATUS
+##
+
+
+class TaskStatus(StrEnum):
+    UNREAD   = "unread"
+    TO_READ  = "2read"
+    READ     = "read"
+    DOWNLOAD = "download"
+    DELETE   = "delete"
+    SKIP     = "skip"
+
 
 ##
 ## === ARTICLE DATACLASS
@@ -40,7 +55,7 @@ class Article:
     category_primary: str
     category_others: list[str]
     config_tags: list[str] = field(default_factory=list)
-    task_status: str = "u"
+    task_status: TaskStatus = TaskStatus.UNREAD
     ai_rating: float | None = None
     ai_reason: str | None = None
     ## keyed by config name (without the "config_reason_" prefix)
@@ -191,11 +206,11 @@ def save_article(
     if file_path.exists():
         existing_article = read_markdown_file(file_path)
         ## if the article has already been assessed, do not overwrite it
-        if not (force) and existing_article.task_status in ["D", "-"]:
-            if existing_article.task_status == "D":
-                print("The following article has already been downloaded:")
-            if existing_article.task_status == "-":
-                print("The following article has already been ignored:")
+        if not (force) and existing_article.task_status in [TaskStatus.READ, TaskStatus.SKIP]:
+            if existing_article.task_status == TaskStatus.READ:
+                print("The following article has already been read:")
+            if existing_article.task_status == TaskStatus.SKIP:
+                print("The following article has already been skipped:")
             print_article(article)
             user_input = input("Do you want to save it again? (y/N): ").strip().lower()
             print(" ")
@@ -231,7 +246,7 @@ def get_article_summary(
     *,
     config_results: Mapping[str, list[Any]] | None = None,
     ai_results: dict[str, Any] | None = None,
-    task_status: str = "u",
+    task_status: TaskStatus = TaskStatus.UNREAD,
 ) -> Article:
     """Build an `Article` from a raw arXiv result, optionally attaching config and AI results."""
     if config_results is None:
@@ -315,14 +330,17 @@ def read_markdown_file(
         if key.startswith("config_reason_")
     }
     ## find the character inside the brackets [] on the same line as `#task`
-    task_status = "u"
+    task_status = TaskStatus.UNREAD
     task_match = re.search(
         pattern=r"^\s*-\s+\[([^\]]+)\].*#task",
         string=body,
         flags=re.MULTILINE,
     )
     if task_match:
-        task_status = task_match.group(1)
+        try:
+            task_status = TaskStatus(task_match.group(1))
+        except ValueError:
+            task_status = TaskStatus.UNREAD
     return Article(
         title=meta_data.get("title"),
         authors=meta_data.get("authors"),

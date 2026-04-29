@@ -13,6 +13,7 @@ import requests
 ## local
 from arxivscraper.io_configs import directories
 from arxivscraper.utils import article_utils, io_utils
+from arxivscraper.utils.article_utils import TaskStatus
 
 ##
 ## === DOWNLOAD PDF
@@ -39,7 +40,7 @@ def download_pdf(
     except requests.RequestException as error:
         print(f"Error downloading file: {error}")
     ## update task status stored in the markdown file
-    article.task_status = "D"
+    article.task_status = TaskStatus.UNREAD
     with open(md_path, "w") as file_pointer:
         article_utils.write_article_to_file(file_pointer, article=article)
 
@@ -54,7 +55,7 @@ def download_pdfs(
     for article_index, article in enumerate(articles):
         if verbose:
             print(f"({article_index+1}/{num_articles})")
-        if article.task_status == "d":
+        if article.task_status == TaskStatus.DOWNLOAD:
             download_pdf(article)
         elif verbose:
             print("Article does not need to be downloaded.\n")
