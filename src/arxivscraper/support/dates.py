@@ -26,6 +26,16 @@ def cast_string_to_date(
     return datetime.datetime.strptime(date_string, "%Y-%m-%d").date()
 
 
+def cast_date_to_datetime(
+    date: datetime.date,
+) -> datetime.datetime:
+    """Return `date` as a midnight `datetime.datetime`."""
+    return datetime.datetime.combine(
+        date,
+        datetime.time.min,
+    )
+
+
 def get_date_today() -> datetime.datetime:
     """Return the current date and time."""
     return datetime.datetime.now()
@@ -38,6 +48,16 @@ def get_date_n_days_ago(
     date_today = datetime.datetime.now()
     date_delta = datetime.timedelta(days=int(day_count))
     return date_today - date_delta
+
+
+def get_date_n_days_before(
+    end_date: datetime.datetime,
+    *,
+    day_count: int,
+) -> datetime.datetime:
+    """Return the date and time `day_count` days before `end_date`."""
+    date_delta = datetime.timedelta(days=int(day_count))
+    return end_date - date_delta
 
 
 ## } MODULE

@@ -11,6 +11,7 @@ from typing import Any
 
 ## local
 from arxivscraper.config_paths import directories
+from arxivscraper.support import dates
 
 ##
 ## === USER INPUT HANDLER
@@ -76,19 +77,30 @@ class GetUserInputs:
         )
         search_args.add_argument(
             "-c",
-            "--config_name",
+            "--config-name",
             type=str,
             required=False,
             metavar="",
+            dest="config_name",
             help="Name of the config-file that defines search parameters.",
         )
         search_args.add_argument(
             "-lb",
-            "--lookback_days",
+            "--lookback-days",
             type=int,
             required=False,
             metavar="",
+            dest="lookback_days",
             help="Lookback period (in days) to start search.",
+        )
+        search_args.add_argument(
+            "-fd",
+            "--from-date",
+            type=str,
+            required=False,
+            metavar="",
+            dest="from_date",
+            help="End date for the lookback window in `YYYY-MM-DD` format.",
         )
 
     def _add_fetch_argument(
@@ -150,10 +162,11 @@ class GetUserInputs:
             for key in [
                 "config_name",
                 "lookback_days",
+                "from_date",
             ]
         }
         if not search_args["config_name"]:
-            search_args["config_name"] = input("Please provide --config_name: ")
+            search_args["config_name"] = input("Please provide --config-name: ")
         config_name = search_args["config_name"]
         config_path = directories.search_configs_dir / f"{config_name}.toml"
         if not config_path.exists():
@@ -161,7 +174,11 @@ class GetUserInputs:
                 f"config file not found: `{config_name}.toml`; searched in {directories.search_configs_dir}.",
             )
         if search_args["lookback_days"] is None:
-            search_args["lookback_days"] = int(input("Please provide --lookback_days: "))
+            search_args["lookback_days"] = int(input("Please provide --lookback-days: "))
+        if search_args["from_date"] is not None:
+            search_args["from_date"] = dates.cast_date_to_datetime(
+                dates.cast_string_to_date(search_args["from_date"]),
+            )
         return search_args
 
     def get_score_inputs(

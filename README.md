@@ -31,7 +31,7 @@ This adds `arxivscraper` to your `PATH`, so you can run:
 
 ```bash
 arxivscraper --browse
-arxivscraper --search --config_name <profile> --lookback_days <n>
+arxivscraper --search --config-name <profile> --lookback-days <n>
 arxivscraper --score
 ```
 
@@ -41,13 +41,13 @@ arxivscraper --score
 
 ### Search
 
-Search arXiv for papers matching a search profile:
+Search arXiv for papers matching a search profile. The search window is based on arXiv submission date:
 
 ```bash
-uv run arxivscraper --search --config_name <profile> --lookback_days <n>
+uv run arxivscraper --search --config-name <profile> --lookback-days <n> [--from-date YYYY-MM-DD]
 ```
 
-Papers are saved as markdown files in `md_files/`. If `--config_name` or `--lookback_days` are not passed, the script will prompt for them.
+Papers are saved as markdown files in `md_files/`. If `--config-name` or `--lookback-days` are not passed, the script will prompt for them. By default, the lookback window ends on today; pass `--from-date` to anchor it to a different date.
 
 ### Browse
 
@@ -115,7 +115,7 @@ uv run arxivscraper --download
 
 ### Search profiles
 
-Each `.toml` file in `configs/search/` defines one search profile. Pass the filename without extension as `--config_name`.
+Each `.toml` file in `configs/search/` defines one search profile. Pass the filename without extension as `--config-name`.
 
 ```toml
 authors = []

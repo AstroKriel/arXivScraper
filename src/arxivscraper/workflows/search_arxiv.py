@@ -112,8 +112,10 @@ class SearchArxiv():
                 for arxiv_article in self.client.results(self._create_search_query(category=search_category)):
                     self._display_progress(num_articles_looked_at_in_category=num_articles_looked_at_in_category)
                     num_articles_looked_at_in_category += 1
-                    if not (self._is_within_date_range(arxiv_article=arxiv_article)):
+                    if self._is_before_date_range(arxiv_article=arxiv_article):
                         break
+                    if not (self._is_within_date_range(arxiv_article=arxiv_article)):
+                        continue
                     arxiv_id = str(arxiv_article.pdf_url).split("/")[-1].split("v")[0]
                     if self._is_duplicate(this_arxiv_id=arxiv_id):
                         continue
@@ -195,19 +197,36 @@ class SearchArxiv():
         *,
         category: str,
     ) -> arxiv.Search:
+        date_range = self._get_submitted_date_range_query()
         return arxiv.Search(
-            query=category,
+            query=f"{category} AND {date_range}",
             max_results=10**4,
             sort_by=arxiv.SortCriterion.SubmittedDate,
         )
+
+    def _get_submitted_date_range_query(
+        self,
+    ) -> str:
+        start = self.lookback_date.strftime("%Y%m%d0000")
+        end = self.current_date.strftime("%Y%m%d2359")
+        return f"submittedDate:[{start} TO {end}]"
 
     def _is_within_date_range(
         self,
         *,
         arxiv_article: arxiv.Result,
     ) -> bool:
-        article_date = arxiv_article.updated.date()
+        article_date = arxiv_article.published.date()
         return (self.lookback_date.date() <= article_date) and (article_date <= self.current_date.date())
+
+    def _is_before_date_range(
+        self,
+        *,
+        arxiv_article: arxiv.Result,
+    ) -> bool:
+        """Return `True` once results have moved older than the lower date bound."""
+        article_date = arxiv_article.published.date()
+        return article_date < self.lookback_date.date()
 
     def _is_duplicate(
         self,
@@ -281,9 +300,15 @@ class SearchArxiv():
 def main() -> None:
     user_inputs = script_cli.GetUserInputs(include_search=True)
     search_inputs = user_inputs.get_search_inputs()
+    end_date = search_inputs["from_date"]
+    if end_date is None:
+        end_date = dates.get_date_today()
     arxiv_searcher = SearchArxiv(
-        current_date=dates.get_date_today(),
-        lookback_date=dates.get_date_n_days_ago(search_inputs["lookback_days"]),
+        current_date=end_date,
+        lookback_date=dates.get_date_n_days_before(
+            end_date=end_date,
+            day_count=search_inputs["lookback_days"],
+        ),
         config_name=search_inputs["config_name"],
     )
     arxiv_searcher.search()
