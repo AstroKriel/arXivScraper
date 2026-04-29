@@ -20,7 +20,7 @@ Papers are saved as markdown files in `md_files/`. If `--config_name` or `--look
 
 ### 2. Browse
 
-Open the TUI browser to read abstracts and triage saved papers:
+Open the terminal interface browser to read abstracts and triage saved papers:
 
 ```bash
 uv run python main.py --browse
@@ -62,7 +62,7 @@ The script displays the title, authors, and abstract for confirmation before sav
 
 ### 5. Download
 
-From the TUI browser, press `d` to mark a paper for download. Use `f` to cycle the filter to `download` to review which papers are queued before pressing `D` to action the download. Downloaded papers return them back to a `pending` (`p`) state.
+From the terminal interface browser, press `d` to mark a paper for download. Use `f` to cycle the filter to `download` to review which papers are queued before pressing `D` to action the download. Downloaded papers return them back to a `pending` (`p`) state.
 
 Alternatively, you can also run the download step directly from the terminal:
 
