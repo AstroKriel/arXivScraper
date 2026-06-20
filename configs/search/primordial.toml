@@ -1,0 +1,13 @@
+authors = []
+categories = [
+    "astro-ph.CO",
+    "astro-ph.GA",
+    "physics.plasm-ph",
+    "hep-ph",
+]
+keywords_to_exclude = ["machine"]
+keywords_to_include = [
+    ["primordial", ["magnet", "dynamo", "helicit", "field"]],
+    ["cosmological", ["magnet", "dynamo", "helicit"]],
+    ["early universe", ["magnet", "dynamo"]],
+]

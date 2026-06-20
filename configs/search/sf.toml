@@ -1,0 +1,12 @@
+authors = []
+categories = [
+    "astro-ph.GA",
+    "astro-ph.SR",
+]
+keywords_to_exclude = ["machine"]
+keywords_to_include = [
+    ["star form", ["magnet", "turb", "mhd", "dynamo", "feedback"]],
+    ["protostar", ["magnet", "turb", "mhd", "disk", "outflow"]],
+    ["protostellar", ["magnet", "turb", "mhd", "disk", "outflow"]],
+    ["molecular cloud", ["magnet", "turb", "collapse", "fragm"]],
+]

@@ -1,0 +1,15 @@
+authors = []
+categories = [
+    "astro-ph.GA",
+    "astro-ph.SR",
+    "astro-ph.HE",
+    "physics.plasm-ph",
+    "physics.flu-dyn",
+]
+keywords_to_exclude = ["tokamak", "machine"]
+keywords_to_include = [
+    ["interstellar", ["turb", "medium", "mhd", "magnet", "dynamo"]],
+    ["supernova", ["turb", "driven", "feedback", "ISM"]],
+    ["ISM", ["turb", "magnet", "dynamo"]],
+    ["molecular cloud", ["turb", "magnet"]],
+]
