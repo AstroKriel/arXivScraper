@@ -6,6 +6,7 @@
 
 ## stdlib
 import json
+import re
 import sys
 import time
 import tomllib
@@ -151,7 +152,9 @@ def get_ai_response(
     response_text = ""
     try:
         response_text = (ai_response.choices[0].message.content or "").strip()
-        response_dict = json.loads(response_text)
+        ## sanitise invalid JSON escape sequences (e.g. LaTeX \gt, \cdot) before parsing
+        sanitised = re.sub(r'\\(?!["\\/bfnrtu])', r'\\\\', response_text)
+        response_dict = json.loads(sanitised)
         ai_rating = float(response_dict["rating"])
         ai_reason = response_dict["reason"]
         return {
