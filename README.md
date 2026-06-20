@@ -39,6 +39,9 @@ This adds `arxivscraper` to your `PATH`, so you can run:
 arxivscraper --browse
 arxivscraper --search --config-name <profile> --lookback-days <n>
 arxivscraper --score
+arxivscraper --retag
+arxivscraper --fetch -id <arxiv-id>
+arxivscraper --download
 ```
 
 ---
@@ -74,6 +77,7 @@ uv run arxivscraper --browse
 | `x` | mark for deletion |
 | `X` | action deletions |
 | `o` | open PDF in browser |
+| `e` | open markdown file in the default editor |
 | `f` | cycle filter between `p`, `q`, `r`, `d`, `n`, and `x` states |
 | `s` | toggle text search |
 | `escape` | quit |
@@ -87,6 +91,16 @@ uv run arxivscraper --score
 ```
 
 Pass `--model <model>` or `--base-url <url>` to override the values in `configs/ai/ai_provider.toml`.
+
+### Retag
+
+Re-evaluate all search config filters against every saved paper, adding or removing tags to reflect the current config state:
+
+```bash
+uv run arxivscraper --retag
+```
+
+Run this after adding or modifying a search profile to backfill tags without re-running a full search.
 
 ### Fetch
 
