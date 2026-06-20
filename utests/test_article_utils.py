@@ -79,36 +79,36 @@ def _roundtrip(
 ##
 
 
-class TestFormatText_Cases(unittest.TestCase):
+class TestSanitiseText_Cases(unittest.TestCase):
 
     def test_removes_hash(
         self,
-    ):
+    ) -> None:
         self.assertEqual(
-            first=articles.format_text("word #tag word"),
+            first=articles.sanitise_text("word #tag word"),
             second="word tag word",
         )
 
     def test_replaces_colon_with_ellipsis(
         self,
-    ):
+    ) -> None:
         self.assertEqual(
-            first=articles.format_text("prefix: suffix"),
+            first=articles.sanitise_text("prefix: suffix"),
             second="prefix... suffix",
         )
 
     def test_replaces_double_quote_with_backtick(
         self,
-    ):
+    ) -> None:
         self.assertEqual(
-            first=articles.format_text('say "word"'),
+            first=articles.sanitise_text('say "word"'),
             second="say `word`",
         )
 
     def test_adds_spaces_around_latex(
         self,
-    ):
-        result = articles.format_text("word$x=y^2$word")
+    ) -> None:
+        result = articles.sanitise_text("word$x=y^2$word")
         self.assertIn(
             member=" $x=y^2$ ",
             container=result,
@@ -116,28 +116,28 @@ class TestFormatText_Cases(unittest.TestCase):
 
     def test_collapses_extra_spaces(
         self,
-    ):
+    ) -> None:
         self.assertEqual(
-            first=articles.format_text("too   many   spaces"),
+            first=articles.sanitise_text("too   many   spaces"),
             second="too many spaces",
         )
 
     def test_strips_leading_trailing(
         self,
-    ):
+    ) -> None:
         self.assertEqual(
-            first=articles.format_text("  padded  "),
+            first=articles.sanitise_text("  padded  "),
             second="padded",
         )
 
 
-class TestTruncateList_Cases(unittest.TestCase):
+class TestGetTruncated_Cases(unittest.TestCase):
 
     def test_short_list_unchanged(
         self,
-    ):
+    ) -> None:
         self.assertEqual(
-            first=articles.truncate_list(
+            first=articles.get_truncated(
                 elems=["a", "b", "c"],
                 max_elems=5,
             ),
@@ -146,8 +146,8 @@ class TestTruncateList_Cases(unittest.TestCase):
 
     def test_long_list_truncated(
         self,
-    ):
-        result = articles.truncate_list(
+    ) -> None:
+        result = articles.get_truncated(
             elems=["a", "b", "c", "d", "e", "f"],
             max_elems=5,
         )
@@ -158,8 +158,8 @@ class TestTruncateList_Cases(unittest.TestCase):
 
     def test_exact_length_not_truncated(
         self,
-    ):
-        result = articles.truncate_list(
+    ) -> None:
+        result = articles.get_truncated(
             elems=["a", "b", "c"],
             max_elems=3,
         )
@@ -170,8 +170,10 @@ class TestTruncateList_Cases(unittest.TestCase):
 
     def test_elements_cast_to_string(
         self,
-    ):
-        result = articles.truncate_list(elems=[1, 2, 3])
+    ) -> None:
+        result = articles.get_truncated(
+            elems=[1, 2, 3],
+        )
         self.assertEqual(
             first=result,
             second=["1", "2", "3"],
@@ -183,7 +185,7 @@ class TestArticle_Roundtrip(unittest.TestCase):
 
     def test_basic_fields_preserved(
         self,
-    ):
+    ) -> None:
         original = _make_article()
         restored = _roundtrip(article=original)
         self.assertEqual(
@@ -221,7 +223,7 @@ class TestArticle_Roundtrip(unittest.TestCase):
 
     def test_task_status_preserved(
         self,
-    ):
+    ) -> None:
         for status in [
                 articles.TaskStatus.PENDING,
                 articles.TaskStatus.QUEUED,
@@ -240,7 +242,7 @@ class TestArticle_Roundtrip(unittest.TestCase):
 
     def test_config_tags_preserved(
         self,
-    ):
+    ) -> None:
         original = _make_article(config_tags=["#tag-a", "#tag-b"])
         restored = _roundtrip(article=original)
         self.assertEqual(
@@ -250,7 +252,7 @@ class TestArticle_Roundtrip(unittest.TestCase):
 
     def test_config_reasons_preserved(
         self,
-    ):
+    ) -> None:
         original = _make_article(
             config_reasons={
                 "tag-a": articles.MatchReasons(
@@ -274,7 +276,7 @@ class TestArticle_Roundtrip(unittest.TestCase):
 
     def test_multiple_config_reasons_preserved(
         self,
-    ):
+    ) -> None:
         original = _make_article(
             config_reasons={
                 "tag-a": articles.MatchReasons(
@@ -308,7 +310,7 @@ class TestArticle_Roundtrip(unittest.TestCase):
 
     def test_ai_rating_preserved(
         self,
-    ):
+    ) -> None:
         original = _make_article(
             ai_rating=7.5,
             ai_reason="sample ai reason.",
@@ -327,7 +329,7 @@ class TestArticle_Roundtrip(unittest.TestCase):
 
     def test_no_ai_rating_stays_none(
         self,
-    ):
+    ) -> None:
         original = _make_article(
             ai_rating=None,
             ai_reason=None,
@@ -338,7 +340,7 @@ class TestArticle_Roundtrip(unittest.TestCase):
 
     def test_empty_category_others(
         self,
-    ):
+    ) -> None:
         original = _make_article(category_others=[])
         restored = _roundtrip(article=original)
         self.assertEqual(
@@ -348,7 +350,7 @@ class TestArticle_Roundtrip(unittest.TestCase):
 
     def test_empty_config_tags(
         self,
-    ):
+    ) -> None:
         original = _make_article(config_tags=[])
         restored = _roundtrip(article=original)
         self.assertEqual(
@@ -362,7 +364,7 @@ class TestSaveArticle_MergeLogic(unittest.TestCase):
 
     def test_config_tags_merge_deduplicates(
         self,
-    ):
+    ) -> None:
         existing = _make_article(config_tags=["#tag-a", "#tag-b"])
         incoming = _make_article(config_tags=["#tag-a", "#tag-c"])
         ## simulate the merge logic from save_article
@@ -374,7 +376,7 @@ class TestSaveArticle_MergeLogic(unittest.TestCase):
 
     def test_ai_rating_retained_from_existing(
         self,
-    ):
+    ) -> None:
         existing = _make_article(
             ai_rating=8.0,
             ai_reason="sample ai reason.",
@@ -401,7 +403,7 @@ class TestSaveArticle_MergeLogic(unittest.TestCase):
 
     def test_ai_rating_not_overwritten_if_already_set(
         self,
-    ):
+    ) -> None:
         existing = _make_article(ai_rating=8.0)
         incoming = _make_article(ai_rating=6.5)
         ## simulate the merge logic from save_article
@@ -416,7 +418,7 @@ class TestSaveArticle_MergeLogic(unittest.TestCase):
 
     def test_config_reasons_merged_without_overwriting(
         self,
-    ):
+    ) -> None:
         existing = _make_article(
             config_reasons={
                 "tag-a": articles.MatchReasons(
@@ -464,7 +466,7 @@ class TestSaveArticle_MergeLogic(unittest.TestCase):
 
     def test_task_status_retained_from_existing(
         self,
-    ):
+    ) -> None:
         existing = _make_article(task_status=articles.TaskStatus.DOWNLOAD)
         incoming = _make_article(task_status=articles.TaskStatus.PENDING)
         ## simulate the merge logic from save_article

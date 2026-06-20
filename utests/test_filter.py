@@ -17,12 +17,12 @@ from arxivscraper.support import search_criteria
 ##
 
 
-class TestMeetsSearchCriteria_Logic(unittest.TestCase):
+class TestCheckSearchCriteria_Logic(unittest.TestCase):
 
     @classmethod
     def setUpClass(
         cls,
-    ):
+    ) -> None:
         cls.phrases = []
         for animal in ["fox", "turtle", "cow"]:
             for action in ["jumped", "leaped"]:
@@ -38,7 +38,7 @@ class TestMeetsSearchCriteria_Logic(unittest.TestCase):
         matching_phrases = {
             phrase
             for phrase in self.phrases
-            if search_criteria.meets_search_criteria(
+            if search_criteria.check_search_criteria(
                 phrase=phrase,
                 search_keywords=search_condition,
             )
@@ -50,7 +50,7 @@ class TestMeetsSearchCriteria_Logic(unittest.TestCase):
 
     def test_single_word(
         self,
-    ):
+    ) -> None:
         search_condition = ["turtle"]
         expected_phrases = {
             "the turtle jumped over the moon",
@@ -67,7 +67,7 @@ class TestMeetsSearchCriteria_Logic(unittest.TestCase):
 
     def test_and_operator(
         self,
-    ):
+    ) -> None:
         ## "fox" AND "leaped" AND "river"
         search_condition = [
             ["fox", "leaped", "river"],
@@ -82,7 +82,7 @@ class TestMeetsSearchCriteria_Logic(unittest.TestCase):
 
     def test_or_operator(
         self,
-    ):
+    ) -> None:
         ## "fox" OR "moon"
         search_condition = [
             [["fox", "moon"]],
@@ -106,7 +106,7 @@ class TestMeetsSearchCriteria_Logic(unittest.TestCase):
 
     def test_mixed_operators(
         self,
-    ):
+    ) -> None:
         ## ("cow" OR ("leaped" AND "moon"))
         ## OR
         ## ("fox" AND "jumped" AND "river")
@@ -132,7 +132,7 @@ class TestMeetsSearchCriteria_Logic(unittest.TestCase):
 
     def test_case_insensitive(
         self,
-    ):
+    ) -> None:
         search_condition = ["FOX"]
         expected_phrases = {
             "the fox jumped over the moon",

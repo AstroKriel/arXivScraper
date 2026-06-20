@@ -32,7 +32,7 @@ build-backend = "hatchling.build"
 sources = ["src"]
 
 [tool.basedpyright]
-include = [".", "src", "tests"]
+include = ["src", "utests"]
 reportMissingImports = true
 reportMissingTypeStubs = false  # third-party packages rarely ship stubs
 
@@ -50,4 +50,4 @@ reportUninitializedInstanceVariable = "none"  # instance vars initialized in non
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
-testpaths = ["tests"]
+testpaths = ["utests"]
