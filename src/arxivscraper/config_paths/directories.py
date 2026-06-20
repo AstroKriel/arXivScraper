@@ -12,22 +12,14 @@ from pathlib import Path
 ## === DIRECTORIES
 ##
 
-
-def _find_project_root() -> Path:
-    """Walk up from cwd looking for the repo root (pyproject.toml + configs/); fall back to ARXIVSCRAPER_ROOT."""
-    for directory in [Path.cwd(), *Path.cwd().parents]:
-        if (directory / "pyproject.toml").is_file() and (directory / "configs").is_dir():
-            return directory
-    env_root = os.environ.get("ARXIVSCRAPER_ROOT")
-    if env_root:
-        return Path(env_root).resolve()
+_env_root = os.environ.get("ARXIVSCRAPER_ROOT")
+if not _env_root:
     raise RuntimeError(
-        "could not find the arXivScraper project root. "
-        "Run from within the repo, or set ARXIVSCRAPER_ROOT to the repo path.",
+        "ARXIVSCRAPER_ROOT is not set. "
+        "Add `export ARXIVSCRAPER_ROOT=/path/to/arXivScraper` to your shell profile.",
     )
 
-
-PROJECT_ROOT = _find_project_root()
+PROJECT_ROOT = Path(_env_root).resolve()
 configs_dir = PROJECT_ROOT / "configs"
 search_configs_dir = configs_dir / "search"
 ai_configs_dir = configs_dir / "ai"

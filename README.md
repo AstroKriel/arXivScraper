@@ -21,10 +21,16 @@ cd arXivScraper
 uv sync
 ```
 
-3. Optional: install as a system-wide editable `uv` tool:
+3. Set the `ARXIVSCRAPER_ROOT` environment variable to the repo path. Add this to your shell profile (`~/.zshrc`, `~/.bashrc`, etc.):
 
 ```bash
-uv tool install --editable .
+export ARXIVSCRAPER_ROOT=/path/to/arXivScraper
+```
+
+4. Optional: install as a system-wide `uv` tool so `arxivscraper` is available from anywhere:
+
+```bash
+uv tool install .
 ```
 
 This adds `arxivscraper` to your `PATH`, so you can run:
@@ -142,7 +148,7 @@ keywords = [
 
 Matches: `<keyword-a>` OR (`<keyword-b>` AND (`<keyword-c>` OR `<keyword-d>`))
 
-See `tests/test_filter.py` for examples in action.
+See `utests/test_filter.py` for examples in action.
 
 ### AI provider
 
