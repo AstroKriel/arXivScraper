@@ -24,7 +24,7 @@ def main() -> None:
             datetime.datetime.now().strftime("%H:%M:%S"),
         ),
     )
-    user_inputs = script_cli.GetUserInputs(
+    user_inputs = script_cli.CLIParser(
         include_main=True,
         include_search=True,
         include_fetch=True,

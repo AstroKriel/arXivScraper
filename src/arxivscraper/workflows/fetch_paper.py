@@ -1,4 +1,4 @@
-## { MODULE
+## { SCRIPT
 
 ##
 ## === DEPENDENCIES
@@ -14,6 +14,10 @@ import arxiv
 from arxivscraper.config_paths import directories
 from arxivscraper.support import articles, file_io, script_cli
 
+##
+## === PAPER FETCHING
+##
+
 
 def fetch_from_arxiv(
     arxiv_id: str,
@@ -25,9 +29,9 @@ def fetch_from_arxiv(
     if arxiv_article is None:
         print(f"Error: the arXiv article `{arxiv_id}` does not exist.")
         return None
-    _article = articles.get_article_summary(arxiv_article)
+    preview_article = articles.get_article_summary(arxiv_article)
     print("The article you have requested:")
-    articles.print_article(_article)
+    articles.print_article(preview_article)
     print(" ")
     user_confirmation = input("Was this the article you intended to fetch? (y/N): ").strip().lower()
     print(" ")
@@ -39,14 +43,14 @@ def fetch_from_arxiv(
         user_save_mdfile = input("Would you like to save it again? (y/N): ").strip().lower()
         print(" ")
         if not user_save_mdfile.startswith("y"):
-            return _article
+            return preview_article
     user_tag = input("Enter a config tag: ").strip().lower()
     print(" ")
     if user_tag == "":
-        raise ValueError("config tag cannot be empty.")
+        raise ValueError("`user_tag` must not be empty.")
     if " " in user_tag:
-        raise ValueError("config tag cannot contain spaces.")
-    ## A manual fetch has no real search assessment, so tag it as a title-only hit.
+        raise ValueError(f"`user_tag` must not contain spaces; got `{user_tag}`.")
+    ## a manual fetch has no real search assessment, so tag it as a title-only hit.
     config_results = {
         user_tag: articles.MatchReasons(
             title_match=True,
@@ -62,15 +66,24 @@ def fetch_from_arxiv(
     return article
 
 
+##
+## === PROGRAM MAIN
+##
+
+
 def main() -> None:
-    user_inputs = script_cli.GetUserInputs(include_fetch=True)
+    user_inputs = script_cli.CLIParser(include_fetch=True)
     arxiv_id = user_inputs.get_fetch_inputs()
     file_io.create_directory(directories.md_files_dir)
     fetch_from_arxiv(arxiv_id)
 
 
+##
+## === ENTRY POINT
+##
+
 if __name__ == "__main__":
     main()
     sys.exit(0)
 
-## } MODULE
+## } SCRIPT

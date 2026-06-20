@@ -1,4 +1,4 @@
-## { MODULE
+## { SCRIPT
 
 ##
 ## === DEPENDENCIES
@@ -56,6 +56,11 @@ def download_pdfs(
             print("Article does not need to be downloaded.\n")
 
 
+##
+## === PROGRAM MAIN
+##
+
+
 def main() -> None:
     file_io.create_directory(directories.pdfs_dir)
     articles_list = articles.read_all_markdown_files()
@@ -65,8 +70,12 @@ def main() -> None:
     )
 
 
+##
+## === ENTRY POINT
+##
+
 if __name__ == "__main__":
     main()
     sys.exit(0)
 
-## } MODULE
+## } SCRIPT

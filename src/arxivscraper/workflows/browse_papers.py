@@ -1,4 +1,4 @@
-## { MODULE
+## { SCRIPT
 
 ##
 ## === DEPENDENCIES
@@ -346,6 +346,11 @@ class BrowseApp(App[None]):
         self.exit()
 
 
+##
+## === PROGRAM MAIN
+##
+
+
 def main() -> None:
     articles_list = articles.read_all_markdown_files()
     articles_list = sorted(
@@ -356,8 +361,12 @@ def main() -> None:
     BrowseApp(articles_list).run()
 
 
+##
+## === ENTRY POINT
+##
+
 if __name__ == "__main__":
     main()
     sys.exit(0)
 
-## } MODULE
+## } SCRIPT

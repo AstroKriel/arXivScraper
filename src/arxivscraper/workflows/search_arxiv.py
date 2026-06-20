@@ -1,4 +1,4 @@
-## { MODULE
+## { SCRIPT
 
 ##
 ## === DEPENDENCIES
@@ -18,6 +18,9 @@ import unidecode
 from arxivscraper.config_paths import directories
 from arxivscraper.support import articles, dates, file_io, script_cli, search_criteria
 
+##
+## === CONSTANTS
+##
 
 ## keep these near arxiv.py defaults to avoid brittle request behavior and to
 ## respect arXiv's requested pacing between API calls.
@@ -27,8 +30,12 @@ _ARXIV_NUM_RETRIES = 3
 _ARXIV_CONNECT_TIMEOUT_SECONDS = 10.0
 _ARXIV_READ_TIMEOUT_SECONDS = 20.0
 
+##
+## === TIMEOUT HELPERS
+##
 
-class TimeoutSession(requests.Session):
+
+class _TimeoutSession(requests.Session):
     """Requests session that applies a default timeout to every request."""
 
     def __init__(
@@ -51,7 +58,7 @@ class TimeoutSession(requests.Session):
         return super().request(*args, **kwargs)
 
 
-class TimeoutClient(arxiv.Client):
+class _TimeoutClient(arxiv.Client):
     """arXiv client with explicit request timeouts on its internal session."""
 
     def __init__(
@@ -68,10 +75,15 @@ class TimeoutClient(arxiv.Client):
             delay_seconds=delay_seconds,
             num_retries=num_retries,
         )
-        self._session = TimeoutSession(
+        self._session = _TimeoutSession(
             connect_timeout=connect_timeout,
             read_timeout=read_timeout,
         )
+
+
+##
+## === ARXIV SEARCH
+##
 
 
 class SearchArxiv():
@@ -95,20 +107,22 @@ class SearchArxiv():
     def search(
         self,
     ) -> None:
+        """Run the arXiv search across all configured categories and populate `self.articles`."""
         self._read_search_criteria()
         self._read_existing_ids()
         self.client = self._build_client()
         for search_category in self.search_criteria_config["categories"]:
             print(f"Searching: {search_category}")
             print(
-                f"Date range: {dates.cast_date_to_string(self.lookback_date)} to {dates.cast_date_to_string(self.current_date)}",
+                f"Date range: {dates.as_date_string(self.lookback_date)} to {dates.as_date_string(self.current_date)}",
             )
             print("Requesting results from arXiv...")
             num_articles_looked_at_in_category = 0
             num_interesting_articles_in_category = 0
             num_new_articles_in_category = 0
             try:
-                assert self.client is not None
+                if self.client is None:
+                    raise RuntimeError("client was not initialised.")
                 for arxiv_article in self.client.results(self._create_search_query(category=search_category)):
                     self._display_progress(num_articles_looked_at_in_category=num_articles_looked_at_in_category)
                     num_articles_looked_at_in_category += 1
@@ -149,6 +163,7 @@ class SearchArxiv():
     def get_sorted_articles(
         self,
     ) -> list[articles.Article]:
+        """Return `self.articles` sorted by `date_updated` descending."""
         return sorted(
             self.articles,
             key=lambda article: article.date_updated,
@@ -163,8 +178,8 @@ class SearchArxiv():
             config_name=self.config_name,
         )
         print("Searching for articles:")
-        print("> from: {}".format(dates.cast_date_to_string(self.lookback_date)))
-        print("> to:   {}".format(dates.cast_date_to_string(self.current_date)))
+        print("> from: {}".format(dates.as_date_string(self.lookback_date)))
+        print("> to:   {}".format(dates.as_date_string(self.current_date)))
         print(" ")
         print(f"> using the `#{self.config_name}` config file")
         print(" ")
@@ -184,7 +199,7 @@ class SearchArxiv():
     def _build_client(
         self,
     ) -> arxiv.Client:
-        return TimeoutClient(
+        return _TimeoutClient(
             page_size=_ARXIV_PAGE_SIZE,
             delay_seconds=_ARXIV_DELAY_SECONDS,
             num_retries=_ARXIV_NUM_RETRIES,
@@ -240,7 +255,7 @@ class SearchArxiv():
         *,
         arxiv_article: arxiv.Result,
     ) -> articles.MatchAssessment:
-        if search_criteria.meets_search_criteria(
+        if search_criteria.check_search_criteria(
                 phrase=arxiv_article.title.lower(),
                 search_keywords=self.search_criteria_config["keywords_to_exclude"],
         ):
@@ -251,11 +266,11 @@ class SearchArxiv():
                     author_match=False,
                 ),
             )
-        is_title_matching = search_criteria.meets_search_criteria(
+        is_title_matching = search_criteria.check_search_criteria(
             phrase=arxiv_article.title.lower(),
             search_keywords=self.search_criteria_config["keywords_to_include"],
         )
-        if search_criteria.meets_search_criteria(
+        if search_criteria.check_search_criteria(
                 phrase=arxiv_article.summary.lower(),
                 search_keywords=self.search_criteria_config["keywords_to_exclude"],
         ):
@@ -266,7 +281,7 @@ class SearchArxiv():
                     author_match=False,
                 ),
             )
-        is_abstract_matching = search_criteria.meets_search_criteria(
+        is_abstract_matching = search_criteria.check_search_criteria(
             phrase=arxiv_article.summary.lower(),
             search_keywords=self.search_criteria_config["keywords_to_include"],
         )
@@ -297,8 +312,13 @@ class SearchArxiv():
             print(" ", end="")
 
 
+##
+## === PROGRAM MAIN
+##
+
+
 def main() -> None:
-    user_inputs = script_cli.GetUserInputs(include_search=True)
+    user_inputs = script_cli.CLIParser(include_search=True)
     search_inputs = user_inputs.get_search_inputs()
     end_date = search_inputs["from_date"]
     if end_date is None:
@@ -324,8 +344,12 @@ def main() -> None:
     print(" ")
 
 
+##
+## === ENTRY POINT
+##
+
 if __name__ == "__main__":
     main()
     sys.exit(0)
 
-## } MODULE
+## } SCRIPT

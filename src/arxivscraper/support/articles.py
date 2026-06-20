@@ -156,9 +156,25 @@ class MatchAssessment:
 ##
 
 
+## not frozen: task_status, ai_rating, ai_reason, config_tags, and config_reasons
+## are all mutated during triage and merge workflows.
 @dataclass
 class Article:
-    """Represents a single arXiv paper and its triage state."""
+    """Represents a single arXiv paper and its triage state.
+
+    Fields
+    ---
+    - `config_tags`:
+        List of `#tag` strings, one per search config that matched this article.
+    - `config_reasons`:
+        Per-config match breakdown; keyed by config name (without the `config_reason_` prefix).
+    - `task_status`:
+        Current triage decision; updated in the TUI browser and persisted to the mdfile.
+    - `ai_rating`:
+        Float score assigned by the AI scorer; `None` until scored.
+    - `ai_reason`:
+        Short explanation from the AI scorer; `None` until scored.
+    """
 
     title: str
     arxiv_id: str
@@ -173,7 +189,6 @@ class Article:
     task_status: TaskStatus = TaskStatus.PENDING
     ai_rating: float | None = None
     ai_reason: str | None = None
-    ## keyed by config name (without the "config_reason_" prefix)
     config_reasons: dict[str, MatchReasons] = field(default_factory=dict)
 
 
@@ -182,8 +197,9 @@ class Article:
 ##
 
 
-def truncate_list(
+def get_truncated(
     elems: list[Any],
+    *,
     max_elems: int = 5,
 ) -> list[str]:
     """Return `elems` as strings, truncated to `max_elems` with `"..."` appended if longer."""
@@ -197,7 +213,7 @@ def truncate_list(
     return truncated_elems
 
 
-def format_text(
+def sanitise_text(
     text: str,
 ) -> str:
     """Sanitise raw arXiv text for storage: strip special characters and normalise whitespace."""
@@ -253,7 +269,7 @@ def print_article(
     )
     _print_line(
         category="Date Updated",
-        content=dates.cast_date_to_string(article.date_updated),
+        content=dates.as_date_string(article.date_updated),
     )
     _print_line(
         category="Author(s)",
@@ -277,8 +293,8 @@ def write_article_to_file(
         "title": article.title,
         "arxiv_id": article.arxiv_id,
         "url_pdf": article.url_pdf,
-        "date_published": dates.cast_date_to_string(article.date_published),
-        "date_updated": dates.cast_date_to_string(article.date_updated),
+        "date_published": dates.as_date_string(article.date_published),
+        "date_updated": dates.as_date_string(article.date_updated),
         "category_primary": article.category_primary,
         "category_others": article.category_others or None,
         "config_tags": article.config_tags or None,
@@ -363,26 +379,36 @@ def get_article_summary(
     ai_results: dict[str, Any] | None = None,
     task_status: TaskStatus = TaskStatus.PENDING,
 ) -> Article:
-    """Build an `Article` from a raw arXiv result, optionally attaching config and AI results."""
+    """Build an `Article` from a raw arXiv result, optionally attaching config and AI results.
+
+    Parameters
+    ---
+    - `config_results`:
+        Per-config match reasons; keyed by config name.
+    - `ai_results`:
+        Dict with `ai_rating` and `ai_reason` keys from the AI scorer.
+    - `task_status`:
+        Initial triage status to assign.
+    """
     if config_results is None:
         config_results = {}
     if ai_results is None:
         ai_results = {}
-    authors = [unidecode.unidecode(str(author)) for author in truncate_list(arxiv_article.authors)]
+    authors = [unidecode.unidecode(str(author)) for author in get_truncated(arxiv_article.authors)]
     other_categories = [
-        format_text(category)
-        for category in truncate_list(arxiv_article.categories)
+        sanitise_text(category)
+        for category in get_truncated(arxiv_article.categories)
         if (category != arxiv_article.primary_category)
     ]
     config_tags = [f"#{key}" if ("#" not in key) else key for key in config_results.keys()]
     config_reasons = {key: reasons for key, reasons in config_results.items()}
     pdf_url: str = arxiv_article.pdf_url or ""
     return Article(
-        title=format_text(arxiv_article.title),
+        title=sanitise_text(arxiv_article.title),
         arxiv_id=pdf_url.split("/")[-1].split("v")[0],
         url_pdf=pdf_url,
         authors=authors,
-        abstract=format_text(arxiv_article.summary),
+        abstract=sanitise_text(arxiv_article.summary),
         date_published=arxiv_article.published.date(),
         date_updated=arxiv_article.updated.date(),
         category_primary=arxiv_article.primary_category,
@@ -398,6 +424,27 @@ def get_article_summary(
 ##
 ## === READ MARKDOWN FILES
 ##
+
+
+def _ensure_frontmatter_keys(
+    *,
+    meta_data: dict[str, Any],
+) -> None:
+    required_keys = [
+        "title",
+        "authors",
+        "abstract",
+        "arxiv_id",
+        "url_pdf",
+        "date_published",
+        "date_updated",
+        "category_primary",
+        "category_others",
+        "config_tags",
+    ]
+    missing_keys = [key for key in required_keys if key not in meta_data]
+    if missing_keys:
+        raise ValueError(f"missing required keys in frontmatter: {', '.join(missing_keys)}.")
 
 
 def read_markdown_file(
@@ -421,23 +468,7 @@ def read_markdown_file(
         meta_data = yaml.safe_load(front_matter)
     except yaml.YAMLError as error:
         raise ValueError("error parsing YAML frontmatter.") from error
-    ## ensure all required keys are present in the meta_data
-    missing_keys = [
-        key for key in [
-            "title",
-            "authors",
-            "abstract",
-            "arxiv_id",
-            "url_pdf",
-            "date_published",
-            "date_updated",
-            "category_primary",
-            "category_others",
-            "config_tags",
-        ] if key not in meta_data
-    ]
-    if missing_keys:
-        raise ValueError(f"missing required keys in frontmatter: {', '.join(missing_keys)}.")
+    _ensure_frontmatter_keys(meta_data=meta_data)
     ## collect config_reason_* keys into a dict keyed by config name
     config_reasons = {
         key[len("config_reason_"):]:
@@ -463,8 +494,8 @@ def read_markdown_file(
         abstract=meta_data.get("abstract"),
         arxiv_id=meta_data.get("arxiv_id"),
         url_pdf=meta_data.get("url_pdf"),
-        date_published=dates.cast_string_to_date(meta_data.get("date_published")),
-        date_updated=dates.cast_string_to_date(meta_data.get("date_updated")),
+        date_published=dates.as_date(meta_data.get("date_published")),
+        date_updated=dates.as_date(meta_data.get("date_updated")),
         category_primary=meta_data.get("category_primary"),
         category_others=meta_data.get("category_others") or [],
         config_tags=meta_data.get("config_tags") or [],

@@ -16,6 +16,19 @@ from arxivscraper.support import file_io
 ##
 
 
+def _ensure_required_keys(
+    *,
+    config_criteria: dict[str, Any],
+    config_name: str,
+    required_keys: set[str],
+) -> None:
+    missing_keys = required_keys - config_criteria.keys()
+    if len(missing_keys) > 0:
+        raise ValueError(
+            f"config file `{config_name}.toml` is missing required keys: {', '.join(sorted(missing_keys))}.",
+        )
+
+
 def read_search_criteria(
     *,
     directory: Path,
@@ -33,15 +46,20 @@ def read_search_criteria(
         config_path,
         expected_extension=".toml",
     )
-    missing_keys = required_keys - config_criteria.keys()
-    if len(missing_keys) > 0:
-        raise ValueError(
-            f"config file `{config_name}.toml` is missing required keys: {', '.join(sorted(missing_keys))}.",
-        )
+    _ensure_required_keys(
+        config_criteria=config_criteria,
+        config_name=config_name,
+        required_keys=required_keys,
+    )
     return config_criteria
 
 
-def does_text_contain_all_keywords(
+##
+## === KEYWORD MATCHING
+##
+
+
+def check_all_keywords_in_text(
     phrase: str,
     *,
     search_keywords: list[Any],
@@ -55,7 +73,7 @@ def does_text_contain_all_keywords(
             result = keyword.lower() in phrase
             results.append(result)
         elif isinstance(keyword, list):
-            result = does_text_contain_any_keywords(
+            result = check_any_keywords_in_text(
                 phrase=phrase,
                 search_keywords=keyword,
             )
@@ -63,7 +81,7 @@ def does_text_contain_all_keywords(
     return all(results)
 
 
-def does_text_contain_any_keywords(
+def check_any_keywords_in_text(
     phrase: str,
     *,
     search_keywords: list[Any],
@@ -79,7 +97,7 @@ def does_text_contain_any_keywords(
             if result:
                 break
         elif isinstance(keyword, list):
-            result = does_text_contain_all_keywords(
+            result = check_all_keywords_in_text(
                 phrase=phrase,
                 search_keywords=keyword,
             )
@@ -87,23 +105,29 @@ def does_text_contain_any_keywords(
     return any(results)
 
 
-def meets_search_criteria(
+def check_search_criteria(
     phrase: str,
+    *,
     search_keywords: list[Any],
 ) -> bool:
     """Return `True` if `phrase` meets the search criteria defined by `search_keywords`."""
-    return does_text_contain_any_keywords(
+    return check_any_keywords_in_text(
         phrase=phrase,
         search_keywords=search_keywords,
     )
 
 
-def search_keywords_to_set_notation(
+##
+## === FORMATTING
+##
+
+
+def as_set_notation(
     search_keywords: list[Any] | str,
     *,
     set_level: int = 0,
 ) -> str:
-    """Format `search_keywords` as a human-readable set-notation string."""
+    """Return `search_keywords` formatted as a human-readable set-notation string."""
     while isinstance(search_keywords, list) and (len(search_keywords) == 1):
         search_keywords = search_keywords[0]
         set_level += 1
@@ -116,7 +140,7 @@ def search_keywords_to_set_notation(
     parts = []
     for keyword in search_keywords:
         if isinstance(keyword, list):
-            inner = search_keywords_to_set_notation(
+            inner = as_set_notation(
                 keyword,
                 set_level=set_level + 1,
             )
@@ -134,11 +158,11 @@ def print_search_criteria(
     keywords_to_exclude = search_config["keywords_to_exclude"]
     authors = search_config["authors"]
     print("> including articles with phrases:")
-    print(search_keywords_to_set_notation(keywords_to_include))
+    print(as_set_notation(keywords_to_include))
     print(" ")
     if len(keywords_to_exclude) > 0:
         print("> excluding articles with phrases:")
-        print(search_keywords_to_set_notation(keywords_to_exclude))
+        print(as_set_notation(keywords_to_exclude))
         print(" ")
     if len(authors) > 0:
         print("> including articles with authors:", end="")

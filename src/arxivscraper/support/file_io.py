@@ -54,7 +54,7 @@ def read_file(
     except (ValueError, FileNotFoundError, NotImplementedError):
         raise
     except Exception as error:
-        raise IOError(f"error reading {file_path}.") from error
+        raise RuntimeError(f"error reading {file_path}.") from error
 
 
 def read_text_file(

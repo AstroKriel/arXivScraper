@@ -12,21 +12,21 @@ import datetime
 ##
 
 
-def cast_date_to_string(
+def as_date_string(
     date: datetime.date,
 ) -> str:
-    """Format `date` as an ISO-8601 string (`YYYY-MM-DD`)."""
+    """Return `date` as an ISO-8601 string (`YYYY-MM-DD`)."""
     return f"{str(date.year).zfill(4)}-{str(date.month).zfill(2)}-{str(date.day).zfill(2)}"
 
 
-def cast_string_to_date(
+def as_date(
     date_string: str,
 ) -> datetime.date:
     """Parse an ISO-8601 date string (`YYYY-MM-DD`) and return a `datetime.date`."""
     return datetime.datetime.strptime(date_string, "%Y-%m-%d").date()
 
 
-def cast_date_to_datetime(
+def as_datetime(
     date: datetime.date,
 ) -> datetime.datetime:
     """Return `date` as a midnight `datetime.datetime`."""

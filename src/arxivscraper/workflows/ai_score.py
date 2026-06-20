@@ -1,4 +1,4 @@
-## { MODULE
+## { SCRIPT
 
 ##
 ## === DEPENDENCIES
@@ -18,14 +18,22 @@ from openai import OpenAI
 from arxivscraper.config_paths import directories, files as config_files
 from arxivscraper.support import articles, file_io, script_cli
 
+##
+## === CONSTANTS
+##
+
 _DEFAULT_MODEL = "gpt-4o-mini"
+
+##
+## === AI PROVIDER CONFIG
+##
 
 
 def load_provider_config(
     *,
     cli_model: str | None = None,
     cli_base_url: str | None = None,
-) -> dict[str, Any] | None:
+) -> dict[str, Any]:
     """Load AI provider config from `configs/ai/ai_provider.toml`, falling back to the legacy `api_key.txt`.
 
     CLI arguments override any config file values.
@@ -36,18 +44,15 @@ def load_provider_config(
             with provider_path.open("rb") as file_pointer:
                 config = tomllib.load(file_pointer)
         except Exception as error:
-            print(f"Error reading {provider_path.name}: {error}")
-            return None
+            raise ValueError(f"error reading `{provider_path.name}`.") from error
     else:
         key_path = directories.ai_configs_dir / config_files.ai_api_key
         if not key_path.is_file():
-            print(
-                f"Error: no AI config found.\n"
-                f"Create ai config at {provider_path} "
-                f"(see {directories.ai_configs_dir / config_files.ai_provider_example}) "
-                f"or the legacy {key_path}.",
+            raise FileNotFoundError(
+                f"no AI config found; create `{provider_path.name}` "
+                f"(see `{config_files.ai_provider_example}`) "
+                f"or the legacy `{key_path.name}`.",
             )
-            return None
         api_key = None
         for line in key_path.read_text(encoding="utf-8").splitlines():
             stripped = line.strip().strip("'").strip('"')
@@ -55,37 +60,42 @@ def load_provider_config(
                 api_key = stripped
                 break
         if not api_key:
-            print(f"Error: {config_files.ai_api_key} is empty.")
-            return None
+            raise ValueError(f"`{config_files.ai_api_key}` is empty.")
         config = {"api_key": api_key, "base_url": None, "model": _DEFAULT_MODEL}
-
     if cli_model:
         config["model"] = cli_model
     if cli_base_url:
         config["base_url"] = cli_base_url
-
     if not config.get("api_key"):
-        print(
-            "Error: no api_key in provider config."
-            "Local servers (Ollama, LM Studio) use a placeholder like 'local'.",
+        raise ValueError(
+            "no `api_key` in provider config; "
+            "local servers (Ollama, LM Studio) use a placeholder like `local`.",
         )
-        return None
     if not config.get("model"):
-        print("Error: no model specified in provider config.")
-        return None
-
+        raise ValueError("no `model` specified in provider config.")
     return config
 
 
-def build_ai_client(
+##
+## === AI CLIENT
+##
+
+
+def create_ai_client(
     api_key: str,
     *,
     base_url: str | None = None,
 ) -> OpenAI:
+    """Create and return an `OpenAI` client configured with `api_key` and optional `base_url`."""
     client_kwargs: dict[str, Any] = {"api_key": api_key}
     if base_url:
         client_kwargs["base_url"] = base_url
     return OpenAI(**client_kwargs)
+
+
+##
+## === AI SCORING
+##
 
 
 def get_ai_response(
@@ -97,6 +107,7 @@ def get_ai_response(
     prompt_criteria: str,
     ai_model: str,
 ) -> dict[str, Any]:
+    """Send `article_title` and `article_abstract` to the AI model and return the parsed response dict."""
     if not article_title:
         return {
             "status": "error",
@@ -167,6 +178,7 @@ def get_ai_score(
     prompt_criteria: str,
     ai_model: str,
 ) -> bool:
+    """Score `article` using the AI model; mutate its `ai_rating` and `ai_reason` on success."""
     time_start = time.time()
     response_dict = get_ai_response(
         ai_client=ai_client,
@@ -192,25 +204,25 @@ def get_ai_score(
     return True
 
 
-def main() -> None:
-    user_inputs = script_cli.GetUserInputs(include_score=True)
-    score_inputs = user_inputs.get_score_inputs()
+##
+## === PROGRAM MAIN
+##
 
+
+def main() -> None:
+    user_inputs = script_cli.CLIParser(include_score=True)
+    score_inputs = user_inputs.get_score_inputs()
     config = load_provider_config(
         cli_model=score_inputs.get("model"),
         cli_base_url=score_inputs.get("base_url"),
     )
-    if not config:
-        raise RuntimeError("Failed to load AI provider config.")
-
-    ai_client = build_ai_client(
+    ai_client = create_ai_client(
         api_key=config["api_key"],
         base_url=config.get("base_url"),
     )
     print(f"Model: {config['model']}")
     if config.get("base_url"):
         print(f"Base URL: {config['base_url']}")
-
     print("Reading in all articles...")
     articles_list = articles.read_all_markdown_files()
     articles_list = [article for article in articles_list if article.ai_rating is None]
@@ -228,11 +240,18 @@ def main() -> None:
             ai_model=config["model"],
         )
         if is_scored:
-            articles.save_article(article, force=True)
+            articles.save_article(
+                article,
+                force=True,
+            )
 
+
+##
+## === ENTRY POINT
+##
 
 if __name__ == "__main__":
     main()
     sys.exit(0)
 
-## } MODULE
+## } SCRIPT

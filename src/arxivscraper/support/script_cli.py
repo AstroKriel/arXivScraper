@@ -18,16 +18,17 @@ from arxivscraper.support import dates
 ##
 
 
-class GetUserInputs:
+class CLIParser:
     """Parse and validate CLI arguments for the main program, search, score, and fetch modes."""
 
     def __init__(
         self,
+        *,
         include_main: bool = False,
         include_search: bool = False,
         include_fetch: bool = False,
         include_score: bool = False,
-    ):
+    ) -> None:
         self.parser = argparse.ArgumentParser(
             description="arXiv-Scraper: program to search for relevant arXiv papers.",
             formatter_class=lambda prog: argparse.RawDescriptionHelpFormatter(
@@ -50,7 +51,7 @@ class GetUserInputs:
     def _add_main_program_arguments(
         self,
     ) -> None:
-        """Sets up main program flag arguments."""
+        """Add main program flag arguments."""
         parse_flags = self.parser.add_argument_group(description="Main program flags:")
         for short_flag, long_flag in [
             ("-s", "--search"),
@@ -71,7 +72,7 @@ class GetUserInputs:
     def _add_search_arguments(
         self,
     ) -> None:
-        """Sets up search-specific arguments."""
+        """Add search-specific arguments."""
         search_args = self.parser.add_argument_group(
             description="Search arguments (relevant when main program is run with `-s`):",
         )
@@ -106,7 +107,7 @@ class GetUserInputs:
     def _add_fetch_argument(
         self,
     ) -> None:
-        """Sets up fetch-specific arguments."""
+        """Add fetch-specific arguments."""
         fetch_args = self.parser.add_argument_group(
             description="Fetch argument (relevant when running with `-f`):",
         )
@@ -121,7 +122,7 @@ class GetUserInputs:
     def _add_score_arguments(
         self,
     ) -> None:
-        """Sets up score-specific arguments."""
+        """Add score-specific arguments."""
         score_args = self.parser.add_argument_group(
             description="Score arguments (relevant when running with `-r`):",
         )
@@ -144,7 +145,7 @@ class GetUserInputs:
     def get_program_inputs(
         self,
     ) -> dict[str, Any]:
-        """Returns main program flags, and ensures at least one is set."""
+        """Return main program flags; ensure at least one is set."""
         main_flags = ["search", "fetch", "score", "browse", "download"]
         if not any(self.args.get(flag) for flag in main_flags):
             print(
@@ -156,7 +157,7 @@ class GetUserInputs:
     def get_search_inputs(
         self,
     ) -> dict[str, Any]:
-        """Returns only the search-specific arguments and prompts for any missing parameters if required."""
+        """Return search-specific arguments; prompt for any missing required parameters."""
         search_args = {
             key: self.args.get(key)
             for key in [
@@ -176,21 +177,21 @@ class GetUserInputs:
         if search_args["lookback_days"] is None:
             search_args["lookback_days"] = int(input("Please provide --lookback-days: "))
         if search_args["from_date"] is not None:
-            search_args["from_date"] = dates.cast_date_to_datetime(
-                dates.cast_string_to_date(search_args["from_date"]),
+            search_args["from_date"] = dates.as_datetime(
+                dates.as_date(search_args["from_date"]),
             )
         return search_args
 
     def get_score_inputs(
         self,
     ) -> dict[str, Any]:
-        """Returns score-specific CLI overrides (model, base_url). None values mean 'use config file'."""
+        """Return score-specific CLI overrides; `None` values mean 'use config file'."""
         return {key: self.args.get(key) for key in ["model", "base_url"]}
 
     def get_fetch_inputs(
         self,
     ) -> str:
-        """Returns only the fetch-specific arguments, prompting if the arXiv ID is not passed, and validates the ID-format."""
+        """Return the fetch arXiv ID; prompt if not passed and validate the format."""
         arxiv_id = self.args.get("id")
         if arxiv_id is None:
             print("Which article do you want to fetch from the arXiv?")
