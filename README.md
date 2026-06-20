@@ -1,6 +1,6 @@
 # arXivScraper
 
-**arxivscraper** is a lightweight paper management tool for finding, filtering, and triaging arXiv papers.
+**arxivscraper** is a lightweight paper management tool for finding, filtering, and triaging arXiv papers. A terminal browser lets you read abstracts, update triage status, and download PDFs without leaving the command line.
 
 ![TUI browser](./example-tui.png)
 
