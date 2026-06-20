@@ -2,7 +2,7 @@
 
 **arxivscraper** is a lightweight paper management tool for finding, filtering, and triaging arXiv papers.
 
-![Logo](./logo.jpg)
+![TUI browser](./example-tui.png)
 
 ---
 
