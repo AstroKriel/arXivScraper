@@ -9,5 +9,9 @@ categories = [
 keywords_to_exclude = ["rmhd", "gr-mhd", "relativis", "tokamak", "machine"]
 keywords_to_include = [
     "mhd",
-    ["magnet", ["hydro", "turb", "structure", "cascade", "charg", "forc", "syst"]],
+    "dynamo",
+    "chiral",
+    "helicit",
+    "reconnect",
+    ["magnet", ["hydro", "turb", "alfven", "structure", "cascade", "charg", "forc", "syst"]],
 ]
