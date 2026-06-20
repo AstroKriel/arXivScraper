@@ -10,7 +10,7 @@ import time
 
 ## local
 from arxivscraper.support import script_cli
-from arxivscraper.workflows import ai_score, browse_papers, download_pdfs, fetch_paper, search_arxiv
+from arxivscraper.workflows import ai_score, browse_papers, download_pdfs, fetch_paper, retag, search_arxiv
 
 ##
 ## === MAIN
@@ -43,6 +43,8 @@ def main() -> None:
         download_pdfs.main()
     elif program_flags["browse"]:
         browse_papers.main()
+    elif program_flags["retag"]:
+        retag.main()
     time_elapsed = time.time() - time_start
     print(f"Elapsed time: {time_elapsed:.2f} seconds.")
 
