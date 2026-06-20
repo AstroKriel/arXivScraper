@@ -1,6 +1,6 @@
 # arXivScraper
 
-**arxivscraper** is a lightweight paper management tool for finding, filtering, and triaging arXiv papers. A terminal browser lets you read abstracts, update triage status, and download PDFs without leaving the command line.
+**arxivscraper** is a lightweight paper management tool for finding and managing arXiv papers that are relevant for you.
 
 ![TUI browser](./example-tui.png)
 
@@ -57,7 +57,7 @@ Papers are saved as markdown files in `md_files/`. If `--config-name` or `--look
 
 ### Browse
 
-Open the terminal interface browser to read abstracts and triage saved papers:
+Open the terminal interface browser to read abstracts and triage saved papers (see the picture above):
 
 ```bash
 uv run arxivscraper --browse
