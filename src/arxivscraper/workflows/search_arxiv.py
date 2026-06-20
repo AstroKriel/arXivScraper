@@ -114,7 +114,7 @@ class SearchArxiv():
         for search_category in self.search_criteria_config["categories"]:
             print(f"Searching: {search_category}")
             print(
-                f"Date range: {dates.as_date_string(self.lookback_date)} to {dates.as_date_string(self.current_date)}",
+                f"Updated date range: {dates.as_date_string(self.lookback_date)} to {dates.as_date_string(self.current_date)}",
             )
             print("Requesting results from arXiv...")
             num_articles_looked_at_in_category = 0
@@ -212,26 +212,26 @@ class SearchArxiv():
         *,
         category: str,
     ) -> arxiv.Search:
-        date_range = self._get_submitted_date_range_query()
+        date_range = self._get_updated_date_range_query()
         return arxiv.Search(
             query=f"{category} AND {date_range}",
             max_results=10**4,
-            sort_by=arxiv.SortCriterion.SubmittedDate,
+            sort_by=arxiv.SortCriterion.LastUpdatedDate,
         )
 
-    def _get_submitted_date_range_query(
+    def _get_updated_date_range_query(
         self,
     ) -> str:
         start = self.lookback_date.strftime("%Y%m%d0000")
         end = self.current_date.strftime("%Y%m%d2359")
-        return f"submittedDate:[{start} TO {end}]"
+        return f"lastUpdatedDate:[{start} TO {end}]"
 
     def _is_within_date_range(
         self,
         *,
         arxiv_article: arxiv.Result,
     ) -> bool:
-        article_date = arxiv_article.published.date()
+        article_date = arxiv_article.updated.date()
         return (self.lookback_date.date() <= article_date) and (article_date <= self.current_date.date())
 
     def _is_before_date_range(
@@ -240,7 +240,7 @@ class SearchArxiv():
         arxiv_article: arxiv.Result,
     ) -> bool:
         """Return `True` once results have moved older than the lower date bound."""
-        article_date = arxiv_article.published.date()
+        article_date = arxiv_article.updated.date()
         return article_date < self.lookback_date.date()
 
     def _is_duplicate(
