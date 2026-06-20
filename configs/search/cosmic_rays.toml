@@ -7,6 +7,5 @@ categories = [
 ]
 keywords_to_exclude = ["machine"]
 keywords_to_include = [
-    ["cosmic ray", ["turb", "magnet", "interstellar", "ISM", "feedback", "transport", "diffus", "stream"]],
-    ["cosmic-ray", ["turb", "magnet", "interstellar", "ISM", "feedback", "transport", "diffus", "stream"]],
+    ["cosmic", "ray", ["turb", "magnet", "interstellar", "ISM", "feedback", "transport", "diffus", "stream"]],
 ]

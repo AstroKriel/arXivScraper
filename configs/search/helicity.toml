@@ -9,8 +9,8 @@ categories = [
 ]
 keywords_to_exclude = ["machine"]
 keywords_to_include = [
-    "magnetic helicit",
+    ["magnet", "helicit"],
     "cross-helicit",
-    ["helicit", ["dynamo", "mhd", "inverse cascade", "chiral", "primordial", "turb"]],
-    ["inverse cascade", ["magnet", "helicit"]],
+    ["helicit", ["dynamo", "mhd", ["inverse", "cascade"], "chiral", "primordial", "turb"]],
+    ["inverse", "cascade", ["magnet", "helicit"]],
 ]

@@ -11,5 +11,5 @@ keywords_to_include = [
     "mhd",
     "chiral",
     "reconnect",
-    ["magnet", ["prandtl", "reynolds", "helicit", "alfven", "turb", "dynamo", "amplif", "cascade", "inertial range"]],
+    ["magnet", ["prandtl", "reynolds", "helicit", "alfven", "turb", "dynamo", "amplif", "cascade", ["inertial", "range"]]],
 ]
