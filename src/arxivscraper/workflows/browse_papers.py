@@ -5,6 +5,7 @@
 ##
 
 ## stdlib
+import subprocess
 import sys
 import webbrowser
 from typing import ClassVar
@@ -105,6 +106,11 @@ class BrowseApp(App[None]):
             key="o",
             action="open_pdf",
             description="open PDF",
+        ),
+        Binding(
+            key="e",
+            action="open_md",
+            description="edit MD",
         ),
         Binding(
             key="f",
@@ -294,6 +300,15 @@ class BrowseApp(App[None]):
         if article is None:
             return
         webbrowser.open(article.url_pdf)
+
+    def action_open_md(
+        self,
+    ) -> None:
+        article = self._get_current_article()
+        if article is None:
+            return
+        file_path = directories.md_files_dir / f"{article.arxiv_id}.md"
+        subprocess.run(["open", str(file_path)])
 
     def action_apply_downloads(
         self,
