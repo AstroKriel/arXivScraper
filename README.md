@@ -30,7 +30,7 @@ export ARXIVSCRAPER_ROOT=/path/to/arXivScraper
 4. Optional: install as a system-wide `uv` tool so `arxivscraper` is available from anywhere:
 
 ```bash
-uv tool install .
+uv tool install . --no-cache
 ```
 
 This adds `arxivscraper` to your `PATH`, so you can run:
