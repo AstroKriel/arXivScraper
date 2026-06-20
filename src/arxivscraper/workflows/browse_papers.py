@@ -111,6 +111,7 @@ class BrowseApp(App[None]):
             key="e",
             action="open_md",
             description="edit MD",
+            priority=True,
         ),
         Binding(
             key="f",
@@ -308,7 +309,7 @@ class BrowseApp(App[None]):
         if article is None:
             return
         file_path = directories.md_files_dir / f"{article.arxiv_id}.md"
-        subprocess.run(["open", str(file_path)])
+        subprocess.Popen(["open", str(file_path)])
 
     def action_apply_downloads(
         self,
