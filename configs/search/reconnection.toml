@@ -9,7 +9,7 @@ categories = [
 ]
 keywords_to_exclude = ["rmhd", "gr-mhd", "relativis", "tokamak", "machine"]
 keywords_to_include = [
-    "reconnect",
     "plasmoid",
-    ["tearing", ["instabilit", "mode"]],
+    ["tearing", ["instabilit", "mode", "magnet"]],
+    ["reconnect", ["turb", "magnet", "mhd", "plasmoid", "tearing"]],
 ]

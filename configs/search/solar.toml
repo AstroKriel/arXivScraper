@@ -6,7 +6,7 @@ categories = [
 ]
 keywords_to_exclude = ["machine"]
 keywords_to_include = [
-    ["solar wind", ["turb", "magnet", "alfven", "reconnect", "helicit"]],
-    ["heliosphere", ["turb", "magnet", "alfven"]],
-    ["parker solar probe", ["turb", "magnet", "alfven"]],
+    ["solar wind", ["turb", "magnet", "alfven", "reconnect", "helicit", "compress"]],
+    ["heliosphere", ["turb", "magnet", "alfven", "cosmic ray"]],
+    ["parker solar probe", ["turb", "magnet", "alfven", "reconnect"]],
 ]

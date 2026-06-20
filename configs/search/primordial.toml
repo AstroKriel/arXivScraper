@@ -7,7 +7,9 @@ categories = [
 ]
 keywords_to_exclude = ["machine"]
 keywords_to_include = [
-    ["primordial", ["magnet", "dynamo", "helicit", "field"]],
-    ["cosmological", ["magnet", "dynamo", "helicit"]],
-    ["early universe", ["magnet", "dynamo"]],
+    ["primordial", ["magnet", "dynamo", "helicit", "magnetogenes"]],
+    ["cosmological", ["magnet", "dynamo", "helicit", "magnetogenes"]],
+    ["early universe", ["magnet", "dynamo", "helicit"]],
+    "magnetogenes",
+    "biermann",
 ]

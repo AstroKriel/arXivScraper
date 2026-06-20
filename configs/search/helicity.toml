@@ -11,6 +11,6 @@ keywords_to_exclude = ["machine"]
 keywords_to_include = [
     "magnetic helicit",
     "cross-helicit",
-    ["helicit", ["dynamo", "turb", "mhd", "inverse cascade", "chiral"]],
+    ["helicit", ["dynamo", "mhd", "inverse cascade", "chiral", "primordial", "turb"]],
     ["inverse cascade", ["magnet", "helicit"]],
 ]

@@ -8,8 +8,8 @@ categories = [
 ]
 keywords_to_exclude = ["tokamak", "machine"]
 keywords_to_include = [
-    ["interstellar", ["turb", "medium", "mhd", "magnet", "dynamo"]],
-    ["supernova", ["turb", "driven", "feedback", "ISM"]],
-    ["ISM", ["turb", "magnet", "dynamo"]],
-    ["molecular cloud", ["turb", "magnet"]],
+    ["interstellar", ["turb", "mhd", "magnet", "dynamo", "cosmic ray", "feedback"]],
+    ["ISM", ["turb", "magnet", "dynamo", "cosmic ray"]],
+    ["supernova", ["turb", "driven", "feedback", "magnet", "ISM"]],
+    ["molecular cloud", ["turb", "magnet", "collaps", "fragm"]],
 ]
