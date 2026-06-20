@@ -5,6 +5,7 @@
 ##
 
 ## stdlib
+import subprocess
 import sys
 import webbrowser
 from typing import ClassVar
@@ -307,7 +308,7 @@ class BrowseApp(App[None]):
         if article is None:
             return
         file_path = directories.md_files_dir / f"{article.arxiv_id}.md"
-        webbrowser.open(file_path.as_uri())
+        subprocess.Popen(["open", str(file_path)])
 
     def action_apply_downloads(
         self,
