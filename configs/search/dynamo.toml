@@ -9,6 +9,6 @@ categories = [
 ]
 keywords_to_exclude = ["rmhd", "gr-mhd", "relativis", "tokamak", "machine"]
 keywords_to_include = [
-    ["small-scale", ["dynamo", "amplif"]],
-    ["dynamo", ["large-scale", "turb", "mean-field", "kinematic", "fluctuat", "action", "theory", "instabilit", "amplif", "prandtl", "kazantsev", "primordial"]],
+    "dynamo",
+    ["scale", "amplif"],
 ]
