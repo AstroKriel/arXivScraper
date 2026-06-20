@@ -7,6 +7,9 @@ __pycache__/
 ## code env
 .venv/
 
+## escape hatch: append `.gitignored` to any filename to exclude it from version control
+*.gitignored
+
 ## output directories
 md_files/
 pdfs/
