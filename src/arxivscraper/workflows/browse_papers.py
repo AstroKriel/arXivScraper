@@ -107,10 +107,9 @@ class BrowseApp(App[None]):
             description="open PDF",
         ),
         Binding(
-            key="i",
+            key="e",
             action="open_md",
             description="edit MD",
-            priority=True,
         ),
         Binding(
             key="f",
