@@ -7,7 +7,11 @@
 ## stdlib
 import re
 from collections.abc import Mapping
-from dataclasses import asdict, dataclass, field
+from dataclasses import (
+    asdict,
+    dataclass,
+    field,
+)
 from datetime import date
 from enum import Enum
 from pathlib import Path
@@ -238,43 +242,20 @@ def sanitise_text(
 
 
 ##
-## === PRINT ARTICLE
+## === DESCRIBE ARTICLE
 ##
 
 
-def print_article(
+def describe_article(
     article: Article,
-    *,
-    num_pad_chars: int = 13,
-) -> None:
-    """Print a compact summary of `article` to stdout."""
-
-    def _print_line(
-        *,
-        category: str,
-        content: str | list[Any],
-    ) -> None:
-        if isinstance(content, list):
-            content = ", ".join(content)
-        category = f"{category}".ljust(num_pad_chars)
-        print(f"{category}: {content}")
-
-    _print_line(
-        category="Title",
-        content=article.title,
-    )
-    _print_line(
-        category="PDF URL",
-        content=article.url_pdf,
-    )
-    _print_line(
-        category="Date Updated",
-        content=dates.as_date_string(article.date_updated),
-    )
-    _print_line(
-        category="Author(s)",
-        content=article.authors,
-    )
+) -> dict[str, str]:
+    """Return a compact summary of `article`, one item per field, for a note or an outcome."""
+    return {
+        "title": article.title,
+        "pdf url": article.url_pdf,
+        "date updated": dates.as_date_string(article.date_updated),
+        "authors": ", ".join(article.authors),
+    }
 
 
 ##
@@ -325,28 +306,27 @@ def write_article_to_file(
     file_pointer.write(f" - [{article.task_status.value}] #task status\n")
 
 
+def get_article_file_path(
+    article: Article,
+) -> Path:
+    return directories.get_md_files_dir() / f"{article.arxiv_id}.md"
+
+
+def write_article_file(
+    article: Article,
+) -> None:
+    """Write `article` to its mdfile as it is, replacing the file without merging any saved state."""
+    with open(get_article_file_path(article), "w") as file_pointer:
+        write_article_to_file(file_pointer, article=article)
+
+
 def save_article(
     article: Article,
-    *,
-    verbose: bool = True,
-    force: bool = False,
 ) -> None:
     """Write `article` to its mdfile, merging state from any existing file at that path."""
-    file_name = article.arxiv_id + ".md"
-    file_path = directories.md_files_dir / file_name
+    file_path = get_article_file_path(article)
     if file_path.exists():
         existing_article = read_markdown_file(file_path)
-        ## if the article has already been assessed, do not overwrite it
-        if not (force) and existing_article.task_status in [TaskStatus.READ, TaskStatus.NA]:
-            if existing_article.task_status == TaskStatus.READ:
-                print("The following article has already been read:")
-            if existing_article.task_status == TaskStatus.NA:
-                print("The following article has already been marked as n/a:")
-            print_article(article)
-            user_input = input("Do you want to save it again? (y/N): ").strip().lower()
-            print(" ")
-            if not user_input.startswith("y"):
-                return
         ## retain the task status
         article.task_status = existing_article.task_status
         ## merge `config_tags`: only add unique tags
@@ -361,10 +341,7 @@ def save_article(
             if config_name not in article.config_reasons:
                 article.config_reasons[config_name] = reasons
     ## overwrite the file, retaining merged state
-    with open(file_path, "w") as file_pointer:
-        write_article_to_file(file_pointer, article=article)
-    if verbose:
-        print(f"Saved: {file_path}")
+    write_article_file(article)
 
 
 ##
@@ -508,7 +485,7 @@ def read_markdown_file(
 
 def read_all_markdown_files() -> list[Article]:
     """Load and return all mdfiles in the output directory as `Article` objects."""
-    return [read_markdown_file(file_path) for file_path in sorted(directories.md_files_dir.glob("*.md"))]
+    return [read_markdown_file(_file_path) for _file_path in sorted(directories.get_md_files_dir().glob("*.md"))]
 
 
 ## } MODULE

@@ -6,7 +6,6 @@
 
 ## stdlib
 import datetime
-import sys
 from typing import Any
 
 ## third-party
@@ -14,9 +13,18 @@ import arxiv
 import requests
 import unidecode
 
+## personal
+from huginn import manage_log, manage_shell
+
 ## local
 from arxivscraper.config_paths import directories
-from arxivscraper.support import articles, dates, file_io, script_cli, search_criteria
+from arxivscraper.support import (
+    articles,
+    dates,
+    file_io,
+    input_value_types,
+    search_criteria,
+)
 
 ##
 ## === CONSTANTS
@@ -112,11 +120,7 @@ class SearchArxiv():
         self._read_existing_ids()
         self.client = self._build_client()
         for search_category in self.search_criteria_config["categories"]:
-            print(f"Searching: {search_category}")
-            print(
-                f"Updated date range: {dates.as_date_string(self.lookback_date)} to {dates.as_date_string(self.current_date)}",
-            )
-            print("Requesting results from arXiv...")
+            manage_log.log_task(f"searching {search_category}")
             num_articles_looked_at_in_category = 0
             num_interesting_articles_in_category = 0
             num_new_articles_in_category = 0
@@ -124,7 +128,6 @@ class SearchArxiv():
                 if self.client is None:
                     raise RuntimeError("client was not initialised.")
                 for arxiv_article in self.client.results(self._create_search_query(category=search_category)):
-                    self._display_progress(num_articles_looked_at_in_category=num_articles_looked_at_in_category)
                     num_articles_looked_at_in_category += 1
                     if self._is_before_date_range(arxiv_article=arxiv_article):
                         break
@@ -146,18 +149,22 @@ class SearchArxiv():
                         self.articles.append(article)
                         num_new_articles_in_category += 1
             except requests.exceptions.Timeout:
-                print(f"\nTimed out while reading arXiv results for {search_category}; skipping category.\n")
+                manage_log.log_outcome(
+                    f"timed out reading arXiv results, so skipped {search_category}",
+                    status=manage_log.OutcomeStatus.WARNING,
+                )
                 continue
-            except requests.exceptions.RequestException as error:
-                print(f"\nRequest failed for {search_category}: {error}; skipping category.\n")
+            except (requests.exceptions.RequestException, arxiv.HTTPError) as error:
+                manage_log.log_outcome(
+                    f"arXiv request failed, so skipped {search_category}",
+                    status=manage_log.OutcomeStatus.WARNING,
+                    items={"error": str(error)},
+                )
                 continue
-            except arxiv.HTTPError as error:
-                print(f"\nHTTP error for {search_category}: {error}; skipping category.\n")
-                continue
-            print(
-                f"\nFound {num_interesting_articles_in_category} interesting articles "
-                f"({num_new_articles_in_category} new to local database) "
-                f"from the {num_articles_looked_at_in_category} looked at.\n",
+            manage_log.log_outcome(
+                f"{num_interesting_articles_in_category} matching papers, {num_new_articles_in_category} new",
+                status=manage_log.OutcomeStatus.SUCCESS,
+                items={"papers checked": num_articles_looked_at_in_category},
             )
 
     def get_sorted_articles(
@@ -173,28 +180,30 @@ class SearchArxiv():
     def _read_search_criteria(
         self,
     ) -> None:
+        manage_log.log_task(f"reading search profile `{self.config_name}`")
         self.search_criteria_config = search_criteria.read_search_criteria(
-            directory=directories.search_configs_dir,
+            directory=directories.get_search_configs_dir(),
             config_name=self.config_name,
         )
-        print("Searching for articles:")
-        print("> from: {}".format(dates.as_date_string(self.lookback_date)))
-        print("> to:   {}".format(dates.as_date_string(self.current_date)))
-        print(" ")
-        print(f"> using the `#{self.config_name}` config file")
-        print(" ")
-        search_criteria.print_search_criteria(self.search_criteria_config)
+        search_items = {
+            "from": dates.as_date_string(self.lookback_date),
+            "to": dates.as_date_string(self.current_date),
+        }
+        search_items.update(search_criteria.describe_search_criteria(self.search_criteria_config))
+        manage_log.log_outcome(
+            f"searching papers updated in the last {(self.current_date - self.lookback_date).days} days",
+            status=manage_log.OutcomeStatus.SUCCESS,
+            items=search_items,
+        )
 
     def _read_existing_ids(
         self,
     ) -> None:
-        if not directories.md_files_dir.exists():
+        md_files_dir = directories.get_md_files_dir()
+        if not md_files_dir.exists():
             self.existing_ids = set()
             return
-        self.existing_ids = {
-            file_path.stem
-            for file_path in directories.md_files_dir.glob("*.md")
-        }
+        self.existing_ids = {_file_path.stem for _file_path in md_files_dir.glob("*.md")}
 
     def _build_client(
         self,
@@ -299,57 +308,68 @@ class SearchArxiv():
             ),
         )
 
-    def _display_progress(
-        self,
-        *,
-        num_articles_looked_at_in_category: int,
-    ) -> None:
-        if num_articles_looked_at_in_category == 0:
-            print("Progress:", end=" ")
-        elif (num_articles_looked_at_in_category % 10) == 0:
-            print("x", end="")
-        elif (num_articles_looked_at_in_category % 50) == 0:
-            print(" ", end="")
-
-
 ##
-## === PROGRAM MAIN
+## === COMMAND
 ##
 
 
-def main() -> None:
-    user_inputs = script_cli.CLIParser(include_search=True)
-    search_inputs = user_inputs.get_search_inputs()
-    end_date = search_inputs["from_date"]
-    if end_date is None:
+def _save_articles(
+    articles_list: list[articles.Article],
+) -> None:
+    file_io.create_directory(directories.get_md_files_dir())
+    for article in articles_list:
+        articles.save_article(article)
+
+
+def cmd_search(
+    *,
+    profile_name: str | None,
+    lookback_days: int | None,
+    from_date: datetime.date | None,
+) -> None:
+    """Search arXiv with a search profile and save the new matching papers; asks for any argument left out."""
+    if profile_name is None:
+        profile_name = str(
+            manage_log.ask(
+                "which search profile?",
+                input_value_type=input_value_types.InputValueTypes.PROFILE,
+            ),
+        )
+    if lookback_days is None:
+        lookback_days = int(
+            manage_log.ask(
+                "how many days back?",
+                input_value_type=input_value_types.InputValueTypes.NUMBER,
+            ),
+        )
+    if from_date is None:
         end_date = dates.get_date_today()
+    else:
+        end_date = dates.as_datetime(from_date)
     arxiv_searcher = SearchArxiv(
         current_date=end_date,
         lookback_date=dates.get_date_n_days_before(
             end_date=end_date,
-            day_count=search_inputs["lookback_days"],
+            day_count=lookback_days,
         ),
-        config_name=search_inputs["config_name"],
+        config_name=profile_name,
     )
     arxiv_searcher.search()
-    articles_list = arxiv_searcher.get_sorted_articles()
-    file_io.create_directory(directories.md_files_dir)
-    for article in articles_list:
-        articles.save_article(
-            article=article,
-            verbose=False,
-            force=True,
+    new_articles = arxiv_searcher.get_sorted_articles()
+    manage_log.log_task("saving the new papers")
+    if not new_articles:
+        manage_log.log_outcome(
+            "no new papers to save",
+            status=manage_log.OutcomeStatus.SKIPPED,
         )
-    print(f"Saved {len(articles_list)} articles.")
-    print(" ")
-
-
-##
-## === ENTRY POINT
-##
-
-if __name__ == "__main__":
-    main()
-    sys.exit(0)
+        return
+    manage_shell.run_fn(
+        description=f"save {len(new_articles)} papers to {directories.get_md_files_dir()}",
+        fn=lambda: _save_articles(new_articles),
+    )
+    manage_log.log_outcome(
+        f"saved {len(new_articles)} new papers",
+        status=manage_log.OutcomeStatus.SUCCESS,
+    )
 
 ## } SCRIPT

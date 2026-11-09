@@ -1,5 +1,5 @@
 # Copy this file to <profile-name>.toml and edit the criteria below.
-# Pass the filename without extension as --config-name.
+# Pass the filename without extension as the profile, e.g. `arxivscraper search <profile-name>`.
 
 authors = []
 categories = ["<arxiv-category>"]

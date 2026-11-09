@@ -7,7 +7,7 @@ authors = [{ name = "Neco Kriel", email = "necokriel@gmail.com" }]
 requires-python = ">=3.13"
 dependencies = [
     "arxiv>=2.2.0",
-    "numpy>=2.2.5",
+    "huginn",
     "openai>=1.76.2",
     "requests>=2.32.0",
     "pyyaml>=6.0.2",
@@ -17,6 +17,9 @@ dependencies = [
 
 [project.scripts]
 arxivscraper = "arxivscraper.app:main"
+
+[tool.uv.sources]
+huginn = { git = "https://github.com/AstroKriel/TerminalInterface.git", rev = "d64f51aec57bcd686e9e396117c351fdfaecf5aa" }
 
 [dependency-groups]
 dev = [

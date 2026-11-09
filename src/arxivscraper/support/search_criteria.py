@@ -150,24 +150,19 @@ def as_set_notation(
     return operator.join(parts)
 
 
-def print_search_criteria(
+def describe_search_criteria(
     search_config: dict[str, Any],
-) -> None:
-    """Print the include/exclude keywords and tracked authors from `search_config`."""
-    keywords_to_include = search_config["keywords_to_include"]
-    keywords_to_exclude = search_config["keywords_to_exclude"]
-    authors = search_config["authors"]
-    print("> including articles with phrases:")
-    print(as_set_notation(keywords_to_include))
-    print(" ")
-    if len(keywords_to_exclude) > 0:
-        print("> excluding articles with phrases:")
-        print(as_set_notation(keywords_to_exclude))
-        print(" ")
-    if len(authors) > 0:
-        print("> including articles with authors:", end="")
-        print("\n\t- " + "\n\t- ".join(authors))
-        print(" ")
+) -> dict[str, str]:
+    """Return the categories, include and exclude keywords, and tracked authors of `search_config`, one item each."""
+    criteria_items = {
+        "categories": ", ".join(search_config["categories"]),
+        "include": as_set_notation(search_config["keywords_to_include"]),
+    }
+    if len(search_config["keywords_to_exclude"]) > 0:
+        criteria_items["exclude"] = as_set_notation(search_config["keywords_to_exclude"])
+    if len(search_config["authors"]) > 0:
+        criteria_items["authors"] = ", ".join(search_config["authors"])
+    return criteria_items
 
 
 ## } MODULE

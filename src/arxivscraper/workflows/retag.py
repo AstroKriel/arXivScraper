@@ -5,9 +5,11 @@
 ##
 
 ## stdlib
-import sys
 from pathlib import Path
 from typing import Any
+
+## personal
+from huginn import manage_log, manage_shell
 
 ## local
 from arxivscraper.config_paths import directories
@@ -67,49 +69,67 @@ def retag_articles(
     *,
     articles_list: list[articles.Article],
     configs: dict[str, dict[str, Any]],
-) -> int:
-    """Re-evaluate config tags for every article; save only those that changed. Returns count updated."""
-    known_config_tags = {f"#{name}" for name in configs}
-    num_updated = 0
+) -> list[articles.Article]:
+    """Re-evaluate config tags for every article; update the tags in place and return the articles that changed."""
+    known_config_tags = {f"#{_name}" for _name in configs}
+    retagged_articles: list[articles.Article] = []
     for article in articles_list:
         matching_tags = {
-            f"#{config_name}"
-            for config_name, config in configs.items()
-            if _article_matches_config(article=article, config=config)
+            f"#{_config_name}"
+            for _config_name, _config in configs.items()
+            if _article_matches_config(article=article, config=_config)
         }
         ## keep editorial tags (those not tied to any known config file)
-        editorial_tags = [tag for tag in article.config_tags if tag not in known_config_tags]
-        new_tags = sorted(matching_tags) + [t for t in editorial_tags if t not in matching_tags]
+        editorial_tags = [_tag for _tag in article.config_tags if _tag not in known_config_tags]
+        new_tags = sorted(matching_tags) + [_tag for _tag in editorial_tags if _tag not in matching_tags]
         if set(new_tags) == set(article.config_tags):
             continue
         article.config_tags = new_tags
-        articles.save_article(article, force=True)
-        num_updated += 1
-    return num_updated
+        retagged_articles.append(article)
+    return retagged_articles
+
+
+def _save_articles(
+    articles_list: list[articles.Article],
+) -> None:
+    ## each article was read from its own file, so it is written back as it is; merging would restore removed tags
+    for article in articles_list:
+        articles.write_article_file(article)
 
 
 ##
-## === PROGRAM MAIN
+## === COMMAND
 ##
 
 
-def main() -> None:
-    print("Loading search configs...")
-    configs = _load_all_configs(config_dir=directories.search_configs_dir)
-    print(f"Found {len(configs)} config(s): {', '.join(sorted(configs))}.")
-    print("Reading in all articles...")
+def cmd_retag() -> None:
+    """Re-check every saved paper against every search profile, and save the papers whose tags changed."""
+    manage_log.log_task("reading the search profiles")
+    configs = _load_all_configs(config_dir=directories.get_search_configs_dir())
+    manage_log.log_outcome(
+        f"found {len(configs)} search profiles",
+        status=manage_log.OutcomeStatus.SUCCESS,
+        items={"profiles": ", ".join(sorted(configs))},
+    )
+    manage_log.log_task("re-checking the tags of every saved paper")
     articles_list = articles.read_all_markdown_files()
-    print(f"Retagging {len(articles_list)} articles...")
-    num_updated = retag_articles(articles_list=articles_list, configs=configs)
-    print(f"Updated tags on {num_updated} article(s).")
-
-
-##
-## === ENTRY POINT
-##
-
-if __name__ == "__main__":
-    main()
-    sys.exit(0)
+    retagged_articles = retag_articles(
+        articles_list=articles_list,
+        configs=configs,
+    )
+    if not retagged_articles:
+        manage_log.log_outcome(
+            f"all {len(articles_list)} papers already have the right tags",
+            status=manage_log.OutcomeStatus.SKIPPED,
+        )
+        return
+    manage_shell.run_fn(
+        description=f"save {len(retagged_articles)} retagged papers",
+        fn=lambda: _save_articles(retagged_articles),
+    )
+    manage_log.log_outcome(
+        f"retagged {len(retagged_articles)} of {len(articles_list)} papers",
+        status=manage_log.OutcomeStatus.SUCCESS,
+    )
 
 ## } SCRIPT

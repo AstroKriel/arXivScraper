@@ -6,34 +6,41 @@
 
 ## stdlib
 import subprocess
-import sys
 import webbrowser
 from typing import ClassVar
 
 ## third-party
+import requests
 from rich.markup import escape as rich_escape
 from textual.app import App, ComposeResult
 from textual.binding import Binding, BindingType
-from textual.widgets import DataTable, Footer, Header, Input, Static
+from textual.widgets import (
+    DataTable,
+    Footer,
+    Header,
+    Input,
+    Static,
+)
+
+## personal
+from huginn import manage_cli, manage_log
 
 ## local
-from arxivscraper.config_paths import directories
-from arxivscraper.support import articles, dates, file_io
-from arxivscraper.support.articles import TaskStatus
+from arxivscraper.support import articles, dates
 from arxivscraper.workflows import download_pdfs
 
 ##
 ## === CONSTANTS
 ##
 
-_FILTER_CYCLE: list[TaskStatus | None] = [
+_FILTER_CYCLE: list[articles.TaskStatus | None] = [
     None,
-    TaskStatus.PENDING,
-    TaskStatus.QUEUED,
-    TaskStatus.READ,
-    TaskStatus.DOWNLOAD,
-    TaskStatus.NA,
-    TaskStatus.DELETE,
+    articles.TaskStatus.PENDING,
+    articles.TaskStatus.QUEUED,
+    articles.TaskStatus.READ,
+    articles.TaskStatus.DOWNLOAD,
+    articles.TaskStatus.NA,
+    articles.TaskStatus.DELETE,
 ]
 
 
@@ -96,7 +103,7 @@ class BrowseApp(App[None]):
                 key=status.key,
                 action=f"set_status('{status.value}')",
                 description=status.description,
-            ) for status in TaskStatus
+            ) for status in articles.TaskStatus
         ),
         Binding(
             key="D",
@@ -146,7 +153,7 @@ class BrowseApp(App[None]):
     ) -> None:
         super().__init__()
         self.all_articles = articles_list
-        self.filter_status: TaskStatus | None = None
+        self.filter_status: articles.TaskStatus | None = None
         self.search_query = ""
         self.sort_by_score = False
 
@@ -324,10 +331,8 @@ class BrowseApp(App[None]):
         article = self._get_current_article()
         if article is None:
             return
-        article.task_status = TaskStatus(status)
-        file_path = directories.md_files_dir / f"{article.arxiv_id}.md"
-        with open(file_path, "w") as file_pointer:
-            articles.write_article_to_file(file_pointer, article=article)
+        article.task_status = articles.TaskStatus(status)
+        articles.write_article_file(article)
         self._refresh_table(keep_row=current_row)
 
     def action_open_pdf(
@@ -344,22 +349,37 @@ class BrowseApp(App[None]):
         article = self._get_current_article()
         if article is None:
             return
-        file_path = directories.md_files_dir / f"{article.arxiv_id}.md"
-        subprocess.Popen(["open", str(file_path)])
+        subprocess.Popen(["open", str(articles.get_article_file_path(article))])
 
     def action_apply_downloads(
         self,
     ) -> None:
-        file_io.create_directory(directories.pdfs_dir)
-        download_pdfs.download_pdfs(self.all_articles)
+        ## the browser owns the screen, so it reports downloads in its own notifications rather than through huginn
+        articles_to_download = download_pdfs.find_articles_to_download(self.all_articles)
+        failed_arxiv_ids: list[str] = []
+        for article in articles_to_download:
+            try:
+                download_pdfs.download_pdf(article)
+            except requests.RequestException:
+                failed_arxiv_ids.append(article.arxiv_id)
+        num_downloaded = len(articles_to_download) - len(failed_arxiv_ids)
+        if failed_arxiv_ids:
+            self.notify(
+                f"downloaded {num_downloaded}; failed, still marked: {', '.join(failed_arxiv_ids)}",
+                severity="warning",
+            )
+        else:
+            self.notify(f"downloaded {num_downloaded} papers")
         self._refresh_table()
 
     def action_apply_deletions(
         self,
     ) -> None:
-        to_delete = [article for article in self.all_articles if article.task_status == TaskStatus.DELETE]
-        for article in to_delete:
-            (directories.md_files_dir / f"{article.arxiv_id}.md").unlink(missing_ok=True)
+        articles_to_delete = [
+            _article for _article in self.all_articles if _article.task_status == articles.TaskStatus.DELETE
+        ]
+        for article in articles_to_delete:
+            articles.get_article_file_path(article).unlink(missing_ok=True)
             self.all_articles.remove(article)
         self._refresh_table()
 
@@ -405,26 +425,19 @@ class BrowseApp(App[None]):
 
 
 ##
-## === PROGRAM MAIN
+## === COMMAND
 ##
 
 
-def main() -> None:
-    articles_list = articles.read_all_markdown_files()
+def cmd_browse() -> None:
+    """Open the paper browser; it changes files as you press keys, so it has no dry run."""
+    if manage_cli.get_built_in_params().dry_run:
+        manage_log.exit_with_error("browse changes files as you press keys, so it has no dry run")
     articles_list = sorted(
-        articles_list,
-        key=lambda article: article.date_updated,
+        articles.read_all_markdown_files(),
+        key=lambda _article: _article.date_updated,
         reverse=True,
     )
     BrowseApp(articles_list).run()
-
-
-##
-## === ENTRY POINT
-##
-
-if __name__ == "__main__":
-    main()
-    sys.exit(0)
 
 ## } SCRIPT

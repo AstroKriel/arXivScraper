@@ -36,13 +36,15 @@ uv tool install . --no-cache
 This adds `arxivscraper` to your `PATH`, so you can run:
 
 ```bash
-arxivscraper --browse
-arxivscraper --search --config-name <profile> --lookback-days <n>
-arxivscraper --score
-arxivscraper --retag
-arxivscraper --fetch -id <arxiv-id>
-arxivscraper --download
+arxivscraper browse
+arxivscraper search <profile> --lookback-days <n>
+arxivscraper score
+arxivscraper retag
+arxivscraper fetch <arxiv-id>
+arxivscraper download
 ```
+
+Run `arxivscraper --help` to see every command. Each run does one command. Add `--dry-run` to see what a command would change without changing anything, and `--hide-actions` to leave the individual file writes off the terminal. Every run is logged to `~/.huginn_logs/arxivscraper.log`.
 
 ---
 
@@ -53,17 +55,17 @@ arxivscraper --download
 Search arXiv for papers matching a search profile. The search window is based on arXiv submission date:
 
 ```bash
-uv run arxivscraper --search --config-name <profile> --lookback-days <n> [--from-date YYYY-MM-DD]
+uv run arxivscraper search <profile> --lookback-days <n> [--from-date YYYY-MM-DD]
 ```
 
-Papers are saved as markdown files in `md_files/`. If `--config-name` or `--lookback-days` are not passed, the script will prompt for them. By default, the lookback window ends on today; pass `--from-date` to anchor it to a different date.
+Papers are saved as markdown files in `md_files/`. If `<profile>` or `--lookback-days` is left out, the command asks for it. By default, the lookback window ends on today; pass `--from-date` to anchor it to a different date.
 
 ### Browse
 
 Open the terminal interface browser to read abstracts and triage saved papers (see the picture above):
 
 ```bash
-uv run arxivscraper --browse
+uv run arxivscraper browse
 ```
 
 | Key | State |
@@ -88,7 +90,7 @@ uv run arxivscraper --browse
 Score all unrated papers using an AI provider:
 
 ```bash
-uv run arxivscraper --score
+uv run arxivscraper score
 ```
 
 Pass `--model <model>` or `--base-url <url>` to override the values in `configs/ai/ai_provider.toml`.
@@ -98,20 +100,20 @@ Pass `--model <model>` or `--base-url <url>` to override the values in `configs/
 Re-evaluate all search config filters against every saved paper, adding or removing tags to reflect the current config state:
 
 ```bash
-uv run arxivscraper --retag
+uv run arxivscraper retag
 ```
 
-Run this after adding or modifying a search profile to backfill tags without re-running a full search.
+Run this after adding or modifying a search profile to update tags without re-running a full search. A tag named after a search profile is removed when the paper no longer matches that profile; any other tag is kept.
 
 ### Fetch
 
 Fetch a specific paper by arXiv ID:
 
 ```bash
-uv run arxivscraper --fetch -id <arxiv-id>
+uv run arxivscraper fetch <arxiv-id>
 ```
 
-The script displays the title, authors, and abstract for confirmation before saving.
+The command shows the title, authors, and dates for confirmation, then asks for a tag before saving. If `<arxiv-id>` is left out, the command asks for it.
 
 ### Download
 
@@ -120,8 +122,10 @@ From the terminal interface browser, press `d` to mark a paper for download. Use
 Alternatively, you can also run the download step directly from the terminal:
 
 ```bash
-uv run arxivscraper --download
+uv run arxivscraper download
 ```
+
+A failed download leaves the paper marked for download, so the next run tries it again.
 
 ---
 
@@ -138,7 +142,7 @@ uv run arxivscraper --download
 
 ### Search profiles
 
-Each `.toml` file in `configs/search/` defines one search profile. Copy `configs/search/example.toml` to `<profile>.toml` and pass the filename without extension as `--config-name`.
+Each `.toml` file in `configs/search/` defines one search profile. Copy `configs/search/example.toml` to `<profile>.toml` and pass the filename without extension as `<profile>`.
 
 ```toml
 authors = []
@@ -193,16 +197,19 @@ uv run pytest
 arXivScraper/
 ├── src/
 │   └── arxivscraper/
-│       ├── app.py  # entrypoint
+│       ├── app.py  # command table and entrypoint
 │       ├── config_paths/  # path resolution helpers
-│       ├── support/  # article, date, file-io, CLI, and search-criteria utilities
+│       ├── support/  # article, date, file-io, input-value-type, and search-criteria utilities
 │       └── workflows/  # search, browse, score, retag, fetch, and download workflows
 ├── configs/
 │   ├── ai/  # AI provider, user profile, and guideline configs
 │   └── search/  # search profile configs
 ├── utests/
+│   ├── test_app.py
 │   ├── test_article_utils.py
-│   └── test_filter.py
+│   ├── test_filter.py
+│   ├── test_input_value_types.py
+│   └── test_retag.py
 ├── example-tui.png
 ├── pyproject.toml  # project metadata and dependencies
 ├── uv.lock  # lock file (used by uv to pin dependencies)
