@@ -142,7 +142,7 @@ A failed download leaves the paper marked for download, so the next run tries it
 
 ### Search profiles
 
-Each `.toml` file in `configs/search/` defines one search profile. Copy `configs/search/example.toml` to `<profile>.toml` and pass the filename without extension as `<profile>`.
+Each `.toml` file in `configs/search/` defines one search profile, except `*.example.toml` files, which are templates. Copy `configs/search/profile.example.toml` to `<profile>.toml` and pass the filename without extension as `<profile>`.
 
 ```toml
 authors = []

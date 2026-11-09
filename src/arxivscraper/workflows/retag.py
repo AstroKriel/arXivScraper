@@ -26,8 +26,7 @@ def _load_all_configs(
 ) -> dict[str, dict[str, Any]]:
     """Load every `.toml` search config from `config_dir`; return dict keyed by config name."""
     configs = {}
-    for config_path in sorted(config_dir.glob("*.toml")):
-        config_name = config_path.stem
+    for config_name in search_criteria.list_profile_names(config_dir):
         configs[config_name] = search_criteria.read_search_criteria(
             directory=config_dir,
             config_name=config_name,

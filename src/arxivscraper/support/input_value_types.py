@@ -14,6 +14,7 @@ from huginn import cmd_args
 
 ## local
 from arxivscraper.config_paths import directories
+from arxivscraper.support import search_criteria
 
 ##
 ## === CONVERSIONS
@@ -36,8 +37,8 @@ def _convert_str_to_profile_name(
 ) -> str:
     profile_name = text.strip()
     search_configs_dir = directories.get_search_configs_dir()
-    if not (search_configs_dir / f"{profile_name}.toml").is_file():
-        profile_names = sorted(_config_path.stem for _config_path in search_configs_dir.glob("*.toml"))
+    profile_names = search_criteria.list_profile_names(search_configs_dir)
+    if profile_name not in profile_names:
         raise argparse.ArgumentTypeError(
             f"no search profile `{profile_name}` in {search_configs_dir}; profiles: {', '.join(profile_names)}.",
         )

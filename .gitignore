@@ -19,4 +19,4 @@ configs/ai/ai_provider.toml
 configs/ai/user_profile.txt
 configs/search/*.toml
 ## create copies of the `*.example` files under configs/ to get started
-!configs/search/example.toml
+!configs/search/profile.example.toml

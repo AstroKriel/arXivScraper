@@ -16,6 +16,17 @@ from arxivscraper.support import file_io
 ##
 
 
+def list_profile_names(
+    directory: Path,
+) -> list[str]:
+    """Return the name of every search profile in `directory`; a `*.example.toml` file is a template, not a profile."""
+    return sorted(
+        _config_path.stem
+        for _config_path in directory.glob("*.toml")
+        if not _config_path.name.endswith(".example.toml")
+    )
+
+
 def _ensure_required_keys(
     *,
     config_criteria: dict[str, Any],

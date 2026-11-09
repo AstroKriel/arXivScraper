@@ -63,6 +63,7 @@ class TestProfile_Conversion(unittest.TestCase):
         search_configs_dir = project_root / "configs" / "search"
         search_configs_dir.mkdir(parents=True)
         (search_configs_dir / "mhd.toml").write_text("")
+        (search_configs_dir / "profile.example.toml").write_text("")
         environment_patch = mock.patch.dict("os.environ", {"ARXIVSCRAPER_ROOT": str(project_root)})
         environment_patch.start()
         self.addCleanup(environment_patch.stop)
@@ -77,7 +78,13 @@ class TestProfile_Conversion(unittest.TestCase):
     ) -> None:
         with self.assertRaises(argparse.ArgumentTypeError) as error_context:
             input_value_types.InputValueTypes.PROFILE.convert_fn("ism")
-        self.assertIn("profiles: mhd", str(error_context.exception))
+        self.assertIn("profiles: mhd.", str(error_context.exception))
+
+    def test_rejects_a_template(
+        self,
+    ) -> None:
+        with self.assertRaises(argparse.ArgumentTypeError):
+            input_value_types.InputValueTypes.PROFILE.convert_fn("profile.example")
 
 
 ##
