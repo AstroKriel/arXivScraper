@@ -19,7 +19,7 @@ dependencies = [
 arxivscraper = "arxivscraper.app:main"
 
 [tool.uv.sources]
-huginn = { git = "https://github.com/AstroKriel/TerminalInterface.git", rev = "d64f51aec57bcd686e9e396117c351fdfaecf5aa" }
+huginn = { git = "https://github.com/AstroKriel/TerminalInterface.git", rev = "e9b10d5617022056075562dc76e07b3fb2d1ac30" }
 
 [dependency-groups]
 dev = [

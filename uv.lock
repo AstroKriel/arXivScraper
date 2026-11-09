@@ -60,7 +60,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "arxiv", specifier = ">=2.2.0" },
-    { name = "huginn", git = "https://github.com/AstroKriel/TerminalInterface.git?rev=d64f51aec57bcd686e9e396117c351fdfaecf5aa" },
+    { name = "huginn", git = "https://github.com/AstroKriel/TerminalInterface.git?rev=e9b10d5617022056075562dc76e07b3fb2d1ac30" },
     { name = "openai", specifier = ">=1.76.2" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "requests", specifier = ">=2.32.0" },
@@ -187,7 +187,7 @@ wheels = [
 [[package]]
 name = "huginn"
 version = "0.1.0"
-source = { git = "https://github.com/AstroKriel/TerminalInterface.git?rev=d64f51aec57bcd686e9e396117c351fdfaecf5aa#d64f51aec57bcd686e9e396117c351fdfaecf5aa" }
+source = { git = "https://github.com/AstroKriel/TerminalInterface.git?rev=e9b10d5617022056075562dc76e07b3fb2d1ac30#e9b10d5617022056075562dc76e07b3fb2d1ac30" }
 dependencies = [
     { name = "rich" },
 ]
